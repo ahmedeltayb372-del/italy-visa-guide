@@ -25,6 +25,10 @@ color:white;
 padding:25px;
 }
 
+header h1{
+font-size:28px;
+}
+
 .container{
 width:95%;
 max-width:1200px;
@@ -95,6 +99,11 @@ margin-top:20px;
 text-align:center;
 padding:20px;
 }
+
+.main-admin{
+color:#2457ff;
+font-weight:bold;
+}
 </style>
 
 </head>
@@ -154,8 +163,10 @@ padding:20px;
 
 const supabaseClient = supabase.createClient(
 "https://sderoafpcfgabdkqvbyc.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZXJvYWZwY2ZnYWJka3F2YnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3ODE0NDIsImV4cCI6MjEwMjM1NzQ0Mn0.OON8o3-Rr4VRgrECJyf-bDO5vRGU8G3NmM6PYYKipns"
+"sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3"
 );
+
+const MAIN_ADMIN_EMAIL = "ahmedeltayb372@gmail.com";
 
 async function checkAdmin(){
 
@@ -186,8 +197,12 @@ alert("الحساب غير موجود");
 return;
 }
 
-if(profile.role !== "admin"){
+if(
+profile.role !== "admin" &&
+userEmail !== MAIN_ADMIN_EMAIL
+){
 alert("غير مصرح");
+location.href="index.html";
 return;
 }
 
@@ -222,11 +237,21 @@ users.forEach(user=>{
 
 html += `
 <tr>
+
 <td>${user.email}</td>
+
 <td>${user.role}</td>
+
 <td>
+
 ${
-user.role==="admin"
+user.email === MAIN_ADMIN_EMAIL
+?
+`<span class="main-admin">
+الأدمن الرئيسي
+</span>`
+:
+user.role === "admin"
 ?
 `<button class="btn-user"
 onclick="makeUser('${user.id}')">
@@ -238,7 +263,9 @@ onclick="makeAdmin('${user.id}')">
 جعله Admin
 </button>`
 }
+
 </td>
+
 </tr>
 `;
 
@@ -264,6 +291,17 @@ loadUsers();
 
 async function makeUser(id){
 
+const {data:userData} = await supabaseClient
+.from("profiles")
+.select("email")
+.eq("id",id)
+.single();
+
+if(userData?.email === MAIN_ADMIN_EMAIL){
+alert("لا يمكن إزالة صلاحية الأدمن الرئيسي");
+return;
+}
+
 const {error} = await supabaseClient
 .from("profiles")
 .update({role:"user"})
@@ -280,8 +318,8 @@ loadUsers();
 async function logout(){
 
 await supabaseClient.auth.signOut();
-location.href="login.html";
 
+location.href="login.html";
 }
 
 checkAdmin();
