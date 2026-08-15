@@ -1,38 +1,237 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>إنشاء حساب</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إنشاء حساب</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const SUPABASE_URL="https://sderoafpcfgabdkqvbyc.supabase.co";
-const SUPABASE_KEY="sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const SUPABASE_URL = "https://sderoafpcfgabdkqvbyc.supabase.co";
+const SUPABASE_KEY = "ضع_المفتاح_الحقيقي_هنا";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 </script>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:#f6f8fc;color:#101828}
-.wrap{width:min(1100px,calc(100% - 32px));margin:auto}.nav{height:72px;background:#fff;border-bottom:1px solid #e8ecf2;display:flex;align-items:center}
-.navin{display:flex;align-items:center;justify-content:space-between;gap:15px}.brand{font-weight:900;color:#0b1730;text-decoration:none;font-size:20px}
-.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer}.primary{background:#2457ff;color:#fff}.outline{background:#fff;border:1px solid #dfe5ee;color:#17233d}
-.card{background:#fff;border:1px solid #e5eaf1;border-radius:24px;padding:30px;box-shadow:0 15px 45px rgba(16,24,40,.05)}
-.auth{min-height:calc(100vh - 72px);display:grid;place-items:center;padding:40px 0}.authcard{width:min(460px,100%)}
-h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730}p{color:#667085}.field{margin:16px 0}.field label{display:block;font-weight:800;margin-bottom:7px}
-.field input{width:100%;padding:13px 14px;border:1px solid #dfe5ee;border-radius:12px;font-size:16px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}
-.msg{margin-top:15px;padding:12px;border-radius:12px;display:none}.error{background:#fff0f0;color:#b42318}.ok{background:#ecfdf3;color:#027a48}
-.links{text-align:center;margin-top:20px}.links a,.link{color:#2457ff;font-weight:800;text-decoration:none}
-.dash{padding:45px 0}.hero{background:#0b1730;color:#fff;border-radius:28px;padding:32px;margin-bottom:22px}.hero p{color:#c5cede}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.stat{background:#ffffff12;border-radius:16px;padding:18px}.stat b{font-size:28px;display:block}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.task{padding:14px 0;border-bottom:1px solid #edf0f5;display:block}.task input{margin-left:8px}
-@media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}}
-</style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><button class="btn outline" id="lang">English</button></div></nav>
-<main class="auth"><section class="card authcard">
-<h1 id="title">إنشاء حساب</h1><p id="sub">أنشئ حسابك مجانًا وابدأ متابعة رحلة التأشيرة.</p>
-<form id="form"><div class="field"><label id="emailLabel">البريد الإلكتروني</label><input id="email" type="email" required></div>
-<div class="field"><label id="passLabel">كلمة المرور</label><input id="password" type="password" minlength="6" required></div>
-<div class="field"><label id="confirmLabel">تأكيد كلمة المرور</label><input id="confirm" type="password" minlength="6" required></div>
-<button class="btn primary" style="width:100%" id="submit">إنشاء الحساب</button></form>
-<div class="msg error" id="err"></div><div class="msg ok" id="ok"></div>
-<div class="links"><span id="have">لديك حساب بالفعل؟</span> <a href="login.html" id="loginLink">تسجيل الدخول</a></div></section></main>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Tahoma,sans-serif;
+}
+
+body{
+background:#f4f6fb;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+padding:20px;
+}
+
+.card{
+background:#fff;
+width:100%;
+max-width:500px;
+padding:35px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+h1{
+text-align:center;
+margin-bottom:10px;
+color:#0b1730;
+}
+
+.sub{
+text-align:center;
+color:#666;
+margin-bottom:25px;
+}
+
+label{
+display:block;
+margin-bottom:8px;
+font-weight:bold;
+}
+
+input{
+width:100%;
+padding:14px;
+border:1px solid #ddd;
+border-radius:10px;
+margin-bottom:18px;
+font-size:16px;
+}
+
+input:focus{
+outline:none;
+border-color:#2457ff;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+background:#2457ff;
+color:#fff;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+opacity:.9;
+}
+
+.msg{
+display:none;
+padding:12px;
+border-radius:10px;
+margin-top:15px;
+text-align:center;
+}
+
+.error{
+background:#fff0f0;
+color:#c1121f;
+}
+
+.success{
+background:#ecfdf3;
+color:#027a48;
+}
+
+.footer{
+text-align:center;
+margin-top:20px;
+}
+
+.footer a{
+color:#2457ff;
+text-decoration:none;
+font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h1>إنشاء حساب</h1>
+
+<p class="sub">
+أنشئ حسابك مجاناً وابدأ متابعة رحلة التأشيرة.
+</p>
+
+<form id="registerForm">
+
+<label>البريد الإلكتروني</label>
+<input
+type="email"
+id="email"
+required
+placeholder="example@email.com">
+
+<label>كلمة المرور</label>
+<input
+type="password"
+id="password"
+required
+minlength="6">
+
+<label>تأكيد كلمة المرور</label>
+<input
+type="password"
+id="confirm"
+required
+minlength="6">
+
+<button type="submit">
+إنشاء الحساب
+</button>
+
+</form>
+
+<div id="errorBox" class="msg error"></div>
+<div id="successBox" class="msg success"></div>
+
+<div class="footer">
+لديك حساب بالفعل؟
+<a href="login.html">تسجيل الدخول</a>
+</div>
+
+</div>
+
 <script>
-let en=false;
-const T={ar:{title:"إنشاء حساب",sub:"أنشئ حسابك مجانًا وابدأ متابعة رحلة التأشيرة.",email:"البريد الإلكتروني",pass:"كلمة المرور",confirm:"تأكيد كلمة المرور",submit:"إنشاء الحساب",have:"لديك حساب بالفعل؟",login:"تسجيل الدخول",switch:"English",mismatch:"كلمتا المرور غير متطابقتين.",created:"تم إنشاء الحساب. إذا كان تأكيد البريد مفعلًا، راجع بريدك الإلكتروني."},en:{title:"Create Account",sub:"Create your free account and start tracking your visa journey.",email:"Email",pass:"Password",confirm:"Confirm password",submit:"Create Account",have:"Already have an account?",login:"Login",switch:"العربية",mismatch:"Passwords do not match.",created:"Account created. If email confirmation is enabled, check your inbox."}};
-function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";document.getElementById("title").textContent=t.title;document.getElementById("sub").textContent=t.sub;document.getElementById("emailLabel").textContent=t.email;document.getElementById("passLabel").textContent=t.pass;document.getElementById("confirmLabel").textContent=t.confirm;document.getElementById("submit").textContent=t.submit;document.getElementById("have").textContent=t.have;document.getElementById("loginLink").textContent=t.login;document.getElementById("lang").textContent=t.switch}
-document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
-document.getElementById("form").onsubmit=async e=>{e.preventDefault();document.querySelectorAll(".msg").forEach(x=>x.style.display="none");if(password.value!==confirm.value)return show(T[en?"en":"ar"].mismatch,"err");const r=await supabaseClient.auth.signUp({email:email.value.trim(),password:password.value});if(r.error)return show(r.error.message,"err");show(T[en?"en":"ar"].created,"ok");setTimeout(()=>location.href="dashboard.html",1200)};
-function show(x,id){const a=document.getElementById(id);a.textContent=x;a.style.display="block"}
-</script></body></html>
+
+function showError(message){
+const box = document.getElementById("errorBox");
+box.style.display = "block";
+box.textContent = message;
+
+document.getElementById("successBox").style.display = "none";
+}
+
+function showSuccess(message){
+const box = document.getElementById("successBox");
+box.style.display = "block";
+box.textContent = message;
+
+document.getElementById("errorBox").style.display = "none";
+}
+
+document
+.getElementById("registerForm")
+.addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+const email =
+document.getElementById("email").value.trim();
+
+const password =
+document.getElementById("password").value;
+
+const confirm =
+document.getElementById("confirm").value;
+
+if(password !== confirm){
+showError("كلمتا المرور غير متطابقتين");
+return;
+}
+
+if(password.length < 6){
+showError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+return;
+}
+
+const { data, error } =
+await supabaseClient.auth.signUp({
+email: email,
+password: password
+});
+
+if(error){
+showError(error.message);
+return;
+}
+
+showSuccess("تم إنشاء الحساب بنجاح");
+
+setTimeout(() => {
+window.location.href = "login.html";
+},1500);
+
+});
+</script>
+
+</body>
+</html>
