@@ -23,10 +23,12 @@ h2{font-size:1.08rem;margin:0 0 10px}.editor{border:1px solid var(--line);border
 <div id="login" class="wrap locked">
   <div class="card">
     <h2>🔐 دخول لوحة التحكم</h2>
-    <p class="small">هذه لوحة تعديل محتوى. كلمة المرور الموجودة هنا للحماية البسيطة فقط وليست نظام مصادقة آمنًا.</p>
+    <p class="small">سجّل الدخول بحساب الأدمن الموجود في Supabase.</p>
+    <label>البريد الإلكتروني</label>
+    <input id="email" type="email" autocomplete="username" placeholder="admin@example.com" style="width:100%;padding:11px;border:1px solid #dccfa9;border-radius:9px;font:inherit;margin:6px 0 12px">
     <label>كلمة المرور</label>
-    <input id="pass" type="password" placeholder="اكتب كلمة المرور" style="width:100%;padding:11px;border:1px solid #dccfa9;border-radius:9px;font:inherit">
-    <div class="actions"><button class="primary" onclick="login()">دخول</button></div>
+    <input id="pass" type="password" autocomplete="current-password" placeholder="كلمة المرور" style="width:100%;padding:11px;border:1px solid #dccfa9;border-radius:9px;font:inherit;margin-top:6px">
+    <div class="actions"><button class="primary" onclick="login()">دخول</button><button onclick="resetPassword()">نسيت كلمة المرور</button></div>
     <p id="loginMsg" class="small"></p>
   </div>
 </div>
@@ -42,8 +44,7 @@ h2{font-size:1.08rem;margin:0 0 10px}.editor{border:1px solid var(--line);border
   </div>
   <div class="wrap">
     <div class="notice">
-      <b>مهم:</b> التعديلات في هذه النسخة تُحفظ داخل متصفحك باستخدام LocalStorage، لذلك ستظهر لك أنت فقط.
-      <br>لو عايز التعديلات تظهر لكل زوار الموقع من أي جهاز، نحتاج نربطه في الخطوة التالية بقاعدة بيانات/CMS حقيقية.
+      <b>مهم:</b> أي تعديل تحفظه هنا يُحفظ في قاعدة بيانات Supabase ويظهر لكل زوار الموقع.
       <br><span class="small">تقدر تعدّل النص داخل المربعات مباشرة، بما في ذلك العناوين والقوائم والروابط البسيطة.</span>
     </div>
     <div id="fields"></div>
@@ -55,9 +56,13 @@ h2{font-size:1.08rem;margin:0 0 10px}.editor{border:1px solid var(--line);border
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const KEY="italyGuideOverridesV1";
-const PASSWORD="1234";
+const SUPABASE_URL = "https://sderoafpcfgabdkqvbyc.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const CONTENT_ROW_ID = 1;
+
 const defs=[
   {
     "id": "site-title",
@@ -333,48 +338,97 @@ const defs=[
   }
 ];
 
-function login(){
-  const v=document.getElementById("pass").value;
-  if(v===PASSWORD){
-    sessionStorage.setItem("italyGuideAdmin","1");
-    showApp();
-  }else document.getElementById("loginMsg").textContent="كلمة المرور غير صحيحة.";
+function setMsg(text, ok=false){
+  const el=document.getElementById("loginMsg");
+  el.textContent=text;
+  el.className="small"+(ok?" status":"");
 }
+
+async function login(){
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("pass").value;
+  if(!email || !password){ setMsg("اكتب البريد الإلكتروني وكلمة المرور."); return; }
+  setMsg("جارٍ تسجيل الدخول...");
+  const {error}=await client.auth.signInWithPassword({email,password});
+  if(error){ setMsg("فشل تسجيل الدخول: "+error.message); return; }
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  await build();
+}
+
+async function resetPassword(){
+  const email=document.getElementById("email").value.trim();
+  if(!email){ setMsg("اكتب الإيميل أولًا ثم اضغط نسيت كلمة المرور."); return; }
+  const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(error) setMsg("لم يتم إرسال رسالة الاستعادة: "+error.message);
+  else setMsg("تم إرسال رابط تغيير كلمة المرور إلى بريدك الإلكتروني.", true);
+}
+
+async function logout(){
+  await client.auth.signOut();
+  location.reload();
+}
+
 function showApp(){
   document.getElementById("login").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
   build();
 }
-function build(){
+
+async function build(){
   const root=document.getElementById("fields"); root.innerHTML="";
   defs.forEach(d=>{
     const box=document.createElement("div"); box.className="card";
     box.innerHTML='<h2>'+escapeHtml(d.label)+'</h2><div class="editor '+(d.id.startsWith("step-body")?"body":"")+'" contenteditable="true" data-id="'+d.id+'"></div>';
     root.appendChild(box);
   });
-  load();
+  await load();
 }
+
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function load(){
-  let data={}; try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+
+async function load(){
+  const {data,error}=await client.from('site_content').select('content').eq('id',CONTENT_ROW_ID).maybeSingle();
+  if(error){ document.getElementById("status").textContent="خطأ في تحميل المحتوى: "+error.message; return; }
+  let elements=data?.content?.elements || {};
+  // If the database is empty, load the current live page as the initial values.
+  if(Object.keys(elements).length===0){
+    try{
+      const res=await fetch('index.html',{cache:'no-store'});
+      const html=await res.text();
+      const doc=new DOMParser().parseFromString(html,'text/html');
+      doc.querySelectorAll('[data-edit]').forEach(el=>{elements[el.getAttribute('data-edit')]=el.innerHTML;});
+    }catch(e){}
+  }
   defs.forEach(d=>{
-    const el=document.querySelector('[data-id="'+d.id+'"]');
-    if(data[d.id]!=null) el.innerHTML=data[d.id];
+    const el=document.querySelector('[data-id="'+CSS.escape(d.id)+'"]');
+    if(el && elements[d.id]!=null) el.innerHTML=elements[d.id];
   });
 }
-function saveAll(){
-  const data={};
-  document.querySelectorAll("[data-id]").forEach(el=>data[el.dataset.id]=el.innerHTML);
-  localStorage.setItem(KEY,JSON.stringify(data));
-  document.getElementById("status").textContent="✅ تم حفظ التعديلات في هذا المتصفح.";
-  setTimeout(()=>document.getElementById("status").textContent="",3000);
+
+async function saveAll(){
+  const elements={};
+  document.querySelectorAll('[data-id]').forEach(el=>elements[el.dataset.id]=el.innerHTML);
+  const {data:{user}}=await client.auth.getUser();
+  if(!user){ document.getElementById("status").textContent="انتهت جلسة الدخول. سجّل الدخول مرة أخرى."; return; }
+  const {error}=await client.from('site_content').upsert({id:CONTENT_ROW_ID,content:{elements}},{onConflict:'id'});
+  const status=document.getElementById("status");
+  if(error) status.textContent="❌ لم يتم الحفظ: "+error.message;
+  else { status.textContent="✅ تم حفظ التعديلات، وستظهر للزوار."; setTimeout(()=>status.textContent="",4000); }
 }
-function resetAll(){
-  if(confirm("هل تريد حذف كل تعديلاتك والعودة للمحتوى الأصلي؟")){
-    localStorage.removeItem(KEY); location.reload();
+
+async function resetAll(){
+  if(confirm("هل تريد حذف المحتوى المحفوظ في قاعدة البيانات؟")){
+    const {error}=await client.from('site_content').delete().eq('id',CONTENT_ROW_ID);
+    if(error) document.getElementById("status").textContent="❌ "+error.message;
+    else location.reload();
   }
 }
-if(sessionStorage.getItem("italyGuideAdmin")==="1") showApp();
+
+(async()=>{
+  const {data:{session}}=await client.auth.getSession();
+  if(session) showApp();
+})();
 </script>
 </body>
 </html>
