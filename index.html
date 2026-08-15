@@ -92,7 +92,8 @@ const i18n = {
     startToday:"Start Today", ready:"جاهز تبدأ رحلتك إلى إيطاليا؟ 🇮🇹",
     readyP:"استخدم الدليل، جهز مستنداتك، وراجع المصادر الرسمية قبل أي خطوة.",
     footer:"🇮🇹 دليل فيزا إيطاليا من مصر", footerP:"دليل معلوماتي مستقل لمساعدتك في فهم رحلة التأشيرة.",
-    updated:"آخر تحديث: أغسطس 2026", lang:"English", loadingGuide:"جاري تحميل الدليل..."
+    updated:"آخر تحديث: أغسطس 2026", lang:"English", loadingGuide:"جاري تحميل الدليل...",
+    aboutEyebrow:"About", aboutTitle:"من نحن", aboutText:"جاري التحميل...", contactTitle:"تواصل معنا"
   },
   en: {
     brand:"Italy Visa Guide",
@@ -122,7 +123,8 @@ const i18n = {
     startToday:"Start Today", ready:"Ready to Start Your Italy Journey? 🇮🇹",
     readyP:"Use the guide, prepare your documents, and always check official sources before taking action.",
     footer:"🇮🇹 Italy Visa Guide — Egypt", footerP:"An independent informational guide to help you understand the visa journey.",
-    updated:"Last updated: August 2026", lang:"العربية", loadingGuide:"Loading guide..."
+    updated:"Last updated: August 2026", lang:"العربية", loadingGuide:"Loading guide...",
+    aboutEyebrow:"About", aboutTitle:"About Us", aboutText:"Loading...", contactTitle:"Contact Us"
   }
 };
 let currentLang = localStorage.getItem("siteLang") || "ar";
@@ -252,6 +254,16 @@ document.addEventListener("DOMContentLoaded",applyLang);
 
 <section class="section" id="about">
   <div class="container">
+    <div class="section-head" style="text-align:center;max-width:720px;margin-inline:auto">
+      <div class="eyebrow"><span data-i18n="aboutEyebrow">من نحن</span></div>
+      <h2><span data-i18n="aboutTitle">من نحن</span></h2>
+      <p id="aboutText" style="color:var(--muted);font-size:17px"><span data-i18n="aboutText">جاري تحميل...</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
     <div class="cta">
       <div class="eyebrow"><span data-i18n="startToday">Start Today</span></div>
       <h2><span data-i18n="ready">جاهز تبدأ رحلتك إلى إيطاليا؟ 🇮🇹</span></h2>
@@ -261,7 +273,21 @@ document.addEventListener("DOMContentLoaded",applyLang);
   </div>
 </section>
 
-<footer class="footer" id="contact">
+<section class="section" id="contact">
+  <div class="container">
+    <div class="section-head" style="text-align:center;max-width:720px;margin-inline:auto">
+      <div class="eyebrow"><span data-i18n="nav5">تواصل معنا</span></div>
+      <h2><span data-i18n="contactTitle">تواصل معنا</span></h2>
+    </div>
+    <div id="contactLinks" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a id="contactEmailLink" class="btn btn-outline" href="#" style="display:none">📧 <span id="contactEmailText"></span></a>
+      <a id="contactFbLink" class="btn btn-outline" href="#" target="_blank" rel="noopener" style="display:none">📘 Facebook</a>
+      <a id="contactIgLink" class="btn btn-outline" href="#" target="_blank" rel="noopener" style="display:none">📸 Instagram</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
   <div class="container footer-grid">
     <div><strong style="color:var(--navy)"><span data-i18n="footer">🇮🇹 دليل فيزا إيطاليا من مصر</span></strong><br><span data-i18n="footerP">دليل معلوماتي مستقل لمساعدتك في فهم رحلة التأشيرة.</span></div>
     <div><span data-i18n="updated">آخر تحديث: أغسطس 2026</span></div>
@@ -282,7 +308,8 @@ document.addEventListener("DOMContentLoaded",applyLang);
     hero_text: "heroP",
     footer_text: "footerP",
     updated_label: "updated",
-    footer_brand: "footer"
+    footer_brand: "footer",
+    about_text: "aboutText"
   };
 
   function escAttr(s){ return (s||"").toString(); }
@@ -290,6 +317,10 @@ document.addEventListener("DOMContentLoaded",applyLang);
   async function loadSettings(){
     const { data, error } = await sb.from("guide_settings").select("*");
     if (error || !data) return;
+
+    const byKey = {};
+    data.forEach(row=>{ byKey[row.key] = row; });
+
     data.forEach(row=>{
       const key = settingsMap[row.key];
       if(!key) return;
@@ -297,6 +328,26 @@ document.addEventListener("DOMContentLoaded",applyLang);
       if(row.value_en) i18n.en[key] = row.value_en;
     });
     if (typeof applyLang === "function") applyLang();
+
+    // contact links (email + social) — show only if a value is set
+    const email = byKey.contact_email ? (byKey.contact_email.value_ar || byKey.contact_email.value_en) : "";
+    const fb = byKey.contact_facebook ? (byKey.contact_facebook.value_ar || byKey.contact_facebook.value_en) : "";
+    const ig = byKey.contact_instagram ? (byKey.contact_instagram.value_ar || byKey.contact_instagram.value_en) : "";
+
+    if(email){
+      const a = document.getElementById("contactEmailLink");
+      document.getElementById("contactEmailText").textContent = email;
+      a.href = "mailto:" + email;
+      a.style.display = "inline-flex";
+    }
+    if(fb){
+      const a = document.getElementById("contactFbLink");
+      a.href = fb; a.style.display = "inline-flex";
+    }
+    if(ig){
+      const a = document.getElementById("contactIgLink");
+      a.href = ig; a.style.display = "inline-flex";
+    }
   }
 
   async function loadSections(){
