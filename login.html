@@ -1,0 +1,36 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تسجيل الدخول</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://sderoafpcfgabdkqvbyc.supabase.co";
+const SUPABASE_KEY="sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+</script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:#f6f8fc;color:#101828}
+.wrap{width:min(1100px,calc(100% - 32px));margin:auto}.nav{height:72px;background:#fff;border-bottom:1px solid #e8ecf2;display:flex;align-items:center}
+.navin{display:flex;align-items:center;justify-content:space-between;gap:15px}.brand{font-weight:900;color:#0b1730;text-decoration:none;font-size:20px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer}.primary{background:#2457ff;color:#fff}.outline{background:#fff;border:1px solid #dfe5ee;color:#17233d}
+.card{background:#fff;border:1px solid #e5eaf1;border-radius:24px;padding:30px;box-shadow:0 15px 45px rgba(16,24,40,.05)}
+.auth{min-height:calc(100vh - 72px);display:grid;place-items:center;padding:40px 0}.authcard{width:min(460px,100%)}
+h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730}p{color:#667085}.field{margin:16px 0}.field label{display:block;font-weight:800;margin-bottom:7px}
+.field input{width:100%;padding:13px 14px;border:1px solid #dfe5ee;border-radius:12px;font-size:16px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.msg{margin-top:15px;padding:12px;border-radius:12px;display:none}.error{background:#fff0f0;color:#b42318}.ok{background:#ecfdf3;color:#027a48}
+.links{text-align:center;margin-top:20px}.links a,.link{color:#2457ff;font-weight:800;text-decoration:none}
+.dash{padding:45px 0}.hero{background:#0b1730;color:#fff;border-radius:28px;padding:32px;margin-bottom:22px}.hero p{color:#c5cede}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.stat{background:#ffffff12;border-radius:16px;padding:18px}.stat b{font-size:28px;display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.task{padding:14px 0;border-bottom:1px solid #edf0f5;display:block}.task input{margin-left:8px}
+@media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}}
+</style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><button class="btn outline" id="lang">English</button></div></nav>
+<main class="auth"><section class="card authcard"><h1 id="title">تسجيل الدخول</h1><p id="sub">ادخل إلى حسابك لمتابعة رحلتك.</p>
+<form id="form"><div class="field"><label id="emailLabel">البريد الإلكتروني</label><input id="email" type="email" required></div>
+<div class="field"><label id="passLabel">كلمة المرور</label><input id="password" type="password" required></div>
+<div class="row"><a class="link" href="#" id="forgot">نسيت كلمة المرور؟</a><button class="btn primary" id="submit">تسجيل الدخول</button></div></form>
+<div class="msg error" id="err"></div><div class="msg ok" id="ok"></div>
+<div class="links"><span id="new">ليس لديك حساب؟</span> <a href="register.html" id="reg">إنشاء حساب</a></div></section></main>
+<script>
+let en=false;const T={ar:{title:"تسجيل الدخول",sub:"ادخل إلى حسابك لمتابعة رحلتك.",email:"البريد الإلكتروني",pass:"كلمة المرور",submit:"تسجيل الدخول",forgot:"نسيت كلمة المرور؟",new:"ليس لديك حساب؟",reg:"إنشاء حساب",switch:"English",sent:"تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."},en:{title:"Login",sub:"Sign in to track your journey.",email:"Email",pass:"Password",submit:"Login",forgot:"Forgot password?",new:"Don't have an account?",reg:"Create account",switch:"العربية",sent:"Password reset link sent to your email."}};
+function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";document.getElementById("title").textContent=t.title;document.getElementById("sub").textContent=t.sub;document.getElementById("emailLabel").textContent=t.email;document.getElementById("passLabel").textContent=t.pass;document.getElementById("submit").textContent=t.submit;document.getElementById("forgot").textContent=t.forgot;document.getElementById("new").textContent=t.new;document.getElementById("reg").textContent=t.reg;document.getElementById("lang").textContent=t.switch}
+document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
+document.getElementById("form").onsubmit=async e=>{e.preventDefault();hide();const r=await supabaseClient.auth.signInWithPassword({email:email.value.trim(),password:password.value});if(r.error)return show(r.error.message,"err");location.href="dashboard.html"};
+document.getElementById("forgot").onclick=async e=>{e.preventDefault();hide();if(!email.value.trim())return show(en?"Enter your email first.":"اكتب بريدك الإلكتروني أولًا.","err");const r=await supabaseClient.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:location.origin+location.pathname.replace("login.html","dashboard.html")});if(r.error)return show(r.error.message,"err");show(T[en?"en":"ar"].sent,"ok")};
+function show(x,id){const a=document.getElementById(id);a.textContent=x;a.style.display="block"}function hide(){document.querySelectorAll(".msg").forEach(x=>x.style.display="none")}
+</script></body></html>
