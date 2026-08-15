@@ -6,102 +6,69 @@
 <title>لوحة الإدارة</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f4f6fb;color:#101828}
+header{background:#071a45;color:#fff;padding:25px}
+header h1{margin-bottom:2px}
+.container{width:95%;max-width:1300px;margin:30px auto}
 
-body{
-font-family:Arial,sans-serif;
-background:#f4f6fb;
-}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:#fff;padding:8px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.tab-btn{border:none;background:transparent;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:bold;font-size:15px;color:#475467}
+.tab-btn.active{background:#2457ff;color:#fff}
+.tabpage{display:none}
+.tabpage.active{display:block}
 
-header{
-background:#071a45;
-color:#fff;
-padding:25px;
-}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:20px}
+.stat{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
 
-.container{
-width:95%;
-max-width:1300px;
-margin:30px auto;
-}
+.card{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:20px}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 
-.stats{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
-margin-bottom:20px;
-}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{padding:14px;border-bottom:1px solid #eee;text-align:right;vertical-align:middle}
+th{background:#f5f7fb}
 
-.stat{
-background:#fff;
-padding:20px;
-border-radius:15px;
-box-shadow:0 4px 20px rgba(0,0,0,.08);
-}
+button{border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-size:14px}
+.btn-admin{background:#2457ff;color:#fff}
+.btn-user{background:#666;color:#fff}
+.btn-logout{background:#e53935;color:#fff;margin-top:20px}
+.btn-primary{background:#2457ff;color:#fff}
+.btn-outline{background:#fff;border:1px solid #dcdfe6;color:#101828}
+.btn-danger{background:#e53935;color:#fff}
+.btn-sm{padding:7px 12px;font-size:13px}
+.btn-ghost{background:#eef1f7;color:#101828}
 
-.card{
-background:#fff;
-padding:20px;
-border-radius:15px;
-box-shadow:0 4px 20px rgba(0,0,0,.08);
-margin-bottom:20px;
-}
+.loading{text-align:center;padding:20px}
+select,input[type=text],input[type=number],input[type=url],textarea{padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+input[type=text],input[type=url],textarea{width:100%}
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:bold;margin-bottom:6px;font-size:14px;color:#344054}
+.row2{display:grid;grid-template-columns:80px 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.badge-visible{background:#ecfdf3;color:#027a48;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+.badge-hidden{background:#fff0f0;color:#b42318;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
 
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(10,16,30,.55);z-index:100;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:26px;width:min(900px,100%);margin-bottom:40px}
+.modal h2{margin-bottom:16px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
 
-th,td{
-padding:14px;
-border-bottom:1px solid #eee;
-text-align:right;
-}
+#quillEditor{background:#fff;min-height:260px}
+.ql-editor{min-height:260px}
 
-th{
-background:#f5f7fb;
-}
+.msg{margin-top:12px;padding:10px 12px;border-radius:8px;display:none;font-size:14px}
+.msg.error{background:#fff0f0;color:#b42318}
+.msg.ok{background:#ecfdf3;color:#027a48}
 
-button{
-border:none;
-padding:10px 15px;
-border-radius:8px;
-cursor:pointer;
-}
-
-.btn-admin{
-background:#2457ff;
-color:white;
-}
-
-.btn-user{
-background:#666;
-color:white;
-}
-
-.btn-logout{
-background:#e53935;
-color:white;
-margin-top:20px;
-}
-
-.loading{
-text-align:center;
-padding:20px;
-}
-
-select{
-padding:8px;
-border:1px solid #ddd;
-border-radius:6px;
-}
+.settings-item{border-bottom:1px solid #eee;padding:16px 0}
+.settings-item:last-child{border-bottom:none}
+.settings-item .field{margin-bottom:8px}
+.small-note{color:#667085;font-size:13px;margin-top:2px}
 </style>
 
 </head>
@@ -109,75 +76,127 @@ border-radius:6px;
 
 <header>
 <h1>لوحة الإدارة</h1>
+<div style="opacity:.8;font-size:14px">دليل فيزا إيطاليا من مصر</div>
 </header>
 
 <div class="container">
 
-<div class="stats">
-
-<div class="stat">
-<h3>عدد المستخدمين</h3>
-<h2 id="usersCount">0</h2>
+<div class="tabs">
+  <button class="tab-btn active" data-tab="tab-content">محتوى الموقع</button>
+  <button class="tab-btn" data-tab="tab-settings">إعدادات عامة</button>
+  <button class="tab-btn" data-tab="tab-users">المستخدمون</button>
+  <button class="tab-btn" data-tab="tab-requests">طلبات الفيزا</button>
 </div>
 
-<div class="stat">
-<h3>عدد الأدمن</h3>
-<h2 id="adminsCount">0</h2>
+<!-- ======================= CONTENT TAB ======================= -->
+<div id="tab-content" class="tabpage active">
+  <div class="card">
+    <div class="card-head">
+      <h2>أقسام الدليل</h2>
+      <button class="btn-primary" onclick="openSectionModal()">+ إضافة قسم جديد</button>
+    </div>
+    <p class="small-note">اسحب الترتيب عن طريق رقم الترتيب. القسم اللي "مخفي" مش هيظهر للزوار في الموقع.</p>
+    <div id="sectionsLoading" class="loading">جاري التحميل...</div>
+    <table id="sectionsTable" style="display:none">
+      <thead>
+        <tr>
+          <th>الترتيب</th>
+          <th>الأيقونة</th>
+          <th>العنوان</th>
+          <th>الحالة</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="sectionsBody"></tbody>
+    </table>
+  </div>
 </div>
 
+<!-- ======================= SETTINGS TAB ======================= -->
+<div id="tab-settings" class="tabpage">
+  <div class="card">
+    <div class="card-head">
+      <h2>نصوص الموقع العامة</h2>
+      <button class="btn-primary" onclick="saveAllSettings()">حفظ كل التعديلات</button>
+    </div>
+    <p class="small-note">النصوص دي بتظهر في الهيدر والفوتر واسم الموقع — عربي وإنجليزي.</p>
+    <div id="settingsLoading" class="loading">جاري التحميل...</div>
+    <div id="settingsList"></div>
+    <div class="msg" id="settingsMsg"></div>
+  </div>
 </div>
 
-<div class="card">
-
-<h2>المستخدمون</h2>
-
-<div id="loading" class="loading">
-جاري التحميل...
+<!-- ======================= USERS TAB ======================= -->
+<div id="tab-users" class="tabpage">
+  <div class="stats">
+    <div class="stat"><h3>عدد المستخدمين</h3><h2 id="usersCount">0</h2></div>
+    <div class="stat"><h3>عدد الأدمن</h3><h2 id="adminsCount">0</h2></div>
+  </div>
+  <div class="card">
+    <h2>المستخدمون</h2>
+    <div id="loading" class="loading">جاري التحميل...</div>
+    <table>
+      <thead><tr><th>البريد</th><th>الصلاحية</th><th>الإجراء</th></tr></thead>
+      <tbody id="usersTable"></tbody>
+    </table>
+  </div>
 </div>
 
-<table>
-
-<thead>
-<tr>
-<th>البريد</th>
-<th>الصلاحية</th>
-<th>الإجراء</th>
-</tr>
-</thead>
-
-<tbody id="usersTable"></tbody>
-
-</table>
-
+<!-- ======================= REQUESTS TAB ======================= -->
+<div id="tab-requests" class="tabpage">
+  <div class="card">
+    <h2>طلبات الفيزا</h2>
+    <table>
+      <thead>
+        <tr><th>الاسم</th><th>البريد</th><th>رقم الجواز</th><th>الدولة</th><th>الحالة</th><th>التاريخ</th></tr>
+      </thead>
+      <tbody id="requestsTable"></tbody>
+    </table>
+  </div>
 </div>
 
-<div class="card">
-
-<h2>طلبات الفيزا</h2>
-
-<table>
-
-<thead>
-<tr>
-<th>الاسم</th>
-<th>البريد</th>
-<th>رقم الجواز</th>
-<th>الدولة</th>
-<th>الحالة</th>
-<th>التاريخ</th>
-</tr>
-</thead>
-
-<tbody id="requestsTable"></tbody>
-
-</table>
+<button class="btn-logout" onclick="logout()">تسجيل الخروج</button>
 
 </div>
 
-<button class="btn-logout" onclick="logout()">
-تسجيل الخروج
-</button>
+<!-- ======================= SECTION EDIT MODAL ======================= -->
+<div class="modal-bg" id="sectionModalBg">
+  <div class="modal">
+    <h2 id="sectionModalTitle">تعديل قسم</h2>
+    <input type="hidden" id="secId">
 
+    <div class="row2">
+      <div class="field"><label>الأيقونة (إيموجي)</label><input type="text" id="secIcon" placeholder="🎓"></div>
+      <div class="field"><label>عنوان القسم</label><input type="text" id="secTitle" placeholder="عنوان القسم"></div>
+    </div>
+
+    <div class="field">
+      <label>الوصف المختصر (يظهر تحت العنوان)</label>
+      <textarea id="secDescription" rows="2"></textarea>
+    </div>
+
+    <div class="field">
+      <label>محتوى القسم الكامل</label>
+      <div id="quillEditor"></div>
+    </div>
+
+    <div class="row3">
+      <div class="field"><label>ترتيب الظهور</label><input type="number" id="secOrder" value="0"></div>
+      <div class="field"><label>معرّف الرابط (اختياري، إنجليزي بدون مسافات)</label><input type="text" id="secKey" placeholder="my-section"></div>
+      <div class="field">
+        <label>الحالة</label>
+        <select id="secVisible"><option value="true">ظاهر للزوار</option><option value="false">مخفي</option></select>
+      </div>
+    </div>
+
+    <div class="msg" id="sectionMsg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="secDeleteBtn" onclick="deleteSection()">حذف القسم</button>
+      <button class="btn-outline" onclick="closeSectionModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveSection()">حفظ</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -187,206 +206,289 @@ const supabaseClient = supabase.createClient(
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZXJvYWZwY2ZnYWJka3F2YnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3ODE0NDIsImV4cCI6MjEwMjM1NzQ0Mn0.OON8o3-Rr4VRgrECJyf-bDO5vRGU8G3NmM6PYYKipns"
 );
 
-async function checkAdmin(){
-
-const {
-data:{session}
-} = await supabaseClient.auth.getSession();
-
-if(!session){
-location.href="login.html";
-return;
-}
-
-const userEmail = session.user.email;
-
-const {data:profile,error} = await supabaseClient
-.from("profiles")
-.select("*")
-.eq("email",userEmail)
-.single();
-
-if(error){
-alert(error.message);
-return;
-}
-
-if(profile.role !== "admin"){
-alert("غير مصرح بالدخول");
-location.href="index.html";
-return;
-}
-
-loadUsers();
-}
-
-async function loadUsers(){
-
-document.getElementById("loading").style.display="block";
-
-const {data:users,error} = await supabaseClient
-.from("profiles")
-.select("*")
-.order("email");
-
-document.getElementById("loading").style.display="none";
-
-if(error){
-alert(error.message);
-return;
-}
-
-document.getElementById("usersCount").textContent =
-users.length;
-
-document.getElementById("adminsCount").textContent =
-users.filter(x=>x.role==="admin").length;
-
-let html="";
-
-users.forEach(user=>{
-
-html += `
-<tr>
-<td>${user.email}</td>
-<td>${user.role}</td>
-<td>
-
-${
-user.email==="ahmedeltayb372@gmail.com"
-?
-`<span style="color:#2457ff;font-weight:bold">
-الأدمن الرئيسي
-</span>`
-:
-user.role==="admin"
-?
-`<button class="btn-user"
-onclick="makeUser('${user.id}')">
-جعله User
-</button>`
-:
-`<button class="btn-admin"
-onclick="makeAdmin('${user.id}')">
-جعله Admin
-</button>`
-}
-
-</td>
-</tr>
-`;
-
+/* ---------------------- Tabs ---------------------- */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tabpage").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
 });
 
-document.getElementById("usersTable").innerHTML = html;
+/* ---------------------- Auth guard ---------------------- */
+async function checkAdmin(){
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  if(!session){ location.href="login.html"; return; }
 
-loadVisaRequests();
+  const userEmail = session.user.email;
+  const {data:profile,error} = await supabaseClient.from("profiles").select("*").eq("email",userEmail).single();
+
+  if(error){ alert(error.message); return; }
+  if(profile.role !== "admin"){ alert("غير مصرح بالدخول"); location.href="index.html"; return; }
+
+  loadUsers();
+  loadSections();
+  loadSettings();
+}
+
+/* ======================================================================
+   USERS
+   ====================================================================== */
+async function loadUsers(){
+  document.getElementById("loading").style.display="block";
+  const {data:users,error} = await supabaseClient.from("profiles").select("*").order("email");
+  document.getElementById("loading").style.display="none";
+  if(error){ alert(error.message); return; }
+
+  document.getElementById("usersCount").textContent = users.length;
+  document.getElementById("adminsCount").textContent = users.filter(x=>x.role==="admin").length;
+
+  let html="";
+  users.forEach(user=>{
+    html += `<tr>
+      <td>${user.email}</td>
+      <td>${user.role}</td>
+      <td>
+      ${
+        user.email==="ahmedeltayb372@gmail.com"
+        ? `<span style="color:#2457ff;font-weight:bold">الأدمن الرئيسي</span>`
+        : user.role==="admin"
+          ? `<button class="btn-user" onclick="makeUser('${user.id}')">جعله User</button>`
+          : `<button class="btn-admin" onclick="makeAdmin('${user.id}')">جعله Admin</button>`
+      }
+      </td>
+    </tr>`;
+  });
+  document.getElementById("usersTable").innerHTML = html;
+  loadVisaRequests();
 }
 
 async function loadVisaRequests(){
+  const {data,error} = await supabaseClient.from("visa_requests").select("*").order("created_at",{ascending:false});
+  if(error){ console.log(error); return; }
 
-const {data,error} = await supabaseClient
-.from("visa_requests")
-.select("*")
-.order("created_at",{ascending:false});
-
-if(error){
-console.log(error);
-return;
-}
-
-let html="";
-
-data.forEach(row=>{
-
-html += `
-<tr>
-
-<td>${row.full_name || "-"}</td>
-
-<td>${row.user_email || "-"}</td>
-
-<td>${row.passport_number || "-"}</td>
-
-<td>${row.country || "-"}</td>
-
-<td>
-<select onchange="changeStatus('${row.id}',this.value)">
-<option value="pending" ${row.status==="pending"?"selected":""}>
-قيد المراجعة
-</option>
-
-<option value="approved" ${row.status==="approved"?"selected":""}>
-مقبول
-</option>
-
-<option value="rejected" ${row.status==="rejected"?"selected":""}>
-مرفوض
-</option>
-
-</select>
-</td>
-
-<td>
-${new Date(row.created_at).toLocaleDateString()}
-</td>
-
-</tr>
-`;
-
-});
-
-document.getElementById("requestsTable").innerHTML = html;
+  let html="";
+  data.forEach(row=>{
+    html += `<tr>
+      <td>${row.full_name || "-"}</td>
+      <td>${row.user_email || "-"}</td>
+      <td>${row.passport_number || "-"}</td>
+      <td>${row.country || "-"}</td>
+      <td>
+        <select onchange="changeStatus('${row.id}',this.value)">
+          <option value="pending" ${row.status==="pending"?"selected":""}>قيد المراجعة</option>
+          <option value="approved" ${row.status==="approved"?"selected":""}>مقبول</option>
+          <option value="rejected" ${row.status==="rejected"?"selected":""}>مرفوض</option>
+        </select>
+      </td>
+      <td>${new Date(row.created_at).toLocaleDateString()}</td>
+    </tr>`;
+  });
+  document.getElementById("requestsTable").innerHTML = html;
 }
 
 async function changeStatus(id,status){
-
-const {error} = await supabaseClient
-.from("visa_requests")
-.update({status})
-.eq("id",id);
-
-if(error){
-alert(error.message);
-}
-
+  const {error} = await supabaseClient.from("visa_requests").update({status}).eq("id",id);
+  if(error) alert(error.message);
 }
 
 async function makeAdmin(id){
-
-const {error} = await supabaseClient
-.from("profiles")
-.update({role:"admin"})
-.eq("id",id);
-
-if(error){
-alert(error.message);
-return;
-}
-
-loadUsers();
+  const {error} = await supabaseClient.from("profiles").update({role:"admin"}).eq("id",id);
+  if(error){ alert(error.message); return; }
+  loadUsers();
 }
 
 async function makeUser(id){
-
-const {error} = await supabaseClient
-.from("profiles")
-.update({role:"user"})
-.eq("id",id);
-
-if(error){
-alert(error.message);
-return;
-}
-
-loadUsers();
+  const {error} = await supabaseClient.from("profiles").update({role:"user"}).eq("id",id);
+  if(error){ alert(error.message); return; }
+  loadUsers();
 }
 
 async function logout(){
+  await supabaseClient.auth.signOut();
+  location.href="login.html";
+}
 
-await supabaseClient.auth.signOut();
-location.href="login.html";
+/* ======================================================================
+   CONTENT (guide_sections) — full CRUD
+   ====================================================================== */
+let quill = null;
+function getQuill(){
+  if(!quill){
+    quill = new Quill('#quillEditor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ header: [2,3,4,false] }],
+          ['bold','italic','underline'],
+          [{list:'ordered'},{list:'bullet'}],
+          ['link'],
+          [{color:[]},{background:[]}],
+          ['clean']
+        ]
+      }
+    });
+  }
+  return quill;
+}
 
+let sectionsCache = [];
+
+async function loadSections(){
+  document.getElementById("sectionsLoading").style.display="block";
+  document.getElementById("sectionsTable").style.display="none";
+
+  const {data,error} = await supabaseClient.from("guide_sections").select("*").order("order_index",{ascending:true});
+
+  document.getElementById("sectionsLoading").style.display="none";
+  document.getElementById("sectionsTable").style.display="table";
+
+  if(error){ alert(error.message); return; }
+  sectionsCache = data || [];
+
+  let html="";
+  sectionsCache.forEach(sec=>{
+    html += `<tr>
+      <td>${sec.order_index ?? 0}</td>
+      <td style="font-size:20px">${sec.icon || "📄"}</td>
+      <td>${sec.title || "-"}</td>
+      <td>${sec.visible ? '<span class="badge-visible">ظاهر</span>' : '<span class="badge-hidden">مخفي</span>'}</td>
+      <td><button class="btn-ghost btn-sm" onclick="openSectionModal('${sec.id}')">تعديل</button></td>
+    </tr>`;
+  });
+  document.getElementById("sectionsBody").innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#667085">لا يوجد أقسام بعد</td></tr>';
+}
+
+function openSectionModal(id){
+  document.getElementById("sectionMsg").style.display = "none";
+  const isNew = !id;
+  document.getElementById("sectionModalTitle").textContent = isNew ? "إضافة قسم جديد" : "تعديل القسم";
+  document.getElementById("secDeleteBtn").style.display = isNew ? "none" : "inline-block";
+
+  const sec = isNew ? null : sectionsCache.find(s=>s.id===id);
+
+  document.getElementById("secId").value = isNew ? "" : sec.id;
+  document.getElementById("secIcon").value = isNew ? "📄" : (sec.icon || "");
+  document.getElementById("secTitle").value = isNew ? "" : (sec.title || "");
+  document.getElementById("secDescription").value = isNew ? "" : (sec.description || "");
+  document.getElementById("secOrder").value = isNew ? (sectionsCache.length) : (sec.order_index ?? 0);
+  document.getElementById("secKey").value = isNew ? "" : (sec.section_key || "");
+  document.getElementById("secVisible").value = isNew ? "true" : String(!!sec.visible);
+
+  const editor = getQuill();
+  editor.root.innerHTML = isNew ? "" : (sec.body_html || "");
+
+  document.getElementById("sectionModalBg").classList.add("open");
+}
+
+function closeSectionModal(){
+  document.getElementById("sectionModalBg").classList.remove("open");
+}
+
+async function saveSection(){
+  const id = document.getElementById("secId").value;
+  const payload = {
+    icon: document.getElementById("secIcon").value.trim() || "📄",
+    title: document.getElementById("secTitle").value.trim(),
+    description: document.getElementById("secDescription").value.trim(),
+    body_html: getQuill().root.innerHTML,
+    order_index: parseInt(document.getElementById("secOrder").value || "0", 10),
+    section_key: document.getElementById("secKey").value.trim() || null,
+    visible: document.getElementById("secVisible").value === "true"
+  };
+
+  if(!payload.title){
+    showMsg("sectionMsg","لازم تكتب عنوان للقسم","error");
+    return;
+  }
+
+  let error;
+  if(id){
+    ({error} = await supabaseClient.from("guide_sections").update(payload).eq("id",id));
+  } else {
+    ({error} = await supabaseClient.from("guide_sections").insert(payload));
+  }
+
+  if(error){
+    showMsg("sectionMsg", error.message, "error");
+    return;
+  }
+
+  closeSectionModal();
+  loadSections();
+}
+
+async function deleteSection(){
+  const id = document.getElementById("secId").value;
+  if(!id) return;
+  if(!confirm("متأكد إنك عايز تحذف القسم ده؟ الحذف نهائي.")) return;
+
+  const {error} = await supabaseClient.from("guide_sections").delete().eq("id",id);
+  if(error){ showMsg("sectionMsg", error.message, "error"); return; }
+
+  closeSectionModal();
+  loadSections();
+}
+
+function showMsg(elId, text, type){
+  const el = document.getElementById(elId);
+  el.textContent = text;
+  el.className = "msg " + type;
+  el.style.display = "block";
+}
+
+/* ======================================================================
+   SETTINGS (guide_settings) — key/value editor
+   ====================================================================== */
+let settingsCache = [];
+
+const settingsLabels = {
+  brand: "اسم الموقع (في القائمة العلوية)",
+  footer_brand: "اسم الموقع (في الفوتر)",
+  hero_badge: "شارة الهيدر الصغيرة",
+  hero_title: "العنوان الرئيسي",
+  hero_text: "الفقرة تحت العنوان الرئيسي",
+  footer_text: "وصف الفوتر",
+  updated_label: "نص آخر تحديث"
+};
+
+async function loadSettings(){
+  document.getElementById("settingsLoading").style.display="block";
+  const {data,error} = await supabaseClient.from("guide_settings").select("*").order("key");
+  document.getElementById("settingsLoading").style.display="none";
+
+  if(error){ alert(error.message); return; }
+  settingsCache = data || [];
+
+  let html="";
+  settingsCache.forEach(s=>{
+    const label = settingsLabels[s.key] || s.key;
+    html += `<div class="settings-item" data-key="${s.key}">
+      <div class="field"><label>${label} — عربي</label><textarea rows="2" class="val-ar">${s.value_ar || ""}</textarea></div>
+      <div class="field"><label>${label} — English</label><textarea rows="2" class="val-en">${s.value_en || ""}</textarea></div>
+    </div>`;
+  });
+  document.getElementById("settingsList").innerHTML = html || '<p style="color:#667085">لا يوجد إعدادات بعد</p>';
+}
+
+async function saveAllSettings(){
+  const items = document.querySelectorAll(".settings-item");
+  let hadError = false;
+
+  for(const item of items){
+    const key = item.dataset.key;
+    const value_ar = item.querySelector(".val-ar").value;
+    const value_en = item.querySelector(".val-en").value;
+    const {error} = await supabaseClient.from("guide_settings").update({value_ar, value_en}).eq("key", key);
+    if(error) hadError = true;
+  }
+
+  if(hadError){
+    showMsg("settingsMsg","حصل خطأ في حفظ بعض الإعدادات","error");
+  } else {
+    showMsg("settingsMsg","تم حفظ كل الإعدادات بنجاح ✅","ok");
+  }
 }
 
 checkAdmin();
