@@ -21,17 +21,13 @@ background:#f4f6fb;
 
 header{
 background:#071a45;
-color:white;
+color:#fff;
 padding:25px;
-}
-
-header h1{
-font-size:28px;
 }
 
 .container{
 width:95%;
-max-width:1200px;
+max-width:1300px;
 margin:30px auto;
 }
 
@@ -54,6 +50,7 @@ background:#fff;
 padding:20px;
 border-radius:15px;
 box-shadow:0 4px 20px rgba(0,0,0,.08);
+margin-bottom:20px;
 }
 
 table{
@@ -100,9 +97,10 @@ text-align:center;
 padding:20px;
 }
 
-.main-admin{
-color:#2457ff;
-font-weight:bold;
+select{
+padding:8px;
+border:1px solid #ddd;
+border-radius:6px;
 }
 </style>
 
@@ -134,7 +132,7 @@ font-weight:bold;
 <h2>المستخدمون</h2>
 
 <div id="loading" class="loading">
-جارى التحميل...
+جاري التحميل...
 </div>
 
 <table>
@@ -153,6 +151,29 @@ font-weight:bold;
 
 </div>
 
+<div class="card">
+
+<h2>طلبات الفيزا</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>الاسم</th>
+<th>البريد</th>
+<th>رقم الجواز</th>
+<th>الدولة</th>
+<th>الحالة</th>
+<th>التاريخ</th>
+</tr>
+</thead>
+
+<tbody id="requestsTable"></tbody>
+
+</table>
+
+</div>
+
 <button class="btn-logout" onclick="logout()">
 تسجيل الخروج
 </button>
@@ -163,10 +184,8 @@ font-weight:bold;
 
 const supabaseClient = supabase.createClient(
 "https://sderoafpcfgabdkqvbyc.supabase.co",
-"sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3"
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZXJvYWZwY2ZnYWJka3F2YnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3ODE0NDIsImV4cCI6MjEwMjM1NzQ0Mn0.OON8o3-Rr4VRgrECJyf-bDO5vRGU8G3NmM6PYYKipns"
 );
-
-const MAIN_ADMIN_EMAIL = "ahmedeltayb372@gmail.com";
 
 async function checkAdmin(){
 
@@ -192,16 +211,8 @@ alert(error.message);
 return;
 }
 
-if(!profile){
-alert("الحساب غير موجود");
-return;
-}
-
-if(
-profile.role !== "admin" &&
-userEmail !== MAIN_ADMIN_EMAIL
-){
-alert("غير مصرح");
+if(profile.role !== "admin"){
+alert("غير مصرح بالدخول");
 location.href="index.html";
 return;
 }
@@ -237,21 +248,18 @@ users.forEach(user=>{
 
 html += `
 <tr>
-
 <td>${user.email}</td>
-
 <td>${user.role}</td>
-
 <td>
 
 ${
-user.email === MAIN_ADMIN_EMAIL
+user.email==="ahmedeltayb372@gmail.com"
 ?
-`<span class="main-admin">
+`<span style="color:#2457ff;font-weight:bold">
 الأدمن الرئيسي
 </span>`
 :
-user.role === "admin"
+user.role==="admin"
 ?
 `<button class="btn-user"
 onclick="makeUser('${user.id}')">
@@ -265,13 +273,83 @@ onclick="makeAdmin('${user.id}')">
 }
 
 </td>
-
 </tr>
 `;
 
 });
 
 document.getElementById("usersTable").innerHTML = html;
+
+loadVisaRequests();
+}
+
+async function loadVisaRequests(){
+
+const {data,error} = await supabaseClient
+.from("visa_requests")
+.select("*")
+.order("created_at",{ascending:false});
+
+if(error){
+console.log(error);
+return;
+}
+
+let html="";
+
+data.forEach(row=>{
+
+html += `
+<tr>
+
+<td>${row.full_name || "-"}</td>
+
+<td>${row.user_email || "-"}</td>
+
+<td>${row.passport_number || "-"}</td>
+
+<td>${row.country || "-"}</td>
+
+<td>
+<select onchange="changeStatus('${row.id}',this.value)">
+<option value="pending" ${row.status==="pending"?"selected":""}>
+قيد المراجعة
+</option>
+
+<option value="approved" ${row.status==="approved"?"selected":""}>
+مقبول
+</option>
+
+<option value="rejected" ${row.status==="rejected"?"selected":""}>
+مرفوض
+</option>
+
+</select>
+</td>
+
+<td>
+${new Date(row.created_at).toLocaleDateString()}
+</td>
+
+</tr>
+`;
+
+});
+
+document.getElementById("requestsTable").innerHTML = html;
+}
+
+async function changeStatus(id,status){
+
+const {error} = await supabaseClient
+.from("visa_requests")
+.update({status})
+.eq("id",id);
+
+if(error){
+alert(error.message);
+}
+
 }
 
 async function makeAdmin(id){
@@ -291,17 +369,6 @@ loadUsers();
 
 async function makeUser(id){
 
-const {data:userData} = await supabaseClient
-.from("profiles")
-.select("email")
-.eq("id",id)
-.single();
-
-if(userData?.email === MAIN_ADMIN_EMAIL){
-alert("لا يمكن إزالة صلاحية الأدمن الرئيسي");
-return;
-}
-
 const {error} = await supabaseClient
 .from("profiles")
 .update({role:"user"})
@@ -318,8 +385,8 @@ loadUsers();
 async function logout(){
 
 await supabaseClient.auth.signOut();
-
 location.href="login.html";
+
 }
 
 checkAdmin();
