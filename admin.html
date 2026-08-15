@@ -1,1066 +1,212 @@
 <!DOCTYPE html>
-
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>دليل فيزا إيطاليا من مصر</title>
-<meta content="دليل معلوماتي مستقل خطوة بخطوة لإجراءات التأشيرة الإيطالية من مصر — دراسة، سياحة، عمل، لمّ الشمل." name="description"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&amp;family=Cairo:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-  :root{
-    --ink:#16233D;
-    --ink-soft:#3C4A66;
-    --parchment:#F6F1E4;
-    --parchment-2:#EEE5CE;
-    --paper-line:#DCCFA9;
-    --gold:#B8862E;
-    --gold-soft:#DDBB6E;
-    --green:#2F5233;
-    --rust:#A13D2C;
-    --white:#FFFDF8;
-    --radius:14px;
-    --maxw:920px;
-  }
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
+body{
     margin:0;
-    background:var(--parchment);
-    color:var(--ink);
-    font-family:'Cairo',sans-serif;
-    line-height:1.85;
-    -webkit-font-smoothing:antialiased;
-  }
-  h1,h2,h3,.display{
-    font-family:'El Messiri',serif;
-    color:var(--ink);
-    margin:0;
-  }
-  a{color:var(--green);}
-  img{max-width:100%;}
+    font-family:Arial,sans-serif;
+    background:#f5f7fb;
+}
 
-  /* ---------- texture / paper edge ---------- */
-  .torn{
-    height:14px;
-    background-image: radial-gradient(circle at 10px 0, transparent 9px, var(--parchment) 10px);
-    background-size: 20px 20px;
-    background-repeat: repeat-x;
-  }
-  .torn.up{ transform: rotate(180deg); }
+header{
+    background:#0b1730;
+    color:white;
+    padding:20px;
+}
 
-  /* ---------- top ribbon ---------- */
-  .disclaimer{
-    background:var(--ink);
-    color:var(--parchment);
-    font-size:.92rem;
-    text-align:center;
-    padding:10px 16px;
-  }
-  .disclaimer strong{ color:var(--gold-soft); }
+.container{
+    width:95%;
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
 
-  /* ---------- hero ---------- */
-  header.hero{
-    max-width:var(--maxw);
-    margin:0 auto;
-    padding:56px 20px 40px;
-    text-align:center;
-  }
-  .stamp-tag{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    border:2px dashed var(--gold);
-    color:var(--gold);
-    border-radius:999px;
-    padding:6px 18px;
-    font-size:.85rem;
-    font-weight:700;
-    transform:rotate(-2deg);
-    margin-bottom:20px;
-  }
-  header.hero h1{
-    font-size:clamp(2.1rem,5vw,3.1rem);
-    font-weight:700;
-    line-height:1.25;
-  }
-  header.hero p.subtitle{
-    color:var(--ink-soft);
-    font-size:1.15rem;
-    max-width:640px;
-    margin:16px auto 0;
-  }
-  .updated-pill{
-    display:inline-block;
-    margin-top:22px;
-    background:var(--white);
-    border:1px solid var(--paper-line);
-    border-radius:999px;
-    padding:6px 16px;
-    font-size:.85rem;
-    color:var(--ink-soft);
-  }
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-top:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
 
-  /* ---------- nav ---------- */
-  nav.pillnav{
-    max-width:var(--maxw);
-    margin:0 auto 10px;
-    padding:0 20px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    justify-content:center;
-  }
-  nav.pillnav a{
-    text-decoration:none;
-    background:var(--white);
-    color:var(--ink);
-    border:1px solid var(--paper-line);
-    padding:9px 18px;
-    border-radius:999px;
-    font-size:.92rem;
-    font-weight:600;
-    transition:background .15s, color .15s, transform .15s;
-  }
-  nav.pillnav a:hover{
-    background:var(--ink);
-    color:var(--parchment);
-    transform:translateY(-1px);
-  }
+table{
+    width:100%;
+    border-collapse:collapse;
+}
 
-  main{ max-width:var(--maxw); margin:0 auto; padding:10px 20px 80px; }
+th,td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    text-align:right;
+}
 
-  /* ---------- section header with stamp ---------- */
-  section.category{ margin-top:70px; }
-  .cat-head{
-    display:flex;
-    align-items:center;
-    gap:18px;
-    margin-bottom:8px;
-  }
-  .stamp{
-    flex:0 0 auto;
-    width:72px; height:72px;
-    border-radius:50%;
-    border:3px dashed var(--rust);
-    color:var(--rust);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.8rem;
-    transform:rotate(-8deg);
-    background:rgba(161,61,44,0.03);
-  }
-  .cat-head h2{ font-size:1.7rem; }
-  .cat-desc{
-    color:var(--ink-soft);
-    font-size:1rem;
-    margin:14px 0 28px;
-    border-right:3px solid var(--gold);
-    padding-right:16px;
-  }
+th{
+    background:#f8f8f8;
+}
 
-  /* ---------- steps (details/summary accordion) ---------- */
-  details.step{
-    background:var(--white);
-    border:1px solid var(--paper-line);
-    border-radius:var(--radius);
-    margin-bottom:14px;
-    overflow:hidden;
-  }
-  details.step[open]{ border-color:var(--gold); }
-  details.step summary{
-    list-style:none;
+button{
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
     cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:16px;
-    padding:16px 20px;
-    font-weight:700;
-    font-size:1.05rem;
-  }
-  details.step summary::-webkit-details-marker{ display:none; }
-  details.step summary .num{
-    flex:0 0 auto;
-    width:38px; height:38px;
-    border-radius:50%;
-    background:var(--ink);
-    color:var(--parchment);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'El Messiri',serif;
-    font-size:1rem;
-  }
-  details.step summary .chev{
-    margin-right:auto;
-    color:var(--ink-soft);
-    transition:transform .2s;
-  }
-  details.step[open] summary .chev{ transform:rotate(180deg); }
-  .step-body{ padding:0 22px 22px 22px; }
-  .step-body h4{
-    font-family:'Cairo',sans-serif;
-    font-size:.95rem;
-    color:var(--green);
-    margin:16px 0 6px;
-    font-weight:700;
-  }
-  .step-body ul{ margin:6px 0; padding-right:20px; }
-  .step-body li{ margin-bottom:4px; }
+    margin:2px;
+}
 
-  .callout{
-    border-radius:10px;
-    padding:12px 16px;
-    margin:12px 0;
-    font-size:.95rem;
-  }
-  .callout.warn{
-    background:#FBEDE9;
-    border:1px solid var(--rust);
-    color:#7A2C1F;
-  }
-  .callout.note{
-    background:#F1EEDF;
-    border:1px solid var(--paper-line);
-    color:var(--ink-soft);
-  }
-  .callout.mistake{
-    background:#FBEDE9;
-    border-right:4px solid var(--rust);
-    color:var(--ink);
-  }
+.admin{
+    background:#2457ff;
+    color:white;
+}
 
-  .meta-row{
-    display:flex; flex-wrap:wrap; gap:10px;
-    margin-top:16px;
-    font-size:.85rem;
-  }
-  .meta-row span{
-    background:var(--parchment-2);
-    border-radius:999px;
-    padding:5px 12px;
-    color:var(--ink-soft);
-  }
-  .meta-row span.check{
-    background:#FCF3D9;
-    color:#7A5A0E;
-    font-weight:700;
-  }
+.user{
+    background:#888;
+    color:white;
+}
 
-  /* ---------- simple visa-type cards (tourist/work/family) ---------- */
-  .simple-steps{
-    counter-reset:step;
-    padding:0; margin:0 0 20px;
-    list-style:none;
-  }
-  .simple-steps li{
-    counter-increment:step;
-    position:relative;
-    padding:14px 20px 14px 14px;
-    margin-bottom:10px;
-    background:var(--white);
-    border:1px solid var(--paper-line);
-    border-radius:10px;
-    padding-right:56px;
-  }
-  .simple-steps li::before{
-    content:counter(step);
-    position:absolute;
-    right:14px; top:50%; transform:translateY(-50%);
-    width:28px; height:28px;
-    border-radius:50%;
-    background:var(--gold);
-    color:var(--white);
-    font-weight:700;
-    display:flex; align-items:center; justify-content:center;
-    font-size:.9rem;
-  }
-
-  .checklist{
-    list-style:none; padding:0; margin:0;
-  }
-  .checklist li{
-    display:flex; align-items:flex-start; gap:10px;
-    padding:9px 0;
-    border-bottom:1px dashed var(--paper-line);
-  }
-  .checklist li:last-child{ border-bottom:none; }
-  .checklist li::before{
-    content:"☐";
-    color:var(--gold);
-    font-size:1.1rem;
-    line-height:1.4;
-  }
-
-  .source-line{
-    font-size:.85rem;
-    color:var(--ink-soft);
-    margin-top:10px;
-  }
-
-  .links-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:12px;
-  }
-  .links-grid a{
-    display:block;
-    background:var(--white);
-    border:1px solid var(--paper-line);
-    border-radius:10px;
-    padding:14px 16px;
-    text-decoration:none;
-    color:var(--ink);
-    font-weight:700;
-    font-size:.95rem;
-  }
-  .links-grid a span{
-    display:block;
-    font-weight:400;
-    color:var(--ink-soft);
-    font-size:.82rem;
-    margin-top:4px;
-  }
-  .links-grid a:hover{ border-color:var(--gold); }
-
-  footer{
-    text-align:center;
-    padding:40px 20px 60px;
-    color:var(--ink-soft);
-    font-size:.85rem;
-  }
-  footer .disclaimer-repeat{
-    max-width:600px; margin:0 auto 14px;
-  }
-
-  @media(max-width:560px){
-    .cat-head{ align-items:flex-start; }
-    .stamp{ width:56px; height:56px; font-size:1.3rem; }
-  }
+.logout{
+    background:#e53935;
+    color:white;
+}
 </style>
-<style>
-/* ---- Admin UI: matches the site's modern theme (index/login/register/dashboard) ---- */
-#adminBar{position:sticky;top:0;z-index:99999;background:#0b1730;color:#fff;padding:12px 20px;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.18);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
-#adminBar .left{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-#adminBar strong{font-weight:900}
-#adminBar button{border:0;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:inherit}
-#saveBtn{background:#2457ff;color:#fff;box-shadow:0 8px 18px rgba(36,87,255,.25)}
-#logoutBtn{background:transparent;border:1px solid rgba(255,255,255,.25)!important;color:#fff}
-#viewBtn{background:#fff;color:#0b1730}
-#saveStatus{font-size:.9rem;color:#8ea3c7}
-[data-edit]{outline:2px dashed transparent;outline-offset:4px;transition:.12s}
-body.editing [data-edit]:hover{outline-color:#2457ff;background:rgba(36,87,255,.08);cursor:text}
-body.editing [data-edit]{cursor:text}
+</head>
+<body>
 
-#loginScreen{position:fixed;inset:0;background:#f6f8fc;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
-#loginCard{width:min(430px,100%);background:#fff;border:1px solid #e5eaf1;border-radius:24px;padding:32px;box-shadow:0 15px 45px rgba(16,24,40,.08);direction:rtl}
-#loginCard .brand-row{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;color:#0b1730;margin-bottom:18px}
-#loginCard h2{margin:0 0 10px;color:#0b1730;font-size:24px}
-#loginCard p{color:#667085;margin:0 0 20px;font-size:14.5px}
-#loginCard input{width:100%;padding:13px 14px;border:1px solid #dfe5ee;border-radius:12px;margin:7px 0;font-family:inherit;font-size:15px;box-sizing:border-box}
-#loginCard input:focus{outline:none;border-color:#2457ff}
-#loginCard button{width:100%;padding:13px;border:0;border-radius:12px;background:#2457ff;color:#fff;font-weight:800;cursor:pointer;font-family:inherit;margin-top:8px;font-size:15px}
-#loginCard button:hover{opacity:.92}
-#resetBtn{background:#fff!important;color:#17233d!important;border:1px solid #dfe5ee!important}
-#loginMsg{min-height:24px;color:#b42318;margin-top:8px;font-size:.9rem}
-#resetBox{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #edf0f5}
-</style></head>
-<body><div id="loginScreen"><div id="loginCard"><div class="brand-row">🇮🇹 Italy Visa Guide</div><h2>🔐 لوحة تحكم الموقع</h2><p>سجّل الدخول بحساب الأدمن، وبعدها هتظهر لك الصفحة كاملة وتقدر تعدّل الكلام في مكانه مباشرة.</p><input autocomplete="username" id="email" placeholder="البريد الإلكتروني" type="email"/><input autocomplete="current-password" id="password" placeholder="كلمة المرور" type="password"/><button id="loginBtn">دخول</button><button id="resetBtn">نسيت كلمة المرور</button><div id="resetBox"><input id="resetEmail" placeholder="اكتب بريدك لإرسال رابط إعادة التعيين" type="email"/><button id="sendReset">إرسال رابط إعادة التعيين</button></div><div id="loginMsg"></div></div></div><div id="adminBar"><div class="left"><strong>⚙️ وضع تعديل الموقع</strong><button id="saveBtn">💾 حفظ التعديلات</button><button id="viewBtn">👁️ فتح الموقع</button><span id="saveStatus"></span></div><button id="logoutBtn">تسجيل الخروج</button></div>
-<div class="disclaimer">
-  ⚠️ هذا موقع معلوماتي <strong>مستقل وغير رسمي</strong> — غير تابع للسفارة الإيطالية أو VFS أو أي جهة حكومية. راجع دائمًا المصادر الرسمية قبل التقديم.
-</div>
-<header class="hero">
-<div class="stamp-tag" data-edit="e1">🛂 آخر تحديث: أغسطس 2026</div>
-<h1 data-edit="e2">دليل فيزا إيطاليا من مصر</h1>
-<p class="subtitle" data-edit="e3">دليلك خطوة بخطوة لفهم إجراءات التقديم على التأشيرة الإيطالية من مصر — بأسلوب بسيط ومنظم، لكل الأنواع: دراسة، سياحة، عمل، ولمّ الشمل.</p>
-<span class="updated-pill" data-edit="e4">📌 الشروط والرسوم قابلة للتغيير — تحقق دائمًا من المصدر الرسمي قبل أي خطوة</span>
+<header>
+    <h2>لوحة الإدارة</h2>
 </header>
-<nav class="pillnav">
-<a data-edit="e5" href="#study">🎓 تأشيرة الدراسة</a>
-<a data-edit="e6" href="#practical">📝 دليل عملي تفصيلي</a>
-<a data-edit="e7" href="#tourist">🧳 التأشيرة السياحية</a>
-<a data-edit="e8" href="#work">💼 تأشيرة العمل</a>
-<a data-edit="e9" href="#family">👨‍👩‍👧 لمّ الشمل</a>
-<a data-edit="e10" href="#checklists">📋 قوائم المستندات</a>
-<a data-edit="e11" href="#sources">📚 المصادر الرسمية</a>
-</nav>
-<main>
-<!-- ======================= STUDY VISA ======================= -->
-<section class="category" id="study">
-<div class="cat-head">
-<div class="stamp">🎓</div>
-<h2 data-edit="e12">تأشيرة الدراسة</h2>
+
+<div class="container">
+
+<div class="card">
+    <h3>المستخدمون</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>البريد</th>
+                <th>الصلاحية</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+    </table>
 </div>
-<p class="cat-desc" data-edit="e19">هذا القسم يغطي التأشيرة الوطنية للدراسة (National Visa / Type D) للإقامة الطويلة لأغراض دراسية (أكثر من 90 يومًا). المتطلبات قد تختلف حسب الجامعة والبرنامج.</p>
-<!-- Step 1 -->
-<details class="step" open="">
-<summary data-edit="e26"><span class="num">1</span> اختيار الجامعة والبرنامج <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e51">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e76">ابحث عن الجامعات المناسبة لتخصصك.</li>
-<li data-edit="e77">تحقق من لغة التدريس (إيطالية أو إنجليزية).</li>
-<li data-edit="e78">اقرأ متطلبات القبول لكل برنامج بعناية.</li>
-<li data-edit="e79">تحقق مما إذا كانت الجامعة تشترط CIMEA أم Declaration of Value أم ENIC-NARIC.</li>
-</ul>
-<div class="callout note" data-edit="e223">
-<strong>أهم الملاحظات:</strong> بعض البرامج تُدرَّس بالإيطالية فقط — تأكد من مستواك اللغوي أو اختر برامج بالإنجليزية. تحقق من مواعيد تقديم طلبات القبول، فكل جامعة لها مواعيدها الخاصة.
-        </div>
-<div class="meta-row">
-<span data-edit="e246">المصدر الرسمي: موقع الجامعة مباشرةً | Universitaly</span>
+
+<button class="logout" onclick="logout()">
+تسجيل الخروج
+</button>
+
 </div>
-</div>
-</details>
-<!-- Step 2 -->
-<details class="step">
-<summary data-edit="e27"><span class="num">2</span> الحصول على القبول الجامعي <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e52">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e80">قدّم طلب القبول مباشرةً إلى الجامعة الإيطالية.</li>
-<li data-edit="e81">أرفق المستندات المطلوبة من الجامعة.</li>
-<li data-edit="e82">انتظر خطاب القبول الرسمي.</li>
-</ul>
-<h4 data-edit="e53">المستندات المطلوبة (تختلف حسب الجامعة)</h4>
-<ul>
-<li data-edit="e83">جواز السفر.</li>
-<li data-edit="e84">شهادة البكالوريوس بالإنجليزية (لو بتقدم على ماستر) — مختومة من الكلية وأمين عام الجامعة، ثم موثّقة خارجية، ثم مترجمة للإيطالية وموثّقة عبر VFS.</li>
-<li data-edit="e85">بيان الدرجات — مختوم من الكلية وأمين عام الجامعة، موثّق خارجية وموثّق عبر VFS.</li>
-<li data-edit="e86">خطاب النية (Statement of Purpose) أو Motivation Letter.</li>
-<li data-edit="e87">سيرة ذاتية (CV).</li>
-<li data-edit="e88">توصيات أكاديمية (إن طُلبت).</li>
-<li data-edit="e89">إثبات اللغة — لو درست البكالوريوس بالإنجليزي هتحتاج MOI من الكلية، وإلا فتحتاج IELTS أو TOEFL حسب متطلبات الجامعة.</li>
-</ul>
-<div class="callout note" data-edit="e224">
-<strong>أهم الملاحظات:</strong> بعض الجامعات لديها بوابة تقديم خاصة. القبول المشروط (Conditional Offer) قد يُقبل في مرحلة Pre-enrollment — تحقق من الجامعة.
-        </div>
-<div class="meta-row"><span data-edit="e247">المصدر الرسمي: الموقع الرسمي للجامعة المستهدفة</span></div>
-</div>
-</details>
-<!-- Step 3 -->
-<details class="step">
-<summary data-edit="e28"><span class="num">3</span> إجراءات Universitaly / Pre-enrollment <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e54">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e90">أنشئ حسابًا على Universitaly — البوابة الرسمية للتسجيل المسبق للطلاب الدوليين.</li>
-<li data-edit="e91">قدّم طلب Pre-enrollment خلال النافذة الزمنية الرسمية.</li>
-<li data-edit="e92">ارفع المستندات المطلوبة على البوابة.</li>
-<li data-edit="e93">يُحال طلبك إلى السفارة الإيطالية في القاهرة للتحقق.</li>
-</ul>
-<div class="callout warn" data-edit="e225">
-<strong>تحذير مهم:</strong> مواعيد Pre-enrollment تُحدَّد سنويًا من قِبل الحكومة الإيطالية. إذا فاتتك النافذة الزمنية، قد تضطر للانتظار حتى العام الدراسي التالي. تابع المواعيد مبكرًا.
-        </div>
-<h4 data-edit="e55">المستندات المطلوبة على Universitaly</h4>
-<ul>
-<li data-edit="e94">بيانات جواز السفر.</li>
-<li data-edit="e95">الشهادة الدراسية وكشف الدرجات.</li>
-<li data-edit="e96">خطاب القبول أو تأكيد التسجيل.</li>
-</ul>
-<div class="meta-row">
-<span data-edit="e248">المصدر الرسمي: Universitaly | السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e249">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 4 -->
-<details class="step">
-<summary data-edit="e29"><span class="num">4</span> تجهيز المستندات الأكاديمية <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e56">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e97">جهّز نسخ رسمية من شهاداتك وكشف الدرجات.</li>
-<li data-edit="e98">احصل على ترجمة معتمدة للمستندات من العربية إلى الإيطالية.</li>
-<li data-edit="e99">تحقق من الحاجة إلى Apostille أو توثيق قنصلي.</li>
-</ul>
-<h4 data-edit="e57">المستندات الأكاديمية الشائعة</h4>
-<ul>
-<li data-edit="e100">الشهادة الثانوية أو الجامعية الأصلية.</li>
-<li data-edit="e101">كشف الدرجات الرسمي.</li>
-<li data-edit="e102">ترجمة معتمدة لكل المستندات.</li>
-<li data-edit="e103">Apostille أو توثيق قنصلي (حسب ما تطلبه الجهة).</li>
-</ul>
-<div class="meta-row">
-<span data-edit="e250">المصدر الرسمي: السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e251">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 5 -->
-<details class="step">
-<summary data-edit="e30"><span class="num">5</span> CIMEA أو Declaration of Value <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e58">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e104"><strong>Declaration of Value (Dichiarazione di Valore):</strong> وثيقة رسمية تُصدرها السفارة الإيطالية في القاهرة، تُثبت مستوى وصحة شهادتك الدراسية.</li>
-<li data-edit="e105"><strong>CIMEA:</strong> مسار بديل للاعتراف الأكاديمي تقبله بعض الجامعات الإيطالية كبديل لـ Declaration of Value.</li>
-<li data-edit="e106">تواصل مع جامعتك لمعرفة أيهما تشترط.</li>
-</ul>
-<div class="callout warn" data-edit="e226">
-          ليست جميع الجامعات تشترط Declaration of Value — بعضها يقبل CIMEA. تحقق من جامعتك مباشرةً قبل البدء.
-        </div>
-<div class="callout note" data-edit="e227">
-<strong>أهم الملاحظات:</strong> Declaration of Value يستغرق وقتًا — ابدأ مبكرًا. يوجد رسوم للحصول عليه — يجب التحقق من المصدر الرسمي.
-        </div>
-<div class="callout mistake" data-edit="e228">
-<strong>خطأ شائع:</strong> الافتراض أن Declaration of Value مطلوب دائمًا دون التحقق من الجامعة.
-        </div>
-<div class="meta-row">
-<span data-edit="e252">المصدر الرسمي: السفارة الإيطالية في القاهرة | CIMEA</span>
-<span class="check" data-edit="e253">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 6 -->
-<details class="step">
-<summary data-edit="e31"><span class="num">6</span> تجهيز المستندات المالية <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e59">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e107">جهّز كشف حساب بنكي للفترة الأخيرة (عادةً 3-6 أشهر).</li>
-<li data-edit="e108">تأكد أن الرصيد يُثبت قدرتك على تغطية تكاليف المعيشة والدراسة.</li>
-<li data-edit="e109">إذا كانت لديك منحة دراسية — أحضر خطاب المنحة الرسمي.</li>
-<li data-edit="e110">إذا كان أحد الوالدين هو الضامن — أحضر إقرار الكفالة المالية.</li>
-</ul>
-<div class="callout warn" data-edit="e229">
-<strong>لا تخترع أرقامًا:</strong> الحد الأدنى للإثبات المالي يُحدَّد بموجب القانون الإيطالي ويتغير سنويًا. يجب التحقق من المصدر الرسمي قبل التقديم.
-        </div>
-<h4 data-edit="e60">المستندات المطلوبة</h4>
-<ul>
-<li data-edit="e111">كشف حساب بنكي (3-6 أشهر).</li>
-<li data-edit="e112">خطاب منحة دراسية (إن وُجد — EDISU، DSU، أو جامعية).</li>
-<li data-edit="e113">إقرار كفالة مالية من ولي الأمر (إن انطبق).</li>
-<li data-edit="e114">إثبات مصدر الأموال عند الحاجة.</li>
-</ul>
-<div class="callout mistake" data-edit="e230">
-<strong>أخطاء شائعة:</strong> وجود إيداع مالي كبير ومفاجئ بدون إثبات مصدره — قد يُثير تساؤلات أثناء تقييم الطلب. تقديم كشف حساب ناقص أو لفترة قصيرة.
-        </div>
-<div class="meta-row">
-<span data-edit="e254">المصدر الرسمي: السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e255">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 7 -->
-<details class="step">
-<summary data-edit="e32"><span class="num">7</span> إثبات السكن <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e61">ماذا أفعل؟</h4>
-<p data-edit="e75">أحضر أحد المستندات التالية:</p>
-<ul>
-<li data-edit="e115">تأكيد حجز السكن الجامعي (Dormitory Booking Confirmation).</li>
-<li data-edit="e116">عقد إيجار موقّع في إيطاليا.</li>
-<li data-edit="e117">خطاب استضافة من مقيم إيطالي (إذا كنت ستسكن مع شخص).</li>
-</ul>
-<div class="callout note" data-edit="e231">
-<strong>أهم الملاحظات:</strong> تحقق من السفارة وVFS هل يُقبل السكن المؤقت أو المبدئي في مرحلة التأشيرة.
-        </div>
-<div class="callout mistake" data-edit="e232">
-<strong>خطأ شائع:</strong> التقديم دون عنوان سكن محدد في إيطاليا.
-        </div>
-<div class="meta-row">
-<span data-edit="e256">المصدر الرسمي: السفارة الإيطالية في القاهرة | VFS Egypt</span>
-<span class="check" data-edit="e257">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 8 -->
-<details class="step">
-<summary data-edit="e33"><span class="num">8</span> التأمين <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e62">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e118">احصل على تأمين صحي وسفر ساري المفعول في منطقة شنغن وإيطاليا.</li>
-<li data-edit="e119">يجب أن يغطي التأمين كامل فترة إقامتك.</li>
-<li data-edit="e120">الحد الأدنى للتغطية: 30,000 يورو (متطلب شنغن قياسي).</li>
-</ul>
-<div class="callout note" data-edit="e233">
-<strong>أهم الملاحظات:</strong> تحقق من السفارة هل يجب شراء التأمين قبل الموافقة على التأشيرة أم بعدها.
-        </div>
-<div class="meta-row">
-<span data-edit="e258">المصدر الرسمي: السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e259">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 9 -->
-<details class="step">
-<summary data-edit="e34"><span class="num">9</span> حجز موعد التأشيرة <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e63">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e121">احجز موعدك عبر الموقع الرسمي لـ VFS Global Egypt — مركز تقديم طلبات التأشيرة الإيطالية.</li>
-<li data-edit="e122">الحجز يتم إلكترونيًا.</li>
-<li data-edit="e123">المواعيد قد تكون محجوزة لفترات طويلة — احجز مبكرًا.</li>
-</ul>
-<div class="callout warn" data-edit="e234">
-<strong>احجز مبكرًا:</strong> توفر المواعيد يتغير باستمرار ولا يمكن ضمانه. تجنب الانتظار حتى اكتمال ملفك.
-        </div>
-<div class="meta-row">
-<span data-edit="e260">المصدر الرسمي: VFS Global Egypt — Italy</span>
-<span class="check" data-edit="e261">📌 تحقق من الرابط الرسمي الحالي</span>
-</div>
-</div>
-</details>
-<!-- Step 10 -->
-<details class="step">
-<summary data-edit="e35"><span class="num">10</span> تجهيز ملف السفارة <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e64">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e124">اجمع جميع المستندات المطلوبة.</li>
-<li data-edit="e125">تأكد من ترتيبها وفق القائمة الرسمية لـ VFS أو السفارة.</li>
-<li data-edit="e126">احصل على صور شخصية مطابقة للمواصفات الرسمية.</li>
-<li data-edit="e127">اطبع استمارة طلب التأشيرة وامتلأها بدقة.</li>
-</ul>
-<h4 data-edit="e65">ملف الطلب الكامل</h4>
-<ul class="checklist">
-<li data-edit="e128">جواز السفر الأصلي + نسخ من كل الصفحات</li>
-<li data-edit="e129">استمارة طلب التأشيرة الوطنية مكتملة وموقعة</li>
-<li data-edit="e130">صور شخصية (مواصفات شنغن)</li>
-<li data-edit="e131">تأكيد Pre-enrollment من Universitaly</li>
-<li data-edit="e132">خطاب القبول الجامعي</li>
-<li data-edit="e133">Declaration of Value أو CIMEA</li>
-<li data-edit="e134">المستندات الأكاديمية + ترجمة معتمدة</li>
-<li data-edit="e135">الإثبات المالي</li>
-<li data-edit="e136">إثبات السكن</li>
-<li data-edit="e137">التأمين</li>
-<li data-edit="e138">أي مستندات إضافية طلبتها السفارة أو VFS</li>
-</ul>
-<div class="meta-row">
-<span data-edit="e262">المصدر الرسمي: VFS Global Egypt | السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e263">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</div>
-</details>
-<!-- Step 11 -->
-<details class="step">
-<summary data-edit="e36"><span class="num">11</span> تقديم الطلب <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e66">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e139">احضر في الموعد المحجوز إلى مركز VFS Global Egypt بكامل مستنداتك الأصلية.</li>
-<li data-edit="e140">ادفع رسوم التأشيرة.</li>
-<li data-edit="e141">قدّم البيانات البيومترية (بصمات وصورة) إذا طُلب ذلك.</li>
-<li data-edit="e142">استلم إيصال الاستلام.</li>
-</ul>
-<div class="callout mistake" data-edit="e235">
-<strong>أخطاء شائعة:</strong> الحضور بدون مستند واحد — قد يُلغى الموعد. دفع رسوم غير صحيحة.
-        </div>
-<div class="meta-row">
-<span data-edit="e264">المصدر الرسمي: VFS Global Egypt</span>
-<span class="check" data-edit="e265">📌 يجب التحقق من المبلغ الحالي</span>
-</div>
-</div>
-</details>
-<!-- Step 12 -->
-<details class="step">
-<summary data-edit="e37"><span class="num">12</span> متابعة الطلب <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e67">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e143">تابع حالة طلبك عبر بوابة VFS الإلكترونية.</li>
-<li data-edit="e144">إذا طلبت منك السفارة مستندات إضافية أو مقابلة — استجب فورًا.</li>
-</ul>
-<div class="callout warn" data-edit="e236">
-          لا تغادر مصر ولا تقدّم على طلب تأشيرة لدولة أخرى أثناء معالجة طلبك.
-        </div>
-<div class="callout mistake" data-edit="e237">
-<strong>أخطاء شائعة:</strong> تجاهل التواصل من السفارة. عدم متابعة حالة الطلب بانتظام.
-        </div>
-<div class="meta-row"><span data-edit="e266">المصدر الرسمي: VFS Global Egypt</span></div>
-</div>
-</details>
-<!-- Step 13 -->
-<details class="step">
-<summary data-edit="e38"><span class="num">13</span> استلام القرار <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e68">ماذا أفعل؟</h4>
-<ul>
-<li data-edit="e145">ستُخطَر عبر VFS عندما يكون جواز سفرك جاهزًا للاستلام.</li>
-<li data-edit="e146">في حالة الموافقة: استلم جواز سفرك مع ملصق التأشيرة.</li>
-<li data-edit="e147">في حالة الرفض: ستحصل على إشعار كتابي بأسباب الرفض. يمكنك التظلم أو إعادة التقديم مع معالجة أسباب الرفض.</li>
-</ul>
-<div class="meta-row"><span data-edit="e267">المصدر الرسمي: VFS Global Egypt | السفارة الإيطالية في القاهرة</span></div>
-</div>
-</details>
-<!-- Step 14 -->
-<details class="step">
-<summary data-edit="e39"><span class="num">14</span> بعد الوصول إلى إيطاليا <span class="chev">▾</span></summary>
-<div class="step-body">
-<div class="callout warn" data-edit="e238">
-<strong>تحذير:</strong> يجب التقديم على Permesso di Soggiorno خلال 8 أيام عمل من تاريخ وصولك. التأخير قد يُبطل تأشيرتك.
-        </div>
-<ul>
-<li data-edit="e148"><strong>Permesso di Soggiorno (تصريح الإقامة):</strong> قدّم طلبك خلال 8 أيام عمل من الوصول عبر مكاتب البريد الإيطالية (Poste Italiane).</li>
-<li data-edit="e149"><strong>Codice Fiscale (الرقم الضريبي):</strong> احصل عليه من مكتب Agenzia delle Entrate — ضروري لكثير من الإجراءات.</li>
-<li data-edit="e150"><strong>التسجيل في الجامعة:</strong> أكمل التسجيل الرسمي في مؤسستك التعليمية.</li>
-<li data-edit="e151"><strong>التسجيل الصحي:</strong> سجّل في نظام الصحة الوطني الإيطالي (SSN) أو احصل على تأمين صحي خاص.</li>
-<li data-edit="e152"><strong>التسجيل في البلدية (Comune):</strong> سجّل عنوان سكنك في البلدية المحلية.</li>
-</ul>
-<div class="meta-row"><span data-edit="e268">المصدر الرسمي: Poste Italiane | Agenzia delle Entrate</span></div>
-</div>
-</details>
-</section>
-<div class="torn"></div>
-<!-- ======================= PRACTICAL FIELD GUIDE (STUDY) ======================= -->
-<section class="category" id="practical">
-<div class="cat-head">
-<div class="stamp">📝</div>
-<h2 data-edit="e13">دليل عملي تفصيلي — تجربة طلاب</h2>
-</div>
-<p class="cat-desc" data-edit="e20">القسم ده مبني على تجربة شخصية لطالب سبق وسافر لدراسة الماچيستير، وفيه تفاصيل عملية (أماكن، أسعار، خطوات) مكمّلة لقسم تأشيرة الدراسة بالأعلى. الأسعار والمواعيد بتتغير، فتأكد منها بنفسك وقت التنفيذ. شكرًا لكل من شارك تجربته وساعد غيره.</p>
-<details class="step">
-<summary data-edit="e40"><span class="num">📍</span> أماكن مهمة هتروحلها أكتر من مرة <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul>
-<li data-edit="e153"><strong>مكتب VFS Italy and Netherlands Visa Center</strong> — لتقديم الطلب وتوثيق الشهادات.</li>
-<li data-edit="e154"><strong>أماكن توثيق الخارجية بالقاهرة:</strong> مكتب الترجمان، أو مكتب الخارجية بالمريالاند (كتير من الطلاب بيفضلوه لأنه أهدأ وأسهل في التعامل).</li>
-<li data-edit="e155"><strong>مكاتب ترجمة معتمدة للإيطالية:</strong> مكتب هاني قطب (بجوار مكتب VFS إيطاليا)، ومكتب نبيل جاد للترجمة (السعر حوالي 175-200 جنيه للورقة، وبيستقبل الطلبات عبر واتساب مع إمكانية الاستلام في نفس اليوم).</li>
-</ul>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e41"><span class="num">✅</span> الورق المطلوب يوم موعد الفيزا <span class="chev">▾</span></summary>
-<div class="step-body">
-<div class="callout note" data-edit="e239">هذه قائمة تذكيرية بالإضافة لأوراق تقوية الموقف — راجع دائمًا الليستة الرسمية لتأشيرة الدراسة (Type D) على موقع السفارة.</div>
-<ul class="checklist">
-<li data-edit="e156">صورة تأكيد الموعد</li>
-<li data-edit="e157">صورة وصل دفع رسوم التأشيرة</li>
-<li data-edit="e158">جواز السفر</li>
-<li data-edit="e159">صورة من أول صفحة بالباسبور</li>
-<li data-edit="e160">استمارة National Visa Application Form (Type D)</li>
-<li data-edit="e161">طباعة بوليصة التأمين على الباسبور للمصريين</li>
-<li data-edit="e162">صور شخصية حديثة</li>
-<li data-edit="e163">كشف حساب بنكي جاري (مش وديعة أو شهادة) — بحد أدنى حوالي 6000 يورو</li>
-<li data-edit="e164">HR letter حديث، يُفضّل في نفس أسبوع الموعد</li>
-<li data-edit="e165">حجز طيران مبدئي (قبل بدء الدراسة بأسبوع إلى 10 أيام تقريبًا) — يفضَّل مبلغ معقول ومناسب لرصيدك البنكي</li>
-<li data-edit="e166">حجز فندق (أسبوعين أفضل من 10 أيام) — بسعر منطقي متناسب مع رصيدك</li>
-<li data-edit="e167">ملخص Universitaly (Summary)</li>
-<li data-edit="e168">الـ DOV أو وصل استلامه</li>
-<li data-edit="e169">صور من شهادات الجامعة (صوّرها نسخ إضافية قبل تسليمها)</li>
-<li data-edit="e170">صورة شهادة امتحان اللغة (إنجليزي أو إيطالي حسب لغة البرنامج)</li>
-<li data-edit="e171">Cover Letter يوضّح موقفك للنقاط الشائكة</li>
-<li data-edit="e172">CV</li>
-</ul>
-<div class="callout note" data-edit="e240">
-          حجز الطيران مش لازم يكون على نفس مدينة الجامعة لو الحجز غالي عليها؛ ممكن تحجز مدينة تانية وتوضّح في الـ Cover Letter إنك هتكمل بالقطر.
-        </div>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e42"><span class="num">📄</span> الورق المطلوب لعمل الـ DOV <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul class="checklist">
-<li data-edit="e173">شهادات الابتدائي والإعدادي والثانوي</li>
-<li data-edit="e174">شهادات التعليم العالي (بكالوريوس / دبلومات...)</li>
-<li data-edit="e175">بيان درجات التعليم العالي</li>
-<li data-edit="e176">صورة الباسبور</li>
-<li data-edit="e177">ملخص Universitaly (اختياري — لو معاك بيكون الـ DOV مجانًا، لو مش معاك بتدفع حوالي 3400 جنيه)</li>
-</ul>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e43"><span class="num">🏫</span> تجهيز شهادات الابتدائي والإعدادي <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul>
-<li data-edit="e178">استخراج الشهادة من الإدارة التعليمية التابعة لمدرستك، وختم النسر وختم المدير العام من نفس الإدارة (موجّهة للسفارة الإيطالية).</li>
-<li data-edit="e179">ختم مديرية التربية والتعليم التابعة لك.</li>
-</ul>
-<div class="callout note" data-edit="e241">
-          مش هتحتاج ختم سكرتير عام المحافظة في عابدين طالما بتقدم على ماجستير. بيان النجاح وحده كافي، مش لازم بيان الدرجات الكامل.
-        </div>
-<h4 data-edit="e69">ملاحظات عامة (ابتدائي / إعدادي / ثانوي)</h4>
-<ul>
-<li data-edit="e180">غير مطلوب ترجمة.</li>
-<li data-edit="e181">غير مطلوب توثيق خارجية.</li>
-<li data-edit="e182">مطلوب فقط ختم النسر.</li>
-</ul>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e44"><span class="num">🎓</span> تجهيز شهادة الثانوية العامة <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul>
-<li data-edit="e183">الاستخراج من الإدارة العامة للامتحانات باللغة العربية، وختم النسر من نفس الإدارة (موجّهة للسفارة الإيطالية).</li>
-</ul>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e45"><span class="num">🎓</span> تجهيز شهادات التعليم العالي وبيان الدرجات <span class="chev">▾</span></summary>
-<div class="step-body">
-<h4 data-edit="e70">الشهادات (بكالوريوس / دبلومات)</h4>
-<ul>
-<li data-edit="e184">استخراج الشهادة من الكلية التابع لها.</li>
-<li data-edit="e185">ختمها من مكتب أمين عام الجامعة.</li>
-<li data-edit="e186">توثيقها من الخارجية.</li>
-<li data-edit="e187">ترجمتها إلى الإيطالية.</li>
-<li data-edit="e188">توثيقها من مكتب VFS.</li>
-</ul>
-<h4 data-edit="e71">بيان الدرجات</h4>
-<ul>
-<li data-edit="e189">استخراجه من الكلية التابع لها.</li>
-<li data-edit="e190">ختمه من مكتب أمين عام الجامعة.</li>
-<li data-edit="e191">توثيقه من الخارجية.</li>
-<li data-edit="e192">توثيقه من مكتب VFS.</li>
-</ul>
-<div class="callout note" data-edit="e242">
-          أمين عام جامعة القاهرة موجود في المدينة الجامعية. توثيق الورقة من أمين عام جامعة عين شمس حوالي 300 جنيه (دفع فيزا، وأحيانًا يُقبل كاش حسب الموظف).
-        </div>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e46"><span class="num">🖋️</span> حجز موعد توثيق الشهادات من مكتب VFS <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul>
-<li data-edit="e193">ابعت إيميل بالورق المطلوب توثيقه + صورة الباسبور + إيميل قبول الجامعة، واطلب موعد توثيق شهادات للطالب يوم الخميس (مواعيد استثنائية للطلبة).</li>
-<li data-edit="e194">المفروض يوصلك رد تلقائي فيه رقم ticket — كلّم خدمة العملاء وقولّهم إنك عايز موعد توثيق وهيطلبوا رقم الـ ticket.</li>
-<li data-edit="e195">لو الخطوتين دول ماتفعوش، روح مكتب VFS يوم خميس وقولهم محدش رد عليك وعايز توثّق الشهادات مباشرة.</li>
-</ul>
-<div class="callout warn" data-edit="e243">
-          توثيق الورقة الواحدة حوالي 3000 جنيه (آخر تحديث أغسطس 2025 — تحقق من السعر الحالي). خد معاك: الورق المطلوب توثيقه، صورة الباسبور، صورة الموعد لو معاك، وصورة جواب القبول لو متوفر.
-        </div>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e47"><span class="num">🖋️</span> حجز موعد الـ DOV <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul>
-<li data-edit="e196">سجّل على بوابة Prenotami الرسمية واختار معاد (جرّب في أوقات مختلفة — كتير من الناس لاحظوا إن مواعيد جديدة بتفتح حوالي يوم 17 من كل شهر، فحاول تدخل بدري في المعاد ده).</li>
-<li data-edit="e197">روح القنصلية الإيطالية في مبنى Nile City Towers، المبنى الجنوبي، الدور السابع.</li>
-<li data-edit="e198">خد معاك: صورة الباسبور، صورة الموعد مطبوعة، الشهادات وبيان الدرجات بعد توثيقها من VFS، صورتين (أبيض وأسود) من كل شهادة أو بيان درجات، وملخص Universitaly.</li>
-</ul>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e48"><span class="num">👪</span> البحث الاجتماعي — الأوراق والخطوات <span class="chev">▾</span></summary>
-<div class="step-body">
-<div class="callout note" data-edit="e244">بعض الموظفين بيطلبوا كل الأوراق اللي تحت، وبعضهم بيكتفي بجزء منها — لازم تتأكد بنفسك من كل مكتب إيه المطلوب بالظبط.</div>
-<h4 data-edit="e72">الأوراق المطلوبة</h4>
-<ul class="checklist">
-<li data-edit="e199">قيد عائلي</li>
-<li data-edit="e200">شهادة سلبية (من الشهر العقاري — عمارة الطب الشرعي برمسيس، الدور الرابع، أو حسب مكان سكنك)</li>
-<li data-edit="e201">بطاقات أو شهادات ميلاد / شهادة وفاة / شهادات طلاق لأفراد الأسرة</li>
-<li data-edit="e202">بيان قيد دراسي لأفراد الأسرة اللي بيدرسوا</li>
-<li data-edit="e203">مفردات مرتب للأفراد الشغّالة (أو برنت تأمين معاش لو الأسرة بتاخد معاش)</li>
-<li data-edit="e204">إيميل قبول الجامعة مترجم للعربي</li>
-</ul>
-<h4 data-edit="e73">ملاحظات مهمة</h4>
-<ul>
-<li data-edit="e205">يُفضّل إحضار نموذج بحث اجتماعي جاهز كمثال لتوريه للموظف المسؤول.</li>
-<li data-edit="e206">يكون البحث موجّهًا إلى مكتب الخدمات الاجتماعية في إيطاليا.</li>
-<li data-edit="e207">لازم يُذكر إجمالي الدخل السنوي للأسرة بالجنيه المصري وما يعادله باليورو، حسب سعر الصرف الرسمي للسنة المرجعية (من موقع بنك إيطاليا).</li>
-<li data-edit="e208">لازم يُذكر أن جميع أفراد الأسرة لا يملكون أي أصول ثابتة أو متحركة أو أي ودائع بنكية بالداخل أو الخارج حتى 31 ديسمبر من السنة السابقة لبداية الدراسة.</li>
-</ul>
-<h4 data-edit="e74">الإمضاءات والأختام (بالترتيب)</h4>
-<ol class="simple-steps">
-<li data-edit="e209">إمضاء وختم مكتب التضامن بتاع منطقتك (بتعرفه من المكتب اللي أخدت منه البحث).</li>
-<li data-edit="e210">إمضاءين وختم مديرية التضامن — الأول في مجمع الأحياء بشبرا (الدور 11، عند مترو مسرة)، والتاني في مبنى مستشفى أبو مناع (الدور الرابع).</li>
-<li data-edit="e211">ختم محافظة القاهرة (داخل مجمع قصر عابدين).</li>
-<li data-edit="e212">توثيق الخارجية.</li>
-<li data-edit="e213">ترجمة البحث للإيطالية.</li>
-<li data-edit="e214">توثيق البحث في مكتب VFS Italy — السعر مع التوصيل للبيت داخل القاهرة حوالي 3135 جنيه (تحديث أغسطس 2025).</li>
-</ol>
-<div class="callout warn" data-edit="e245">
-<strong>توثيق البحث قبل السفر ولا بعده؟</strong> مفيش قاعدة ثابتة — بعض الناس بينصحوا بالتوثيق بعد السفر لإيطاليا تجنبًا لسحب الفيزا في حالات نادرة جدًا (سُمع عن حالتين أو ثلاثة فقط، بدون تأكيد رسمي). لو عندك وقت كفاية (هتسافر شهر 8 أو 9)، الأسلم توثّق بعد السفر. لو هتسافر متأخر، القرار مسؤوليتك بناءً على ديدلاين المنحة.
-        </div>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e49"><span class="num">✈️</span> أول ما توصل إيطاليا <span class="chev">▾</span></summary>
-<div class="step-body">
-<ol class="simple-steps">
-<li data-edit="e215"><strong>حجز الرقم الضريبي (Codice Fiscale):</strong> بيطلع مجانًا من Agenzia delle Entrate — احجز موعد أونلاين الأول وبعدين روح معاك جواز السفر.</li>
-<li data-edit="e216"><strong>موعد مع مكتب Admission بالجامعة لتسليم الأوراق:</strong> الحجز عبر بوابة الطالب (Studenti) من أيقونة Booking. هتقدّم شهاداتك الأصلية + DOV (أو ما يعادله) + جواز السفر + الرقم الضريبي لو جاهز. هدف الموعد إنك تتسجل بشكل نهائي وتاخد شهادة Enrollment الأصلية، وده بيتطلب دفع رسوم الجامعة (حوالي 157 يورو).</li>
-<li data-edit="e217"><strong>شراء كيت التقديم على الإقامة:</strong> أحيانًا مكتب الـ Admission بيوفّره ويساعدك تملاه، وإلا هتلاقيه في أي مكتب بريد.</li>
-<li data-edit="e218"><strong>التقديم على الإقامة (Permesso di Soggiorno):</strong> املا الكيت بقلم أسود وبحروف كبيرة (CAPITAL LETTERS)، وسلّمه في مكتب البريد مع:
-            <ul>
-<li>صورة الباسبور + فيزا إيطاليا + غلاف الباسبور + كل الصفحات (بما فيها فيز دول تانية لو موجودة)</li>
-<li>صورة الكودتشي فيسكال (إلزامية)</li>
-<li>صورة عقد السكن (سكن الجامعة أو عقد إيجار لو ساكن برة)</li>
-<li>تأمين صحي لمدة سنة (تأمين "أمان" على الباسبور المصري كافٍ؛ غير المصريين ممكن يشتروا تأمين Allianz أو أرخص بديل مناسب)</li>
-<li>صورة شهادة Enrollment من مكتب الـ Admission</li>
-<li>ختم (بتشتريه من محلات السجاير اللي عليها حرف T كبير)</li>
-<li>كشف حساب بنكي لمدة سنة</li>
-</ul>
-            بعد التسليم هتاخد "الريتشيفوتا" (Ricevuta) — أهم ورقة لحد ما تطلع الإقامة، لأنها بتثبت إنك ماشي في الإجراءات بشكل قانوني. تكلفة الإقامة حوالي 103 يورو.
-          </li>
-<li data-edit="e219"><strong>فتح حساب بنكي:</strong> بنك Intesa Sanpaolo من أكتر البنوك اللي الطلاب بينصحوا بيها لسهولته. روح أي فرع قريب معاك جواز السفر + الريتشيفوتا + شهادة Enrollment الأصلية وهتفتح حساب مجانًا. تطبيق Revolut ممكن يسهّل عليك التحويلات المالية داخل الاتحاد الأوروبي.</li>
-</ol>
-</div>
-</details>
-<details class="step">
-<summary data-edit="e50"><span class="num">💡</span> نصائح إضافية <span class="chev">▾</span></summary>
-<div class="step-body">
-<ul>
-<li data-edit="e220">لو معاك DOV بس مش شيما، لسه ينفع تسجّل في موعد الجامعة بمعادلات مبدئية — تأكد من الجامعة بالظبط.</li>
-<li data-edit="e221">ممكن تستخرج الكود الضريبي وانت لسه في مصر عن طريق طرق بديلة أونلاين — لو هتجرب، تأكد بنفسك من صحة الطريقة قبل الاعتماد عليها.</li>
-<li data-edit="e222">لو محتاج سكن مؤقت لحد ما تلاقي سكن دائم، فكّر في سكن الجامعة (متاح في بعض المدن فقط — اسأل جامعتك تحديدًا عن التوفر).</li>
-</ul>
-</div>
-</details>
-</section>
-<div class="torn"></div>
-<!-- ======================= TOURIST VISA ======================= -->
-<section class="category" id="tourist">
-<div class="cat-head">
-<div class="stamp">🧳</div>
-<h2 data-edit="e14">التأشيرة السياحية</h2>
-</div>
-<p class="cat-desc" data-edit="e21">تأشيرة شنغن (Schengen Visa / Type C) تسمح بالإقامة حتى 90 يومًا خلال أي فترة 180 يومًا في منطقة شنغن.</p>
-<ol class="simple-steps">
-<li data-edit="e305">حدّد موعد السفر ونوع التأشيرة — تأكد أن مدة إقامتك لا تتجاوز 90 يومًا.</li>
-<li data-edit="e306">جهّز المستندات المطلوبة (راجع القائمة أدناه).</li>
-<li data-edit="e307">احجز موعد التأشيرة عبر VFS Global Egypt.</li>
-<li data-edit="e308">قدّم الطلب في الموعد المحدد مع جميع المستندات الأصلية.</li>
-<li data-edit="e309">تابع الطلب عبر بوابة VFS.</li>
-<li data-edit="e310">استلم القرار — في حالة الموافقة استلم جواز سفرك.</li>
-</ol>
-<h4 data-edit="e269" style="font-family:'Cairo';color:var(--green);margin-bottom:10px;">Checklist التأشيرة السياحية</h4>
-<ul class="checklist">
-<li data-edit="e274">جواز السفر — ساري لمدة 3 أشهر على الأقل بعد تاريخ المغادرة من شنغن</li>
-<li data-edit="e275">استمارة طلب تأشيرة شنغن مكتملة وموقعة</li>
-<li data-edit="e276">صور شخصية بمواصفات شنغن</li>
-<li data-edit="e277">حجز رحلات الطيران ذهابًا وعودة (أو خط سير مرن — تحقق من السفارة)</li>
-<li data-edit="e278">إثبات السكن — حجز فندقي أو سكن آخر طوال فترة الإقامة</li>
-<li data-edit="e279">تأمين سفر وصحة يغطي شنغن بحد أدنى 30,000 يورو</li>
-<li data-edit="e280">كشف حساب بنكي يُثبت القدرة المالية</li>
-<li data-edit="e281">إثبات الوضع الوظيفي أو الدراسي — خطاب من جهة العمل أو الجامعة</li>
-<li data-edit="e282">رسوم التأشيرة</li>
-</ul>
-<div class="meta-row">
-<span data-edit="e319">المصدر الرسمي: VFS Global Egypt | السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e320">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</section>
-<div class="torn"></div>
-<!-- ======================= WORK VISA ======================= -->
-<section class="category" id="work">
-<div class="cat-head">
-<div class="stamp">💼</div>
-<h2 data-edit="e15">تأشيرة العمل</h2>
-</div>
-<p class="cat-desc" data-edit="e22">تأشيرة العمل في إيطاليا للمواطنين من خارج الاتحاد الأوروبي تخضع بشكل رئيسي لنظام Decreto Flussi (مرسوم التدفق)، وهو نظام حصص سنوي يُحدد أعداد العمال المسموح بقدومهم في فئات مختلفة.</p>
-<div class="callout warn">
-      متطلبات تأشيرة العمل تختلف اختلافًا كبيرًا حسب نوع العمل (موسمي، عادي، مهني رفيع المستوى) والبرنامج القانوني المُطبَّق. يجب الرجوع إلى المصادر الرسمية أو استشارة متخصص موثوق.
-    </div>
-<ol class="simple-steps">
-<li data-edit="e311">رصد إعلان Decreto Flussi السنوي — تُعلن الحكومة الإيطالية عن فئات العمل المتاحة وأعدادها سنويًا.</li>
-<li data-edit="e312">الحصول على عرض عمل من صاحب عمل إيطالي يرغب في الكفالة.</li>
-<li data-edit="e313">صاحب العمل يتقدم بطلب Nulla Osta (تصريح العمل) من الجهة الإيطالية المختصة.</li>
-<li data-edit="e314">عند الموافقة على Nulla Osta: تُخطَر ثم تتقدم بطلب التأشيرة في السفارة الإيطالية في القاهرة.</li>
-<li data-edit="e315">عند الوصول إلى إيطاليا: قدّم طلب Permesso di Soggiorno (لأغراض العمل) خلال 8 أيام عمل.</li>
-</ol>
-<div class="meta-row">
-<span data-edit="e321">المصدر الرسمي: وزارة الداخلية الإيطالية</span>
-<span class="check" data-edit="e322">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</section>
-<div class="torn"></div>
-<!-- ======================= FAMILY REUNION ======================= -->
-<section class="category" id="family">
-<div class="cat-head">
-<div class="stamp">👨‍👩‍👧</div>
-<h2 data-edit="e16">تأشيرة لمّ الشمل</h2>
-</div>
-<p class="cat-desc" data-edit="e23">تأشيرة لمّ الشمل (Ricongiungimento Familiare) تتيح لأفراد أسرة المقيم الشرعي في إيطاليا من غير مواطني الاتحاد الأوروبي الانضمام إليه.</p>
-<h4 data-edit="e270" style="font-family:'Cairo';color:var(--green);">من يمكنه التقديم؟</h4>
-<ul>
-<li data-edit="e283">الزوج / الزوجة</li>
-<li data-edit="e284">الأبناء القاصرون (أقل من 18 سنة)</li>
-<li data-edit="e285">الأبناء البالغون المعتمدون ماليًا (شروط خاصة)</li>
-<li data-edit="e286">الوالدان المعتمدان ماليًا (شروط خاصة)</li>
-</ul>
-<h4 data-edit="e271" style="font-family:'Cairo';color:var(--green);">دور الشخص المقيم في إيطاليا (الكفيل)</h4>
-<ul>
-<li data-edit="e287">يمتلك Permesso di Soggiorno ساريًا لمدة سنة على الأقل.</li>
-<li data-edit="e288">يُثبت دخلًا كافيًا لا يقل عن الحد الأدنى المطلوب قانونًا.</li>
-<li data-edit="e289">يمتلك سكنًا مناسبًا يستوفي اشتراطات الصحة والمساحة الإيطالية.</li>
-<li data-edit="e290">يتقدم بطلب Nulla Osta للمّ الشمل عبر Sportello Unico per l'Immigrazione في إيطاليا.</li>
-</ul>
-<ol class="simple-steps">
-<li data-edit="e316">الكفيل يتقدم بطلب Nulla Osta في إيطاليا.</li>
-<li data-edit="e317">عند الموافقة — يتقدم فرد الأسرة بطلب التأشيرة في السفارة الإيطالية في القاهرة.</li>
-<li data-edit="e318">عند الوصول إلى إيطاليا — التقديم على Permesso di Soggiorno (لأغراض لمّ الشمل) خلال 8 أيام عمل.</li>
-</ol>
-<h4 data-edit="e272" style="font-family:'Cairo';color:var(--green);">المستندات الشائعة</h4>
-<ul class="checklist">
-<li data-edit="e291">Nulla Osta الصادر من إيطاليا</li>
-<li data-edit="e292">جواز السفر</li>
-<li data-edit="e293">إثبات علاقة القرابة (عقد الزواج، شهادة الميلاد)</li>
-<li data-edit="e294">إثبات الدخل والسكن من الكفيل</li>
-<li data-edit="e295">أي مستندات إضافية — يجب التحقق من المصدر الرسمي</li>
-</ul>
-<div class="meta-row">
-<span data-edit="e323">المصدر الرسمي: وزارة الداخلية الإيطالية | السفارة الإيطالية في القاهرة</span>
-<span class="check" data-edit="e324">📌 يجب التحقق من المصدر الرسمي</span>
-</div>
-</section>
-<div class="torn"></div>
-<!-- ======================= CHECKLISTS ======================= -->
-<section class="category" id="checklists">
-<div class="cat-head">
-<div class="stamp">📋</div>
-<h2 data-edit="e17">قوائم المستندات السريعة</h2>
-</div>
-<p class="cat-desc" data-edit="e24">ملخص سريع — للتفاصيل الكاملة راجع كل قسم بالأعلى.</p>
-<h4 data-edit="e273" style="font-family:'Cairo';color:var(--green);">🎓 Checklist تأشيرة الدراسة</h4>
-<ul class="checklist">
-<li data-edit="e296">جواز السفر</li>
-<li data-edit="e297">استمارة طلب التأشيرة</li>
-<li data-edit="e298">تأكيد Pre-enrollment من Universitaly</li>
-<li data-edit="e299">خطاب القبول الجامعي</li>
-<li data-edit="e300">Declaration of Value أو CIMEA</li>
-<li data-edit="e301">المستندات الأكاديمية المترجمة والموثّقة</li>
-<li data-edit="e302">الإثبات المالي</li>
-<li data-edit="e303">إثبات السكن</li>
-<li data-edit="e304">التأمين الصحي</li>
-</ul>
-<p class="callout note" style="margin-top:16px;">✏️ أضف هنا أي قوائم إضافية (تأشيرة العمل، لمّ الشمل...) — القسم ده مُجهّز كنموذج تقدر تكرره بسهولة.</p>
-</section>
-<div class="torn"></div>
-<!-- ======================= SOURCES ======================= -->
-<section class="category" id="sources">
-<div class="cat-head">
-<div class="stamp">📚</div>
-<h2 data-edit="e18">المصادر الرسمية</h2>
-</div>
-<p class="cat-desc" data-edit="e25">روابط موثقة فقط — تحقق دائمًا من هذه المصادر قبل اتخاذ أي قرار.</p>
-<div class="links-grid">
-<a data-edit="e325" href="https://www.esteri.it" rel="noopener" target="_blank">وزارة الخارجية الإيطالية<span>esteri.it</span></a>
-<a data-edit="e326" href="https://universitaly.mur.gov.it" rel="noopener" target="_blank">Universitaly<span>بوابة التسجيل المسبق للطلاب</span></a>
-<a data-edit="e327" href="https://www.vfsglobal.com/italy/egypt" rel="noopener" target="_blank">VFS Global Egypt<span>مركز تقديم طلبات التأشيرة</span></a>
-<a data-edit="e328" href="https://www.cimea.it" rel="noopener" target="_blank">CIMEA<span>الاعتراف الأكاديمي</span></a>
-<a data-edit="e329" href="https://www.interno.gov.it" rel="noopener" target="_blank">وزارة الداخلية الإيطالية<span>العمل ولمّ الشمل</span></a>
-<a data-edit="e330" href="https://www.agenziaentrate.gov.it" rel="noopener" target="_blank">Agenzia delle Entrate<span>Codice Fiscale</span></a>
-<a data-edit="e331" href="https://www.poste.it" rel="noopener" target="_blank">Poste Italiane<span>Permesso di Soggiorno</span></a>
-</div>
-</section>
-</main>
-<footer>
-<p class="disclaimer-repeat" data-edit="e332">هذا الموقع دليل معلوماتي مستقل غير تابع لأي جهة رسمية. المعلومات هنا للمساعدة فقط ولا تُغني عن مراجعة السفارة أو VFS مباشرةً.</p>
-<p data-edit="e333">© دليل فيزا إيطاليا من مصر — آخر تحديث: أغسطس 2026</p>
-</footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const SUPABASE_URL='https://sderoafpcfgabdkqvbyc.supabase.co';
-const SUPABASE_KEY='sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3';
-const CONTENT_ROW_ID=1;
-const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const loginScreen=document.getElementById('loginScreen');
-const msg=document.getElementById('loginMsg');
-const status=document.getElementById('saveStatus');
-function setMsg(t,ok=false){msg.textContent=t;msg.style.color=ok?'#2F5233':'#A13D2C';}
-function setEditable(on){document.body.classList.toggle('editing',on);document.querySelectorAll('[data-edit]').forEach(el=>{el.contentEditable=on?'true':'false';});}
-function snapshot(){const elements={};document.querySelectorAll('[data-edit]').forEach(el=>elements[el.dataset.edit]=el.innerHTML);return {elements};}
-async function loadRemote(){const {data,error}=await client.from('site_content').select('content').eq('id',CONTENT_ROW_ID).maybeSingle();if(error){setMsg('خطأ في قراءة المحتوى: '+error.message);return;}if(data&&data.content&&data.content.elements)Object.entries(data.content.elements).forEach(([id,value])=>{const el=document.querySelector('[data-edit="'+CSS.escape(id)+'"]');if(el)el.innerHTML=value;});}
-async function boot(){const {data}=await client.auth.getSession();if(data.session){loginScreen.style.display='none';setEditable(true);await loadRemote();}}
-document.getElementById('loginBtn').onclick=async()=>{setMsg('جاري تسجيل الدخول...',true);const email=document.getElementById('email').value.trim();const password=document.getElementById('password').value;const {error}=await client.auth.signInWithPassword({email,password});if(error){setMsg(error.message);return;}setMsg('تم الدخول',true);loginScreen.style.display='none';setEditable(true);await loadRemote();};
-document.getElementById('resetBtn').onclick=()=>{document.getElementById('resetBox').style.display='block';document.getElementById('resetEmail').value=document.getElementById('email').value;};
-document.getElementById('sendReset').onclick=async()=>{const email=document.getElementById('resetEmail').value.trim();const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.href});if(error)setMsg(error.message);else setMsg('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك.',true);};
-document.getElementById('saveBtn').onclick=async()=>{status.textContent='جاري الحفظ...';const {error}=await client.from('site_content').upsert({id:CONTENT_ROW_ID,content:snapshot()},{onConflict:'id'});if(error){status.textContent='❌ '+error.message;status.style.color='#F3A29A';}else{status.textContent='✅ تم الحفظ';status.style.color='#DDBB6E';}};
-document.getElementById('logoutBtn').onclick=async()=>{await client.auth.signOut();location.reload();};
-document.getElementById('viewBtn').onclick=()=>{window.open('./','_blank');};
-document.addEventListener('click',e=>{if(document.body.classList.contains('editing')){const a=e.target.closest('a');if(a&&a.dataset.edit)e.preventDefault();}});
-client.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){alert('اكتب كلمة مرور جديدة من إعدادات حسابك إذا ظهرت لك شاشة الاستعادة.');}});
-boot();</script></body>
+
+<script>
+
+const supabase = window.supabase.createClient(
+  "https://sderoafpcfgabdkqvbyc.supabase.co",
+  "sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3"
+);
+
+async function checkAdmin(){
+
+    const { data:userData } =
+        await supabase.auth.getUser();
+
+    if(!userData.user){
+        location.href="login.html";
+        return;
+    }
+
+    const { data:profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .single();
+
+    if(!profile || profile.role !== "admin"){
+        alert("غير مصرح لك");
+        location.href="index.html";
+        return;
+    }
+
+    loadUsers();
+}
+
+async function loadUsers(){
+
+    const { data:users, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("email");
+
+    if(error){
+        console.log(error);
+        return;
+    }
+
+    let html="";
+
+    users.forEach(user=>{
+
+        html += `
+        <tr>
+            <td>${user.email}</td>
+            <td>${user.role}</td>
+            <td>
+                ${
+                    user.role==="user"
+                    ?
+                    `<button class="admin"
+                    onclick="makeAdmin('${user.id}')">
+                    اجعله Admin
+                    </button>`
+                    :
+                    `<button class="user"
+                    onclick="makeUser('${user.id}')">
+                    اجعله User
+                    </button>`
+                }
+            </td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("usersTable").innerHTML = html;
+}
+
+async function makeAdmin(id){
+
+    await supabase
+    .from("profiles")
+    .update({role:"admin"})
+    .eq("id",id);
+
+    loadUsers();
+}
+
+async function makeUser(id){
+
+    await supabase
+    .from("profiles")
+    .update({role:"user"})
+    .eq("id",id);
+
+    loadUsers();
+}
+
+async function logout(){
+
+    await supabase.auth.signOut();
+
+    location.href="login.html";
+}
+
+checkAdmin();
+
+</script>
+
+</body>
 </html>
