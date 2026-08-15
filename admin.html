@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم — دليل فيزا إيطاليا</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#16233D;--gold:#B8862E;--paper:#F6F1E4;--white:#FFFDF8;--line:#DCCFA9;--green:#2F5233;--red:#A13D2C}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Cairo,sans-serif;line-height:1.7}
+.top{background:var(--ink);color:white;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px #0002}
+.top h1{font-size:1.05rem;margin:0}button{border:0;border-radius:9px;padding:9px 14px;cursor:pointer;font-family:inherit;font-weight:700}.gold{background:var(--gold);color:white}.primary{background:var(--green);color:white}.danger{background:var(--red);color:white}
+.wrap{max-width:1100px;margin:25px auto;padding:0 18px}.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+h2{font-size:1.08rem;margin:0 0 10px}.editor{border:1px solid var(--line);border-radius:9px;padding:12px;min-height:90px;background:white;outline:none}
+.editor:focus{border-color:var(--gold);box-shadow:0 0 0 3px #b8862e18}.editor.body{min-height:180px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.notice{background:#fff8df;border:1px solid #e2c879;padding:12px;border-radius:10px;margin-bottom:18px}
+.small{font-size:.85rem;color:#58647b}.status{font-weight:800;color:var(--green)}.locked{max-width:450px;margin:80px auto}.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="login" class="wrap locked">
+  <div class="card">
+    <h2>🔐 دخول لوحة التحكم</h2>
+    <p class="small">هذه لوحة تعديل محتوى. كلمة المرور الموجودة هنا للحماية البسيطة فقط وليست نظام مصادقة آمنًا.</p>
+    <label>كلمة المرور</label>
+    <input id="pass" type="password" placeholder="اكتب كلمة المرور" style="width:100%;padding:11px;border:1px solid #dccfa9;border-radius:9px;font:inherit">
+    <div class="actions"><button class="primary" onclick="login()">دخول</button></div>
+    <p id="loginMsg" class="small"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="top">
+    <h1>⚙️ لوحة تحكم دليل فيزا إيطاليا</h1>
+    <div>
+      <button onclick="saveAll()" class="gold">💾 حفظ</button>
+      <button onclick="window.open('index.html','_blank')">👁️ الموقع</button>
+      <button onclick="resetAll()" class="danger">↺ الأصل</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="notice">
+      <b>مهم:</b> التعديلات في هذه النسخة تُحفظ داخل متصفحك باستخدام LocalStorage، لذلك ستظهر لك أنت فقط.
+      <br>لو عايز التعديلات تظهر لكل زوار الموقع من أي جهاز، نحتاج نربطه في الخطوة التالية بقاعدة بيانات/CMS حقيقية.
+      <br><span class="small">تقدر تعدّل النص داخل المربعات مباشرة، بما في ذلك العناوين والقوائم والروابط البسيطة.</span>
+    </div>
+    <div id="fields"></div>
+    <div class="actions">
+      <button onclick="saveAll()" class="primary">💾 حفظ كل التعديلات</button>
+      <button onclick="window.open('index.html','_blank')">👁️ معاينة الموقع</button>
+    </div>
+    <p id="status" class="status"></p>
+  </div>
+</div>
+
+<script>
+const KEY="italyGuideOverridesV1";
+const PASSWORD="1234";
+const defs=[
+  {
+    "id": "site-title",
+    "label": "عنوان الموقع"
+  },
+  {
+    "id": "site-subtitle",
+    "label": "الوصف الرئيسي"
+  },
+  {
+    "id": "site-updated",
+    "label": "آخر تحديث"
+  },
+  {
+    "id": "site-disclaimer",
+    "label": "التنبيه العلوي"
+  },
+  {
+    "id": "section-study-title",
+    "label": "عنوان قسم تأشيرة الدراسة"
+  },
+  {
+    "id": "section-study-desc",
+    "label": "وصف قسم تأشيرة الدراسة"
+  },
+  {
+    "id": "section-practical-title",
+    "label": "عنوان قسم الدليل العملي"
+  },
+  {
+    "id": "section-practical-desc",
+    "label": "وصف قسم الدليل العملي"
+  },
+  {
+    "id": "section-tourist-title",
+    "label": "عنوان قسم التأشيرة السياحية"
+  },
+  {
+    "id": "section-tourist-desc",
+    "label": "وصف قسم التأشيرة السياحية"
+  },
+  {
+    "id": "section-work-title",
+    "label": "عنوان قسم تأشيرة العمل"
+  },
+  {
+    "id": "section-work-desc",
+    "label": "وصف قسم تأشيرة العمل"
+  },
+  {
+    "id": "section-family-title",
+    "label": "عنوان قسم لمّ الشمل"
+  },
+  {
+    "id": "section-family-desc",
+    "label": "وصف قسم لمّ الشمل"
+  },
+  {
+    "id": "section-checklists-title",
+    "label": "عنوان قسم قوائم المستندات"
+  },
+  {
+    "id": "section-checklists-desc",
+    "label": "وصف قسم قوائم المستندات"
+  },
+  {
+    "id": "section-sources-title",
+    "label": "عنوان قسم المصادر الرسمية"
+  },
+  {
+    "id": "section-sources-desc",
+    "label": "وصف قسم المصادر الرسمية"
+  },
+  {
+    "id": "step-summary-1",
+    "label": "عنوان العنصر 1: 1 اختيار الجامعة والبرنامج ▾"
+  },
+  {
+    "id": "step-body-1",
+    "label": "محتوى العنصر 1: 1 اختيار الجامعة والبرنامج ▾"
+  },
+  {
+    "id": "step-summary-2",
+    "label": "عنوان العنصر 2: 2 الحصول على القبول الجامعي ▾"
+  },
+  {
+    "id": "step-body-2",
+    "label": "محتوى العنصر 2: 2 الحصول على القبول الجامعي ▾"
+  },
+  {
+    "id": "step-summary-3",
+    "label": "عنوان العنصر 3: 3 إجراءات Universitaly / Pre-enrollment ▾"
+  },
+  {
+    "id": "step-body-3",
+    "label": "محتوى العنصر 3: 3 إجراءات Universitaly / Pre-enrollment ▾"
+  },
+  {
+    "id": "step-summary-4",
+    "label": "عنوان العنصر 4: 4 تجهيز المستندات الأكاديمية ▾"
+  },
+  {
+    "id": "step-body-4",
+    "label": "محتوى العنصر 4: 4 تجهيز المستندات الأكاديمية ▾"
+  },
+  {
+    "id": "step-summary-5",
+    "label": "عنوان العنصر 5: 5 CIMEA أو Declaration of Value ▾"
+  },
+  {
+    "id": "step-body-5",
+    "label": "محتوى العنصر 5: 5 CIMEA أو Declaration of Value ▾"
+  },
+  {
+    "id": "step-summary-6",
+    "label": "عنوان العنصر 6: 6 تجهيز المستندات المالية ▾"
+  },
+  {
+    "id": "step-body-6",
+    "label": "محتوى العنصر 6: 6 تجهيز المستندات المالية ▾"
+  },
+  {
+    "id": "step-summary-7",
+    "label": "عنوان العنصر 7: 7 إثبات السكن ▾"
+  },
+  {
+    "id": "step-body-7",
+    "label": "محتوى العنصر 7: 7 إثبات السكن ▾"
+  },
+  {
+    "id": "step-summary-8",
+    "label": "عنوان العنصر 8: 8 التأمين ▾"
+  },
+  {
+    "id": "step-body-8",
+    "label": "محتوى العنصر 8: 8 التأمين ▾"
+  },
+  {
+    "id": "step-summary-9",
+    "label": "عنوان العنصر 9: 9 حجز موعد التأشيرة ▾"
+  },
+  {
+    "id": "step-body-9",
+    "label": "محتوى العنصر 9: 9 حجز موعد التأشيرة ▾"
+  },
+  {
+    "id": "step-summary-10",
+    "label": "عنوان العنصر 10: 10 تجهيز ملف السفارة ▾"
+  },
+  {
+    "id": "step-body-10",
+    "label": "محتوى العنصر 10: 10 تجهيز ملف السفارة ▾"
+  },
+  {
+    "id": "step-summary-11",
+    "label": "عنوان العنصر 11: 11 تقديم الطلب ▾"
+  },
+  {
+    "id": "step-body-11",
+    "label": "محتوى العنصر 11: 11 تقديم الطلب ▾"
+  },
+  {
+    "id": "step-summary-12",
+    "label": "عنوان العنصر 12: 12 متابعة الطلب ▾"
+  },
+  {
+    "id": "step-body-12",
+    "label": "محتوى العنصر 12: 12 متابعة الطلب ▾"
+  },
+  {
+    "id": "step-summary-13",
+    "label": "عنوان العنصر 13: 13 استلام القرار ▾"
+  },
+  {
+    "id": "step-body-13",
+    "label": "محتوى العنصر 13: 13 استلام القرار ▾"
+  },
+  {
+    "id": "step-summary-14",
+    "label": "عنوان العنصر 14: 14 بعد الوصول إلى إيطاليا ▾"
+  },
+  {
+    "id": "step-body-14",
+    "label": "محتوى العنصر 14: 14 بعد الوصول إلى إيطاليا ▾"
+  },
+  {
+    "id": "step-summary-15",
+    "label": "عنوان العنصر 15: 📍 أماكن مهمة هتروحلها أكتر من مرة ▾"
+  },
+  {
+    "id": "step-body-15",
+    "label": "محتوى العنصر 15: 📍 أماكن مهمة هتروحلها أكتر من مرة ▾"
+  },
+  {
+    "id": "step-summary-16",
+    "label": "عنوان العنصر 16: ✅ الورق المطلوب يوم موعد الفيزا ▾"
+  },
+  {
+    "id": "step-body-16",
+    "label": "محتوى العنصر 16: ✅ الورق المطلوب يوم موعد الفيزا ▾"
+  },
+  {
+    "id": "step-summary-17",
+    "label": "عنوان العنصر 17: 📄 الورق المطلوب لعمل الـ DOV ▾"
+  },
+  {
+    "id": "step-body-17",
+    "label": "محتوى العنصر 17: 📄 الورق المطلوب لعمل الـ DOV ▾"
+  },
+  {
+    "id": "step-summary-18",
+    "label": "عنوان العنصر 18: 🏫 تجهيز شهادات الابتدائي والإعدادي ▾"
+  },
+  {
+    "id": "step-body-18",
+    "label": "محتوى العنصر 18: 🏫 تجهيز شهادات الابتدائي والإعدادي ▾"
+  },
+  {
+    "id": "step-summary-19",
+    "label": "عنوان العنصر 19: 🎓 تجهيز شهادة الثانوية العامة ▾"
+  },
+  {
+    "id": "step-body-19",
+    "label": "محتوى العنصر 19: 🎓 تجهيز شهادة الثانوية العامة ▾"
+  },
+  {
+    "id": "step-summary-20",
+    "label": "عنوان العنصر 20: 🎓 تجهيز شهادات التعليم العالي وبيان الدرجات ▾"
+  },
+  {
+    "id": "step-body-20",
+    "label": "محتوى العنصر 20: 🎓 تجهيز شهادات التعليم العالي وبيان الدرجات ▾"
+  },
+  {
+    "id": "step-summary-21",
+    "label": "عنوان العنصر 21: 🖋️ حجز موعد توثيق الشهادات من مكتب VFS ▾"
+  },
+  {
+    "id": "step-body-21",
+    "label": "محتوى العنصر 21: 🖋️ حجز موعد توثيق الشهادات من مكتب VFS ▾"
+  },
+  {
+    "id": "step-summary-22",
+    "label": "عنوان العنصر 22: 🖋️ حجز موعد الـ DOV ▾"
+  },
+  {
+    "id": "step-body-22",
+    "label": "محتوى العنصر 22: 🖋️ حجز موعد الـ DOV ▾"
+  },
+  {
+    "id": "step-summary-23",
+    "label": "عنوان العنصر 23: 👪 البحث الاجتماعي — الأوراق والخطوات ▾"
+  },
+  {
+    "id": "step-body-23",
+    "label": "محتوى العنصر 23: 👪 البحث الاجتماعي — الأوراق والخطوات ▾"
+  },
+  {
+    "id": "step-summary-24",
+    "label": "عنوان العنصر 24: ✈️ أول ما توصل إيطاليا ▾"
+  },
+  {
+    "id": "step-body-24",
+    "label": "محتوى العنصر 24: ✈️ أول ما توصل إيطاليا ▾"
+  },
+  {
+    "id": "step-summary-25",
+    "label": "عنوان العنصر 25: 💡 نصائح إضافية ▾"
+  },
+  {
+    "id": "step-body-25",
+    "label": "محتوى العنصر 25: 💡 نصائح إضافية ▾"
+  }
+];
+
+function login(){
+  const v=document.getElementById("pass").value;
+  if(v===PASSWORD){
+    sessionStorage.setItem("italyGuideAdmin","1");
+    showApp();
+  }else document.getElementById("loginMsg").textContent="كلمة المرور غير صحيحة.";
+}
+function showApp(){
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  build();
+}
+function build(){
+  const root=document.getElementById("fields"); root.innerHTML="";
+  defs.forEach(d=>{
+    const box=document.createElement("div"); box.className="card";
+    box.innerHTML='<h2>'+escapeHtml(d.label)+'</h2><div class="editor '+(d.id.startsWith("step-body")?"body":"")+'" contenteditable="true" data-id="'+d.id+'"></div>';
+    root.appendChild(box);
+  });
+  load();
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function load(){
+  let data={}; try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+  defs.forEach(d=>{
+    const el=document.querySelector('[data-id="'+d.id+'"]');
+    if(data[d.id]!=null) el.innerHTML=data[d.id];
+  });
+}
+function saveAll(){
+  const data={};
+  document.querySelectorAll("[data-id]").forEach(el=>data[el.dataset.id]=el.innerHTML);
+  localStorage.setItem(KEY,JSON.stringify(data));
+  document.getElementById("status").textContent="✅ تم حفظ التعديلات في هذا المتصفح.";
+  setTimeout(()=>document.getElementById("status").textContent="",3000);
+}
+function resetAll(){
+  if(confirm("هل تريد حذف كل تعديلاتك والعودة للمحتوى الأصلي؟")){
+    localStorage.removeItem(KEY); location.reload();
+  }
+}
+if(sessionStorage.getItem("italyGuideAdmin")==="1") showApp();
+</script>
+</body>
+</html>
