@@ -160,7 +160,13 @@ document.addEventListener("DOMContentLoaded",applyLang);
 </head>
 <body>
 
-<div id="siteUpdateBanner" style="display:none;position:fixed;inset:0;z-index:2147483647;background:#fff3cd;color:#7a5b00;text-align:center;padding:40px 24px;font-weight:700;font-size:20px;line-height:2;flex-direction:column;align-items:center;justify-content:center;overflow:auto"></div>
+<div id="siteUpdateBanner" style="display:none;position:fixed;inset:0;z-index:2147483647;background:linear-gradient(135deg,#0b1d3a,#16305e);color:#fff;text-align:center;flex-direction:column;align-items:center;justify-content:center;overflow:auto;padding:24px">
+  <div style="font-size:14px;letter-spacing:3px;opacity:.65;margin-bottom:14px">🇮🇹 ITALY VISA GUIDE</div>
+  <div style="font-size:46px;margin-bottom:10px">🧳</div>
+  <div id="siteUpdateBannerMsg" style="font-weight:700;font-size:21px;line-height:1.9;max-width:620px;margin-bottom:18px"></div>
+  <div id="siteUpdateCountdownCaption" style="display:none;font-size:13px;opacity:.7;margin-bottom:10px;letter-spacing:1px"></div>
+  <div id="siteUpdateCountdown" style="display:none;gap:14px;flex-wrap:wrap;justify-content:center"></div>
+</div>
 
 <nav class="nav">
   <div class="container nav-inner">
@@ -385,12 +391,54 @@ document.addEventListener("DOMContentLoaded",applyLang);
     if(bannerEnabled){
       const isEn = document.documentElement.lang === "en";
       const msgRow = byKey.site_banner_message;
-      let msg = msgRow ? (isEn ? (msgRow.value_en||msgRow.value_ar) : (msgRow.value_ar||msgRow.value_en)) : (isEn ? "We're rolling out some updates." : "الموقع في شوية تحديثات.");
+      const msg = msgRow ? (isEn ? (msgRow.value_en||msgRow.value_ar) : (msgRow.value_ar||msgRow.value_en)) : (isEn ? "We are rolling out some updates." : "الموقع في شوية تحديثات.");
       const dateRow = byKey.site_launch_date;
       const dateVal = dateRow ? (dateRow.value_ar||dateRow.value_en) : "";
-      if(dateVal) msg += isEn ? (" Expected launch: "+dateVal) : (" — الافتتاح المتوقع: "+dateVal);
       const bannerEl = document.getElementById("siteUpdateBanner");
-      if(bannerEl){ bannerEl.textContent = "🚧 " + msg; bannerEl.style.display = "flex"; document.documentElement.style.overflow = "hidden"; }
+      if(bannerEl){
+        const bannerMsgEl = document.getElementById("siteUpdateBannerMsg");
+        if(bannerMsgEl) bannerMsgEl.textContent = msg;
+        bannerEl.style.display = "flex";
+        document.documentElement.style.overflow = "hidden";
+        if(dateVal){
+          const launchTarget = new Date(dateVal + "T00:00:00").getTime();
+          if(!isNaN(launchTarget)){
+            const cdCap = document.getElementById("siteUpdateCountdownCaption");
+            const cdBox = document.getElementById("siteUpdateCountdown");
+            if(cdCap && cdBox){
+              cdCap.style.display = "block";
+              cdCap.textContent = isEn ? "Opening in" : "الافتتاح خلال";
+              cdBox.style.display = "flex";
+              const cdLabels = isEn ? ["Days","Hours","Min","Sec"] : ["يوم","ساعة","دقيقة","ثانية"];
+              const cdPad = function(n){ return String(n).padStart(2,"0"); };
+              let cdTimer;
+              const cdRender = function(){
+                const diff = launchTarget - Date.now();
+                if(diff <= 0){
+                  cdCap.style.display = "none";
+                  cdBox.innerHTML = '<div style="font-size:20px;font-weight:800;color:#ffc857">' + (isEn ? "Launching soon! 🎉" : "قريباً جداً! 🎉") + '</div>';
+                  clearInterval(cdTimer);
+                  return;
+                }
+                const dd = Math.floor(diff/86400000);
+                const hh = Math.floor(diff%86400000/3600000);
+                const mm = Math.floor(diff%3600000/60000);
+                const ss = Math.floor(diff%60000/1000);
+                const vals = [dd,hh,mm,ss];
+                let html = "";
+                for(let i2=0;i2<4;i2++){
+                  html += '<div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 16px;min-width:70px">'
+                    + '<div style="font-size:30px;font-weight:800;color:#ffc857;font-variant-numeric:tabular-nums">' + cdPad(vals[i2]) + '</div>'
+                    + '<div style="font-size:11px;opacity:.7;margin-top:4px">' + cdLabels[i2] + '</div></div>';
+                }
+                cdBox.innerHTML = html;
+              };
+              cdRender();
+              cdTimer = setInterval(cdRender, 1000);
+            }
+          }
+        }
+      }
     }
   }
 
