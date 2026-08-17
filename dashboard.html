@@ -19,25 +19,33 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730}p{color:#667085}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.stat{background:#ffffff12;border-radius:16px;padding:18px}.stat b{font-size:28px;display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.task{padding:14px 0;border-bottom:1px solid #edf0f5;display:block}.task input{margin-left:8px}
 @media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}}
-.category{padding:22px 0;border-bottom:1px solid #edf0f5}.category:last-child{border-bottom:0}
-.cat-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}.cat-head .stamp{font-size:22px}.cat-head h3{margin:0;font-size:19px;color:#0b1730}
-.cat-desc{color:#667085;margin:0 0 10px}
-.category img{max-width:100%;border-radius:12px}
-.lockbox{text-align:center;padding:50px 20px}
+.guide-head{margin:0 0 20px}.guide-head h2{margin:0 0 6px;color:#0b1730;font-size:26px}.guide-head p{margin:0;font-size:14.5px}
+.guide-wrap{display:flex;flex-direction:column;gap:16px}
+.category{background:#fff;border:1px solid #e5eaf1;border-radius:20px;padding:26px 28px;box-shadow:0 8px 24px rgba(16,24,40,.04);transition:box-shadow .2s,transform .2s}
+.category:hover{box-shadow:0 16px 36px rgba(16,24,40,.08);transform:translateY(-2px)}
+.cat-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.cat-head .stamp{width:48px;height:48px;border-radius:14px;background:#eef4ff;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.cat-head h3{margin:0;font-size:19px;color:#0b1730}
+.cat-desc{color:#667085;margin:0 0 12px;font-size:14.5px;line-height:1.8}
+.category .body-content{color:#344054;line-height:2;font-size:15px}
+.category img{max-width:100%;border-radius:14px;margin:8px 0}
+.lockbox{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
+.state-box{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 </style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="row"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
 <main class="dash"><div class="wrap"><section class="hero"><div style="color:#8ea3c7;font-weight:800" id="ey">لوحة حسابي</div><h1 style="color:#fff" id="welcome">مرحبًا 👋</h1><p id="sub">تابع رحلتك إلى إيطاليا من مكان واحد.</p><div class="stats"><div class="stat"><b>0</b><span id="s1">مهام مكتملة</span></div><div class="stat"><b>0</b><span id="s2">قيد التنفيذ</span></div><div class="stat"><b>0%</b><span id="s3">نسبة التقدم</span></div></div></section>
-<div class="grid"><section class="card"><h2 id="tasks">قائمة المهام</h2><label class="task"><input type="checkbox"> <span id="t1">جواز السفر</span></label><label class="task"><input type="checkbox"> <span id="t2">إثبات السكن</span></label><label class="task"><input type="checkbox"> <span id="t3">الإثبات المالي</span></label><label class="task"><input type="checkbox"> <span id="t4">التأمين</span></label></section>
-<section class="card"><h2 id="quick">روابط سريعة</h2><p><a class="link" href="index.html">📚 <span id="q1">دليل التأشيرات</span></a></p><p><a class="link" href="index.html#guides">📋 <span id="q2">اختار نوع التأشيرة</span></a></p><p><a class="link" href="index.html#community">👥 <span id="q3">المجتمع</span></a></p></section></div>
-<section class="card" style="margin-top:18px">
-  <h2 id="guideTitle">دليل التأشيرات الكامل</h2>
-  <div id="dynamicSections">
-    <div id="sectionsLoading" style="text-align:center;padding:40px 0;color:#667085">جاري تحميل الدليل...</div>
+<section style="margin-top:8px">
+  <div class="guide-head">
+    <h2 id="guideTitle">دليل التأشيرات الكامل</h2>
+    <p id="guideSub">كل اللي محتاج تعرفه عن كل نوع تأشيرة، في مكان واحد.</p>
+  </div>
+  <div id="dynamicSections" class="guide-wrap">
+    <div id="sectionsLoading" class="state-box">جاري تحميل الدليل...</div>
   </div>
 </section>
 </div></main>
 <script>
-let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",s1:"مهام مكتملة",s2:"قيد التنفيذ",s3:"نسبة التقدم",tasks:"قائمة المهام",t1:"جواز السفر",t2:"إثبات السكن",t3:"الإثبات المالي",t4:"التأمين",quick:"روابط سريعة",q1:"دليل التأشيرات",q2:"اختار نوع التأشيرة",q3:"المجتمع",logout:"تسجيل الخروج",switch:"English"},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",s1:"Tasks Done",s2:"In Progress",s3:"Progress",tasks:"Checklist",t1:"Passport",t2:"Accommodation proof",t3:"Financial proof",t4:"Insurance",quick:"Quick Links",q1:"Visa Guide",q2:"Choose visa type",q3:"Community",logout:"Logout",switch:"العربية"}};
-function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","s1","s2","s3","tasks","t1","t2","t3","t4","quick","q1","q2","q3","logout","lang"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",s1:"s1",s2:"s2",s3:"s3",tasks:"tasks",t1:"t1",t2:"t2",t3:"t3",t4:"t4",quick:"quick",q1:"q1",q2:"q2",q3:"q3",logout:"logout",lang:"switch"};document.getElementById(id).textContent=t[map[id]]})}
+let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",s1:"مهام مكتملة",s2:"قيد التنفيذ",s3:"نسبة التقدم",guideTitle:"دليل التأشيرات الكامل",guideSub:"كل اللي محتاج تعرفه عن كل نوع تأشيرة، في مكان واحد.",logout:"تسجيل الخروج",switch:"English"},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",s1:"Tasks Done",s2:"In Progress",s3:"Progress",guideTitle:"Complete Visa Guide",guideSub:"Everything you need to know about each visa type, in one place.",logout:"Logout",switch:"العربية"}};
+function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","s1","s2","s3","guideTitle","guideSub","logout","lang"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",s1:"s1",s2:"s2",s3:"s3",guideTitle:"guideTitle",guideSub:"guideSub",logout:"logout",lang:"switch"};document.getElementById(id).textContent=t[map[id]]})}
 document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
 async function loadGuideSections(){
   const wrap = document.getElementById("dynamicSections");
@@ -52,7 +60,7 @@ async function loadGuideSections(){
     return;
   }
   if (!data || !data.length){
-    wrap.innerHTML = '<p style="text-align:center;padding:30px 0;color:#667085">'+(en?"No guide content yet.":"لا يوجد محتوى مضاف حتى الآن.")+'</p>';
+    wrap.innerHTML = '<div class="state-box">'+(en?"No guide content yet.":"لا يوجد محتوى مضاف حتى الآن.")+'</div>';
     return;
   }
 
@@ -61,7 +69,7 @@ async function loadGuideSections(){
     html += `<section class="category" id="${section.section_key || section.id}">
       <div class="cat-head"><span class="stamp">${section.icon || "📄"}</span><h3>${section.title || ""}</h3></div>
       ${section.description ? `<p class="cat-desc">${section.description}</p>` : ""}
-      ${section.body_html || ""}
+      <div class="body-content">${section.body_html || ""}</div>
     </section>`;
   });
   wrap.innerHTML = html;
