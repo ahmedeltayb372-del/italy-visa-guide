@@ -5,13 +5,13 @@ const SUPABASE_KEY="sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
 const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 </script>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:#f6f8fc;color:#101828}
+*{box-sizing:border-box}html,body{overflow-x:hidden;max-width:100%}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:#f6f8fc;color:#101828}
 .wrap{width:min(1100px,calc(100% - 32px));margin:auto}.nav{height:72px;background:#fff;border-bottom:1px solid #e8ecf2;display:flex;align-items:center}
-.navin{display:flex;align-items:center;justify-content:space-between;gap:15px}.brand{font-weight:900;color:#0b1730;text-decoration:none;font-size:20px}
+.navin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{font-weight:900;color:#0b1730;text-decoration:none;font-size:20px;white-space:nowrap}
 .btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer}.primary{background:#2457ff;color:#fff}.outline{background:#fff;border:1px solid #dfe5ee;color:#17233d}
 .danger{background:#fff0f0;color:#c1121f;border:1px solid #ffd6d6}
 .card{background:#fff;border:1px solid #e5eaf1;border-radius:24px;padding:30px;box-shadow:0 15px 45px rgba(16,24,40,.05)}
-h1{font-size:30px;line-height:1.2;margin:0 0 6px;color:#0b1730}p{color:#667085}.field{margin:16px 0}.field label{display:block;font-weight:800;margin-bottom:7px}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px;color:#0b1730;overflow-wrap:anywhere}p{color:#667085;overflow-wrap:anywhere}.field{margin:16px 0}.field label{display:block;font-weight:800;margin-bottom:7px}
 .field input{width:100%;padding:13px 14px;border:1px solid #dfe5ee;border-radius:12px;font-size:16px}
 .field input:disabled{background:#f4f6fb;color:#98a2b3;cursor:not-allowed}
 .row{display:flex;justify-content:space-between;gap:12px;align-items:center}
@@ -22,7 +22,8 @@ h1{font-size:30px;line-height:1.2;margin:0 0 6px;color:#0b1730}p{color:#667085}.
 .section-block{margin-bottom:24px}
 hr.sep{border:0;border-top:1px solid #edf0f5;margin:0 0 30px}
 .hint{font-size:13px;color:#98a2b3;margin-top:-10px;margin-bottom:16px}
-@media(max-width:650px){.grid2{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}}
+@media(max-width:650px){.grid2{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.card{padding:20px}}
+@media(max-width:480px){h1{font-size:24px}.wrap-main{padding:24px 0}.wrap{width:calc(100% - 24px)}}
 </style></head><body>
 
 <nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><button class="btn outline" id="lang">English</button></div></nav>
