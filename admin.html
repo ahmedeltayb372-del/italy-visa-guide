@@ -43,16 +43,21 @@ button{border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-size:
 .btn-danger{background:#e53935;color:#fff}
 .btn-sm{padding:7px 12px;font-size:13px}
 .btn-ghost{background:#eef1f7;color:#101828}
+.btn-impersonate{background:#7c3aed;color:#fff}
 
 .loading{text-align:center;padding:20px}
-select,input[type=text],input[type=number],input[type=url],textarea{padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
-input[type=text],input[type=url],textarea{width:100%}
+select,input[type=text],input[type=email],input[type=tel],input[type=number],input[type=url],textarea{padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+input[type=text],input[type=email],input[type=tel],input[type=url],textarea{width:100%}
 .field{margin-bottom:14px}
 .field label{display:block;font-weight:bold;margin-bottom:6px;font-size:14px;color:#344054}
 .row2{display:grid;grid-template-columns:80px 1fr;gap:12px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .badge-visible{background:#ecfdf3;color:#027a48;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
 .badge-hidden{background:#fff0f0;color:#b42318;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+.badge-admin{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-flex;align-items:center;gap:4px}
+.badge-banned{background:#fff0f0;color:#b42318;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+.badge-active{background:#ecfdf3;color:#027a48;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
+.actions-cell{display:flex;gap:6px;flex-wrap:wrap}
 
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(10,16,30,.55);z-index:100;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
 .modal-bg.open{display:flex}
@@ -143,13 +148,15 @@ input[type=text],input[type=url],textarea{width:100%}
   <div class="stats">
     <div class="stat"><h3>عدد المستخدمين</h3><h2 id="usersCount">0</h2></div>
     <div class="stat"><h3>عدد الأدمن</h3><h2 id="adminsCount">0</h2></div>
+    <div class="stat"><h3>حسابات محظورة</h3><h2 id="bannedCount">0</h2></div>
   </div>
   <div class="card">
     <h2>المستخدمون</h2>
+    <p class="small-note">من هنا تقدر تعدّل بيانات أي مستخدم، تحذف حسابه نهائيًا، أو تسجّل دخول كأنك هو (للدعم الفني). كل الإجراءات دي بتمر على سيرفر آمن ومسجلة.</p>
     <div id="loading" class="loading">جاري التحميل...</div>
     <div class="table-scroll">
     <table>
-      <thead><tr><th>البريد</th><th>الصلاحية</th><th>الإجراء</th></tr></thead>
+      <thead><tr><th>البريد</th><th>الاسم</th><th>الصلاحية</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
       <tbody id="usersTable"></tbody>
     </table>
     </div>
@@ -215,12 +222,59 @@ input[type=text],input[type=url],textarea{width:100%}
   </div>
 </div>
 
+<!-- ======================= USER EDIT MODAL ======================= -->
+<div class="modal-bg" id="userModalBg">
+  <div class="modal" style="width:min(600px,100%)">
+    <h2>تعديل بيانات المستخدم</h2>
+    <input type="hidden" id="userId">
+
+    <div class="row2" style="grid-template-columns:1fr 1fr">
+      <div class="field"><label>الاسم الأول</label><input type="text" id="userFirstName"></div>
+      <div class="field"><label>اسم العائلة</label><input type="text" id="userLastName"></div>
+    </div>
+    <div class="field"><label>البريد الإلكتروني</label><input type="email" id="userEmail"></div>
+    <div class="field"><label>رقم الموبايل</label><input type="tel" id="userPhone"></div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
+        <input type="checkbox" id="userBanned" style="width:auto">
+        إيقاف هذا الحساب (Banned) — هيتم تسجيل خروجه ومنعه من الدخول
+      </label>
+    </div>
+
+    <div class="msg" id="userMsg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeUserModal()">إلغاء</button>
+      <button class="btn-primary" onclick="saveUserEdit()">حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
 <script>
 
 const supabaseClient = supabase.createClient(
 "https://sderoafpcfgabdkqvbyc.supabase.co",
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZXJvYWZwY2ZnYWJka3F2YnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3ODE0NDIsImV4cCI6MjEwMjM1NzQ0Mn0.OON8o3-Rr4VRgrECJyf-bDO5vRGU8G3NmM6PYYKipns"
 );
+
+const ADMIN_ACTIONS_URL = "https://sderoafpcfgabdkqvbyc.supabase.co/functions/v1/admin-actions";
+
+// Calls the secure server-side Edge Function for any privileged action
+// (edit any user's data, permanently delete an account, or impersonate a
+// user). The service_role key never touches this page — the function
+// verifies the caller is an admin using their own session token instead.
+async function callAdminAction(payload){
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(!session) throw new Error("جلستك انتهت، سجل الدخول تاني");
+  const res = await fetch(ADMIN_ACTIONS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+    body: JSON.stringify(payload)
+  });
+  const body = await res.json().catch(()=>({}));
+  if(!res.ok){ throw new Error(body.error || "حصل خطأ غير متوقع"); }
+  return body;
+}
 
 /* ---------------------- Tabs ---------------------- */
 document.querySelectorAll(".tab-btn").forEach(btn=>{
@@ -251,29 +305,54 @@ async function checkAdmin(){
 /* ======================================================================
    USERS
    ====================================================================== */
+let usersCache = [];
+
 async function loadUsers(){
   document.getElementById("loading").style.display="block";
   const {data:users,error} = await supabaseClient.from("profiles").select("*").order("email");
   document.getElementById("loading").style.display="none";
   if(error){ alert(error.message); return; }
 
+  usersCache = users || [];
+
   document.getElementById("usersCount").textContent = users.length;
   document.getElementById("adminsCount").textContent = users.filter(x=>x.role==="admin").length;
+  document.getElementById("bannedCount").textContent = users.filter(x=>x.banned).length;
 
   let html="";
   users.forEach(user=>{
+    const isPrimary = user.email==="ahmedeltayb372@gmail.com";
+    const fullName = [user.first_name,user.last_name].filter(Boolean).join(" ") || "-";
+    const roleBadge = user.role==="admin"
+      ? `<span class="badge-admin">🛡️ أدمن</span>`
+      : `<span style="color:#667085">مستخدم</span>`;
+    const statusBadge = user.banned
+      ? `<span class="badge-banned">محظور</span>`
+      : `<span class="badge-active">نشط</span>`;
+
+    let actions = "";
+    if(isPrimary){
+      actions = `<span style="color:#2457ff;font-weight:bold">الأدمن الرئيسي</span>`;
+    } else {
+      actions = `
+        <div class="actions-cell">
+          <button class="btn-ghost btn-sm" onclick="openUserModal('${user.id}')">تعديل</button>
+          ${
+            user.role==="admin"
+            ? `<button class="btn-user btn-sm" onclick="makeUser('${user.id}')">جعله User</button>`
+            : `<button class="btn-admin btn-sm" onclick="makeAdmin('${user.id}')">جعله Admin</button>`
+          }
+          <button class="btn-impersonate btn-sm" onclick="impersonateUser('${user.id}','${(user.email||"").replace(/'/g,"\\'")}')">تسجيل دخول كمستخدم</button>
+          <button class="btn-danger btn-sm" onclick="deleteUser('${user.id}','${(user.email||"").replace(/'/g,"\\'")}')">حذف نهائي</button>
+        </div>`;
+    }
+
     html += `<tr>
       <td>${user.email}</td>
-      <td>${user.role}</td>
-      <td>
-      ${
-        user.email==="ahmedeltayb372@gmail.com"
-        ? `<span style="color:#2457ff;font-weight:bold">الأدمن الرئيسي</span>`
-        : user.role==="admin"
-          ? `<button class="btn-user" onclick="makeUser('${user.id}')">جعله User</button>`
-          : `<button class="btn-admin" onclick="makeAdmin('${user.id}')">جعله Admin</button>`
-      }
-      </td>
+      <td>${fullName}</td>
+      <td>${roleBadge}</td>
+      <td>${statusBadge}</td>
+      <td>${actions}</td>
     </tr>`;
   });
   document.getElementById("usersTable").innerHTML = html;
@@ -319,6 +398,74 @@ async function makeUser(id){
   const {error} = await supabaseClient.from("profiles").update({role:"user"}).eq("id",id);
   if(error){ alert(error.message); return; }
   loadUsers();
+}
+
+/* ---- Edit user (name / phone / email / banned) via the secure Edge Function ---- */
+function openUserModal(id){
+  const user = usersCache.find(u=>u.id===id);
+  if(!user) return;
+  document.getElementById("userMsg").style.display = "none";
+  document.getElementById("userId").value = user.id;
+  document.getElementById("userFirstName").value = user.first_name || "";
+  document.getElementById("userLastName").value = user.last_name || "";
+  document.getElementById("userEmail").value = user.email || "";
+  document.getElementById("userPhone").value = user.phone || "";
+  document.getElementById("userBanned").checked = !!user.banned;
+  document.getElementById("userModalBg").classList.add("open");
+}
+
+function closeUserModal(){
+  document.getElementById("userModalBg").classList.remove("open");
+}
+
+async function saveUserEdit(){
+  const id = document.getElementById("userId").value;
+  const user = usersCache.find(u=>u.id===id);
+  if(!user) return;
+
+  const first_name = document.getElementById("userFirstName").value.trim();
+  const last_name = document.getElementById("userLastName").value.trim();
+  const email = document.getElementById("userEmail").value.trim();
+  const phone = document.getElementById("userPhone").value.trim();
+  const banned = document.getElementById("userBanned").checked;
+
+  const payload = { action:"update", target_user_id:id, first_name, last_name, phone, banned };
+  if(email && email !== user.email) payload.email = email;
+
+  try{
+    await callAdminAction(payload);
+    closeUserModal();
+    loadUsers();
+  }catch(e){
+    const el = document.getElementById("userMsg");
+    el.textContent = e.message;
+    el.className = "msg error";
+    el.style.display = "block";
+  }
+}
+
+/* ---- Permanently delete a user account via the secure Edge Function ---- */
+async function deleteUser(id, email){
+  if(!confirm(`متأكد إنك عايز تحذف حساب "${email}" نهائيًا؟ الإجراء ده مش هيتراجع.`)) return;
+  try{
+    await callAdminAction({ action:"delete", target_user_id:id });
+    loadUsers();
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+/* ---- Impersonate: generate a one-time login link for the target user ---- */
+async function impersonateUser(id, email){
+  if(!confirm(`هيتم فتح تبويب جديد مسجل دخول باسم "${email}". متأكد؟`)) return;
+  try{
+    const result = await callAdminAction({ action:"impersonate", target_user_id:id });
+    if(result.action_link){
+      window.open(result.action_link, "_blank");
+    }
+  }catch(e){
+    alert(e.message);
+  }
 }
 
 async function logout(){
