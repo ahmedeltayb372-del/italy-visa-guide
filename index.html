@@ -379,9 +379,31 @@ document.addEventListener("DOMContentLoaded",applyLang);
     wrap.innerHTML = html;
   }
 
+  async function checkAuthAndLoadSections(){
+    const wrap = document.getElementById("dynamicSections");
+    const { data, error } = await sb.auth.getUser();
+
+    if (error || !data || !data.user){
+      const isEn = currentLang === "en";
+      wrap.innerHTML = `
+        <div style="text-align:center;padding:70px 20px">
+          <div style="font-size:44px;margin-bottom:16px">🔒</div>
+          <h3 style="color:var(--navy);margin:0 0 10px">${isEn ? "This content is for members only" : "هذا المحتوى متاح لأعضاء المنصة فقط"}</h3>
+          <p style="color:var(--muted);margin:0 0 24px">${isEn ? "Log in or create a free account to view the full visa guide." : "سجّل دخولك أو أنشئ حساب مجاني لعرض دليل التأشيرات الكامل."}</p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <a class="btn btn-primary" href="login.html">${isEn ? "Login" : "تسجيل الدخول"}</a>
+            <a class="btn btn-outline" href="register.html">${isEn ? "Create account" : "إنشاء حساب"}</a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    loadSections();
+  }
+
   document.addEventListener("DOMContentLoaded", ()=>{
     loadSettings();
-    loadSections();
+    checkAuthAndLoadSections();
   });
 })();
 </script>
