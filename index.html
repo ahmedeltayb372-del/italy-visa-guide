@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded",applyLang);
     <div id="contactLinks" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
       <a id="contactEmailLink" class="btn btn-outline" href="#" style="display:none">📧 <span id="contactEmailText"></span></a>
       <a id="contactFbLink" class="btn btn-outline" href="#" target="_blank" rel="noopener" style="display:none">📘 Facebook</a>
-      <a id="contactIgLink" class="btn btn-outline" href="#" target="_blank" rel="noopener" style="display:none">📸 Instagram</a>
+      <a id="contactIgLink" class="btn btn-outline" href="#" target="_blank" rel="noopener" style="display:none">📸 Instagram</a> <a id="contactWaLink" class="btn btn-outline" href="#" target="_blank" rel="noopener" style="display:none">💬 WhatsApp</a>
     </div>
   </div>
 </section>
@@ -362,7 +362,7 @@ document.addEventListener("DOMContentLoaded",applyLang);
     // contact links (email + social) — show only if a value is set
     const email = byKey.contact_email ? (byKey.contact_email.value_ar || byKey.contact_email.value_en) : "";
     const fb = byKey.contact_facebook ? (byKey.contact_facebook.value_ar || byKey.contact_facebook.value_en) : "";
-    const ig = byKey.contact_instagram ? (byKey.contact_instagram.value_ar || byKey.contact_instagram.value_en) : "";
+    const ig = byKey.contact_instagram ? (byKey.contact_instagram.value_ar || byKey.contact_instagram.value_en) : ""; const wa = byKey.contact_whatsapp ? (byKey.contact_whatsapp.value_ar || byKey.contact_whatsapp.value_en) : "";
 
     if(email){
       const a = document.getElementById("contactEmailLink");
@@ -376,7 +376,7 @@ document.addEventListener("DOMContentLoaded",applyLang);
     }
     if(ig){
       const a = document.getElementById("contactIgLink");
-      a.href = ig; a.style.display = "inline-flex";
+      a.href = ig; a.style.display = "inline-flex"; } if(wa){ const a2 = document.getElementById("contactWaLink"); a2.href = wa; a2.style.display = "inline-flex";
     }
   }
 
