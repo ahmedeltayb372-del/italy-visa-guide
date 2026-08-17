@@ -11,9 +11,10 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{overflow-x:hidden;max-width:100%}
 body{font-family:Arial,sans-serif;background:#f4f6fb;color:#101828}
 header{background:#071a45;color:#fff;padding:25px}
-header h1{margin-bottom:2px}
+header h1{margin-bottom:2px;overflow-wrap:anywhere}
 .container{width:95%;max-width:1300px;margin:30px auto}
 
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:#fff;padding:8px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
@@ -28,8 +29,9 @@ header h1{margin-bottom:2px}
 .card{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:20px}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{padding:14px;border-bottom:1px solid #eee;text-align:right;vertical-align:middle}
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;min-width:560px;border-collapse:collapse;margin-top:20px}
+th,td{padding:14px;border-bottom:1px solid #eee;text-align:right;vertical-align:middle;white-space:nowrap}
 th{background:#f5f7fb}
 
 button{border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-size:14px}
@@ -56,7 +58,7 @@ input[type=text],input[type=url],textarea{width:100%}
 .modal-bg.open{display:flex}
 .modal{background:#fff;border-radius:16px;padding:26px;width:min(900px,100%);margin-bottom:40px}
 .modal h2{margin-bottom:16px}
-.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
 
 #quillEditor{background:#fff;min-height:260px}
 .ql-editor{min-height:260px}
@@ -69,6 +71,14 @@ input[type=text],input[type=url],textarea{width:100%}
 .settings-item:last-child{border-bottom:none}
 .settings-item .field{margin-bottom:8px}
 .small-note{color:#667085;font-size:13px;margin-top:2px}
+
+@media(max-width:700px){
+  .row2,.row3{grid-template-columns:1fr}
+  .modal{padding:18px;border-radius:14px}
+  .container{width:calc(100% - 20px);margin:16px auto}
+  header{padding:18px}
+  .tab-btn{padding:10px 14px;font-size:14px}
+}
 </style>
 
 </head>
@@ -97,6 +107,7 @@ input[type=text],input[type=url],textarea{width:100%}
     </div>
     <p class="small-note">اسحب الترتيب عن طريق رقم الترتيب. القسم اللي "مخفي" مش هيظهر للزوار في الموقع.</p>
     <div id="sectionsLoading" class="loading">جاري التحميل...</div>
+    <div class="table-scroll">
     <table id="sectionsTable" style="display:none">
       <thead>
         <tr>
@@ -109,6 +120,7 @@ input[type=text],input[type=url],textarea{width:100%}
       </thead>
       <tbody id="sectionsBody"></tbody>
     </table>
+    </div>
   </div>
 </div>
 
@@ -135,10 +147,12 @@ input[type=text],input[type=url],textarea{width:100%}
   <div class="card">
     <h2>المستخدمون</h2>
     <div id="loading" class="loading">جاري التحميل...</div>
+    <div class="table-scroll">
     <table>
       <thead><tr><th>البريد</th><th>الصلاحية</th><th>الإجراء</th></tr></thead>
       <tbody id="usersTable"></tbody>
     </table>
+    </div>
   </div>
 </div>
 
@@ -146,12 +160,14 @@ input[type=text],input[type=url],textarea{width:100%}
 <div id="tab-requests" class="tabpage">
   <div class="card">
     <h2>طلبات الفيزا</h2>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr><th>الاسم</th><th>البريد</th><th>رقم الجواز</th><th>الدولة</th><th>الحالة</th><th>التاريخ</th></tr>
       </thead>
       <tbody id="requestsTable"></tbody>
     </table>
+    </div>
   </div>
 </div>
 
