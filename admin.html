@@ -147,8 +147,8 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
       </label>
     </div>
     <div class="row2" style="grid-template-columns:1fr 1fr">
-      <div class="field"><label>نص الرسالة — عربي</label><textarea id="bannerMsgAr" rows="2" placeholder="الموقع في شوية تحديثات، هنرجع قريب \uD83D\uDEA7"></textarea></div>
-      <div class="field"><label>نص الرسالة — English</label><textarea id="bannerMsgEn" rows="2" placeholder="We are rolling out some updates, back soon \uD83D\uDEA7"></textarea></div>
+      <div class="field"><label>نص الرسالة — عربي</label><textarea id="bannerMsgAr" rows="2" placeholder="الموقع في شوية تحديثات، هنرجع قريب 🚧"></textarea></div>
+      <div class="field"><label>نص الرسالة — English</label><textarea id="bannerMsgEn" rows="2" placeholder="We are rolling out some updates, back soon 🚧"></textarea></div>
     </div>
     <div class="field" style="max-width:260px">
       <label>تاريخ فتح الموقع المتوقع (اختياري)</label>
@@ -166,6 +166,25 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
     <div id="settingsLoading" class="loading">جاري التحميل...</div>
     <div id="settingsList"></div>
     <div class="msg" id="settingsMsg"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>إعلان لوحة المستخدم</h2>
+      <button class="btn-primary" id="dashAnnounceSaveBtn" onclick="saveDashAnnouncementSettings()">حفظ</button>
+    </div>
+    <p class="small-note">شريط تنبيه قابل للإغلاق بيظهر لكل المستخدمين فوق لوحة التحكم بتاعتهم (dashboard.html) — مناسب لإعلانات أو تحديثات مؤقتة، وبيفضل يظهر لحد ما المستخدم يقفله بنفسه.</p>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
+        <input type="checkbox" id="dashAnnounceEnabled" style="width:auto">
+        إظهار الإعلان فوق لوحة المستخدم
+      </label>
+    </div>
+    <div class="row2" style="grid-template-columns:1fr 1fr">
+      <div class="field"><label>نص الإعلان — عربي</label><textarea id="dashAnnounceMsgAr" rows="2" placeholder="مثال: تمت إضافة خاصية البحث والوضع الليلي الجديدة 🎉"></textarea></div>
+      <div class="field"><label>نص الإعلان — English</label><textarea id="dashAnnounceMsgEn" rows="2" placeholder="Example: New search and dark mode features are live 🎉"></textarea></div>
+    </div>
+    <div class="msg" id="dashAnnounceMsg"></div>
   </div>
 </div>
 
@@ -329,6 +348,7 @@ async function checkAdmin(){
   loadSections();
   loadSettings();
   loadBannerSettings();
+  loadDashAnnouncementSettings();
 }
 
 /* ======================================================================
@@ -735,6 +755,49 @@ async function saveBannerSettings(){
       showMsg("bannerMsg","حصل خطأ في حفظ إعدادات التنبيه","error");
     } else {
       showMsg("bannerMsg","تم حفظ إعدادات التنبيه بنجاح ✅","ok");
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+  }
+}
+
+/* ======================================================================
+   DASHBOARD ANNOUNCEMENT (guide_settings: dashboard_announcement_enabled / dashboard_announcement_message)
+   ====================================================================== */
+async function loadDashAnnouncementSettings(){
+  const {data,error} = await supabaseClient.from("guide_settings").select("*").in("key",["dashboard_announcement_enabled","dashboard_announcement_message"]);
+  if(error) return;
+  const byKey = {};
+  (data||[]).forEach(r=>{byKey[r.key]=r});
+  document.getElementById("dashAnnounceEnabled").checked = !!(byKey.dashboard_announcement_enabled && (byKey.dashboard_announcement_enabled.value_ar === "true" || byKey.dashboard_announcement_enabled.value_en === "true"));
+  document.getElementById("dashAnnounceMsgAr").value = byKey.dashboard_announcement_message ? (byKey.dashboard_announcement_message.value_ar || "") : "";
+  document.getElementById("dashAnnounceMsgEn").value = byKey.dashboard_announcement_message ? (byKey.dashboard_announcement_message.value_en || "") : "";
+}
+
+async function saveDashAnnouncementSettings(){
+  const btn = document.getElementById("dashAnnounceSaveBtn");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    const enabled = document.getElementById("dashAnnounceEnabled").checked ? "true" : "false";
+    const msgAr = document.getElementById("dashAnnounceMsgAr").value.trim();
+    const msgEn = document.getElementById("dashAnnounceMsgEn").value.trim();
+
+    const rows = [
+      {key:"dashboard_announcement_enabled", value_ar:enabled, value_en:enabled},
+      {key:"dashboard_announcement_message", value_ar:msgAr, value_en:msgEn}
+    ];
+
+    let hadError = false;
+    for(const row of rows){
+      const {error} = await supabaseClient.from("guide_settings").upsert(row, {onConflict:"key"});
+      if(error) hadError = true;
+    }
+
+    if(hadError){
+      showMsg("dashAnnounceMsg","حصل خطأ في حفظ إعدادات الإعلان","error");
+    } else {
+      showMsg("dashAnnounceMsg","تم حفظ إعدادات الإعلان بنجاح ✅","ok");
     }
   } finally {
     btn.disabled = false; btn.textContent = originalText;
