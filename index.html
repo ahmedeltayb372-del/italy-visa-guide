@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded",applyLang);
 </head>
 <body>
 
-<div id="siteUpdateBanner" style="display:none;background:#fff3cd;border-bottom:1px solid #ffe1a8;color:#7a5b00;text-align:center;padding:10px 16px;font-weight:700;font-size:14px;line-height:1.6"></div>
+<div id="siteUpdateBanner" style="display:none;position:fixed;inset:0;z-index:2147483647;background:#fff3cd;color:#7a5b00;text-align:center;padding:40px 24px;font-weight:700;font-size:20px;line-height:2;flex-direction:column;align-items:center;justify-content:center;overflow:auto"></div>
 
 <nav class="nav">
   <div class="container nav-inner">
@@ -390,7 +390,7 @@ document.addEventListener("DOMContentLoaded",applyLang);
       const dateVal = dateRow ? (dateRow.value_ar||dateRow.value_en) : "";
       if(dateVal) msg += isEn ? (" Expected launch: "+dateVal) : (" — الافتتاح المتوقع: "+dateVal);
       const bannerEl = document.getElementById("siteUpdateBanner");
-      if(bannerEl){ bannerEl.textContent = "🚧 " + msg; bannerEl.style.display = "block"; }
+      if(bannerEl){ bannerEl.textContent = "🚧 " + msg; bannerEl.style.display = "flex"; document.documentElement.style.overflow = "hidden"; }
     }
   }
 
