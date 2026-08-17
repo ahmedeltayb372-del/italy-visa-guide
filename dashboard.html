@@ -55,9 +55,7 @@ let guideSectionsCache = []; async function loadGuideSections(){ const wrap = do
 (async()=>{
   const r=await supabaseClient.auth.getUser();
   if(!r.data.user)return location.href="login.html";
-  const rawEmail=r.data.user.email||"";
-  const emailSafe=rawEmail.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace("@","@<wbr>");
-  document.getElementById("welcome").innerHTML=(en?"Welcome, ":"مرحبًا، ")+'<span style="font-size:16px;font-weight:600;overflow-wrap:break-word;word-break:normal;display:inline-block;max-width:100%;vertical-align:bottom">'+emailSafe+'</span>'+" 👋";
+  const meta=r.data.user.user_metadata||{}; const first=(meta.first_name||"").trim(); const last=(meta.last_name||"").trim(); const fullName=(first+" "+last).trim(); const rawEmail=r.data.user.email||""; const displayNameRaw=fullName||rawEmail.split("@")[0]||(en?"there":"صديقنا"); const displayName=displayNameRaw.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); document.getElementById("welcome").innerHTML=(en?"Welcome, ":"مرحبًا، ")+'<span style="font-size:16px;font-weight:600;overflow-wrap:break-word;word-break:normal;display:inline-block;max-width:100%;vertical-align:bottom">'+displayName+'</span>'+" 👋";
   loadGuideSections();
 })();
 document.getElementById("logout").onclick=async()=>{await supabaseClient.auth.signOut();location.href="index.html"};
