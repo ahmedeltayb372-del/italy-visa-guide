@@ -25,22 +25,63 @@ hr.sep{border:0;border-top:1px solid #edf0f5;margin:0 0 30px}
 @media(max-width:650px){.grid2{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.card{padding:20px}}
 @media(max-width:480px){h1{font-size:24px}.wrap-main{padding:24px 0}.wrap{width:calc(100% - 24px)}}
 </style></head><body>
-
-<div id="siteUpdateBanner" style="display:none;position:fixed;inset:0;z-index:2147483647;background:#fff3cd;color:#7a5b00;text-align:center;padding:40px 24px;font-weight:700;font-size:20px;line-height:2;flex-direction:column;align-items:center;justify-content:center;overflow:auto"></div>
+<div id="siteUpdateBanner" style="display:none;position:fixed;inset:0;z-index:2147483647;background:linear-gradient(135deg,#0b1d3a,#16305e);color:#fff;text-align:center;flex-direction:column;align-items:center;justify-content:center;overflow:auto;padding:24px">
+  <div style="font-size:14px;letter-spacing:3px;opacity:.65;margin-bottom:14px">🇮🇹 ITALY VISA GUIDE</div>
+  <div style="font-size:46px;margin-bottom:10px">🧳</div>
+  <div id="siteUpdateBannerMsg" style="font-weight:700;font-size:21px;line-height:1.9;max-width:620px;margin-bottom:18px"></div>
+  <div id="siteUpdateCountdownCaption" style="display:none;font-size:13px;opacity:.7;margin-bottom:10px;letter-spacing:1px"></div>
+  <div id="siteUpdateCountdown" style="display:none;gap:14px;flex-wrap:wrap;justify-content:center"></div>
+</div>
 <script>
 (async function(){
   var r = await supabaseClient.from("guide_settings").select("key,value_ar,value_en").in("key",["site_banner_enabled","site_banner_message","site_launch_date"]);
   if(r.error||!r.data) return;
-  var by={}; r.data.forEach(function(x){by[x.key]=x});
+  var by = {}; r.data.forEach(function(x){by[x.key]=x});
   var en = by.site_banner_enabled && (by.site_banner_enabled.value_ar==="true" || by.site_banner_enabled.value_en==="true");
   if(!en) return;
   var isEn = document.documentElement.lang==="en";
   var m = by.site_banner_message ? (isEn ? (by.site_banner_message.value_en||by.site_banner_message.value_ar) : (by.site_banner_message.value_ar||by.site_banner_message.value_en)) : (isEn?"We are rolling out some updates.":"الموقع في شوية تحديثات.");
   var d = by.site_launch_date ? (by.site_launch_date.value_ar||by.site_launch_date.value_en) : "";
-  if(d) m += isEn ? (" Expected launch: "+d) : (" — الافتتاح المتوقع: "+d);
   var el = document.getElementById("siteUpdateBanner");
-  el.textContent = "🚧 " + m;
-  el.style.display = "flex"; document.documentElement.style.overflow = "hidden";
+  document.getElementById("siteUpdateBannerMsg").textContent = m;
+  el.style.display = "flex";
+  document.documentElement.style.overflow = "hidden";
+  if(d){
+    var target = new Date(d + "T00:00:00").getTime();
+    if(!isNaN(target)){
+      var cap = document.getElementById("siteUpdateCountdownCaption");
+      var cd = document.getElementById("siteUpdateCountdown");
+      cap.style.display = "block";
+      cap.textContent = isEn ? "Opening in" : "الافتتاح خلال";
+      cd.style.display = "flex";
+      var labels = isEn ? ["Days","Hours","Min","Sec"] : ["يوم","ساعة","دقيقة","ثانية"];
+      function pad(n){ return String(n).padStart(2,"0"); }
+      var timer;
+      function render(){
+        var diff = target - Date.now();
+        if(diff <= 0){
+          cap.style.display = "none";
+          cd.innerHTML = '<div style="font-size:20px;font-weight:800;color:#ffc857">' + (isEn ? "Launching soon! 🎉" : "قريباً جداً! 🎉") + '</div>';
+          clearInterval(timer);
+          return;
+        }
+        var dd = Math.floor(diff/86400000);
+        var hh = Math.floor(diff%86400000/3600000);
+        var mm = Math.floor(diff%3600000/60000);
+        var ss = Math.floor(diff%60000/1000);
+        var vals = [dd,hh,mm,ss];
+        var html = "";
+        for(var i=0;i<4;i++){
+          html += '<div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 16px;min-width:70px">'
+            + '<div style="font-size:30px;font-weight:800;color:#ffc857;font-variant-numeric:tabular-nums">' + pad(vals[i]) + '</div>'
+            + '<div style="font-size:11px;opacity:.7;margin-top:4px">' + labels[i] + '</div></div>';
+        }
+        cd.innerHTML = html;
+      }
+      render();
+      timer = setInterval(render, 1000);
+    }
+  }
 })();
 </script>
 
