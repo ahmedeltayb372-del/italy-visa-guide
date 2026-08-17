@@ -19,14 +19,135 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730}p{color:#667085}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.stat{background:#ffffff12;border-radius:16px;padding:18px}.stat b{font-size:28px;display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.task{padding:14px 0;border-bottom:1px solid #edf0f5;display:block}.task input{margin-left:8px}
 @media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}}
+.category{padding:22px 0;border-bottom:1px solid #edf0f5}.category:last-child{border-bottom:0}
+.cat-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}.cat-head .stamp{font-size:22px}.cat-head h3{margin:0;font-size:19px;color:#0b1730}
+.cat-desc{color:#667085;margin:0 0 10px}
+.category img{max-width:100%;border-radius:12px}
+.lockbox{text-align:center;padding:50px 20px}
 </style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="row"><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
 <main class="dash"><div class="wrap"><section class="hero"><div style="color:#8ea3c7;font-weight:800" id="ey">لوحة حسابي</div><h1 style="color:#fff" id="welcome">مرحبًا 👋</h1><p id="sub">تابع رحلتك إلى إيطاليا من مكان واحد.</p><div class="stats"><div class="stat"><b>0</b><span id="s1">مهام مكتملة</span></div><div class="stat"><b>0</b><span id="s2">قيد التنفيذ</span></div><div class="stat"><b>0%</b><span id="s3">نسبة التقدم</span></div></div></section>
 <div class="grid"><section class="card"><h2 id="tasks">قائمة المهام</h2><label class="task"><input type="checkbox"> <span id="t1">جواز السفر</span></label><label class="task"><input type="checkbox"> <span id="t2">إثبات السكن</span></label><label class="task"><input type="checkbox"> <span id="t3">الإثبات المالي</span></label><label class="task"><input type="checkbox"> <span id="t4">التأمين</span></label></section>
-<section class="card"><h2 id="quick">روابط سريعة</h2><p><a class="link" href="index.html">📚 <span id="q1">دليل التأشيرات</span></a></p><p><a class="link" href="index.html#guides">📋 <span id="q2">اختار نوع التأشيرة</span></a></p><p><a class="link" href="index.html#community">👥 <span id="q3">المجتمع</span></a></p></section></div></div></main>
+<section class="card"><h2 id="quick">روابط سريعة</h2><p><a class="link" href="index.html">📚 <span id="q1">دليل التأشيرات</span></a></p><p><a class="link" href="index.html#guides">📋 <span id="q2">اختار نوع التأشيرة</span></a></p><p><a class="link" href="index.html#community">👥 <span id="q3">المجتمع</span></a></p></section></div>
+<section class="card" style="margin-top:18px">
+  <h2 id="guideTitle">دليل التأشيرات الكامل</h2>
+  <div id="dynamicSections">
+    <div id="sectionsLoading" style="text-align:center;padding:40px 0;color:#667085">جاري تحميل الدليل...</div>
+  </div>
+</section>
+<section class="card" style="margin-top:18px">
+  <h2 id="settingsTitle">إعدادات الحساب</h2>
+  <p style="color:#667085;margin:-8px 0 20px" id="settingsSub">تحكم في بيانات حسابك من هنا.</p>
+
+  <h3 style="font-size:16px;margin:0 0 12px" id="pwTitle">تغيير كلمة المرور</h3>
+  <form id="pwForm">
+    <div class="field"><label id="newPassLabel">كلمة المرور الجديدة</label><input id="newPass" type="password" minlength="6" required></div>
+    <div class="field"><label id="confirmPassLabel">تأكيد كلمة المرور</label><input id="confirmPass" type="password" minlength="6" required></div>
+    <button class="btn primary" type="submit" id="pwSubmit">تحديث كلمة المرور</button>
+  </form>
+  <div class="msg error" id="pwErr"></div>
+  <div class="msg ok" id="pwOk"></div>
+
+  <hr style="border:0;border-top:1px solid #edf0f5;margin:28px 0">
+
+  <h3 style="font-size:16px;margin:0 0 12px" id="emailTitle">تغيير البريد الإلكتروني</h3>
+  <form id="emailForm">
+    <div class="field"><label id="newEmailLabel">البريد الإلكتروني الجديد</label><input id="newEmail" type="email" required></div>
+    <button class="btn primary" type="submit" id="emailSubmit">تحديث البريد الإلكتروني</button>
+  </form>
+  <div class="msg error" id="emailErr"></div>
+  <div class="msg ok" id="emailOk"></div>
+</section>
+</div></main>
 <script>
-let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",s1:"مهام مكتملة",s2:"قيد التنفيذ",s3:"نسبة التقدم",tasks:"قائمة المهام",t1:"جواز السفر",t2:"إثبات السكن",t3:"الإثبات المالي",t4:"التأمين",quick:"روابط سريعة",q1:"دليل التأشيرات",q2:"اختار نوع التأشيرة",q3:"المجتمع",logout:"تسجيل الخروج",switch:"English"},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",s1:"Tasks Done",s2:"In Progress",s3:"Progress",tasks:"Checklist",t1:"Passport",t2:"Accommodation proof",t3:"Financial proof",t4:"Insurance",quick:"Quick Links",q1:"Visa Guide",q2:"Choose visa type",q3:"Community",logout:"Logout",switch:"العربية"}};
-function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","s1","s2","s3","tasks","t1","t2","t3","t4","quick","q1","q2","q3","logout","lang"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",s1:"s1",s2:"s2",s3:"s3",tasks:"tasks",t1:"t1",t2:"t2",t3:"t3",t4:"t4",quick:"quick",q1:"q1",q2:"q2",q3:"q3",logout:"logout",lang:"switch"};document.getElementById(id).textContent=t[map[id]]})}
+let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",s1:"مهام مكتملة",s2:"قيد التنفيذ",s3:"نسبة التقدم",tasks:"قائمة المهام",t1:"جواز السفر",t2:"إثبات السكن",t3:"الإثبات المالي",t4:"التأمين",quick:"روابط سريعة",q1:"دليل التأشيرات",q2:"اختار نوع التأشيرة",q3:"المجتمع",logout:"تسجيل الخروج",switch:"English",settingsTitle:"إعدادات الحساب",settingsSub:"تحكم في بيانات حسابك من هنا.",pwTitle:"تغيير كلمة المرور",newPassLabel:"كلمة المرور الجديدة",confirmPassLabel:"تأكيد كلمة المرور",pwSubmit:"تحديث كلمة المرور",emailTitle:"تغيير البريد الإلكتروني",newEmailLabel:"البريد الإلكتروني الجديد",emailSubmit:"تحديث البريد الإلكتروني"},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",s1:"Tasks Done",s2:"In Progress",s3:"Progress",tasks:"Checklist",t1:"Passport",t2:"Accommodation proof",t3:"Financial proof",t4:"Insurance",quick:"Quick Links",q1:"Visa Guide",q2:"Choose visa type",q3:"Community",logout:"Logout",switch:"العربية",settingsTitle:"Account Settings",settingsSub:"Manage your account details here.",pwTitle:"Change Password",newPassLabel:"New Password",confirmPassLabel:"Confirm Password",pwSubmit:"Update Password",emailTitle:"Change Email",newEmailLabel:"New Email",emailSubmit:"Update Email"}};
+function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","s1","s2","s3","tasks","t1","t2","t3","t4","quick","q1","q2","q3","logout","lang","settingsTitle","settingsSub","pwTitle","newPassLabel","confirmPassLabel","pwSubmit","emailTitle","newEmailLabel","emailSubmit"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",s1:"s1",s2:"s2",s3:"s3",tasks:"tasks",t1:"t1",t2:"t2",t3:"t3",t4:"t4",quick:"quick",q1:"q1",q2:"q2",q3:"q3",logout:"logout",lang:"switch",settingsTitle:"settingsTitle",settingsSub:"settingsSub",pwTitle:"pwTitle",newPassLabel:"newPassLabel",confirmPassLabel:"confirmPassLabel",pwSubmit:"pwSubmit",emailTitle:"emailTitle",newEmailLabel:"newEmailLabel",emailSubmit:"emailSubmit"};document.getElementById(id).textContent=t[map[id]]})}
 document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
-(async()=>{const r=await supabaseClient.auth.getUser();if(!r.data.user)return location.href="login.html";document.getElementById("welcome").textContent=(en?"Welcome, ":"مرحبًا، ")+(r.data.user.email||"")+" 👋";})();
+async function loadGuideSections(){
+  const wrap = document.getElementById("dynamicSections");
+  const { data, error } = await supabaseClient
+    .from("guide_sections")
+    .select("*")
+    .eq("visible", true)
+    .order("order_index", { ascending: true });
+
+  if (error){
+    wrap.innerHTML = '<div class="lockbox">🔒<p>'+(en?"You don't have access to view this content.":"مفيش صلاحية لعرض المحتوى ده حالياً.")+'</p></div>';
+    return;
+  }
+  if (!data || !data.length){
+    wrap.innerHTML = '<p style="text-align:center;padding:30px 0;color:#667085">'+(en?"No guide content yet.":"لا يوجد محتوى مضاف حتى الآن.")+'</p>';
+    return;
+  }
+
+  let html = "";
+  data.forEach(section=>{
+    html += `<section class="category" id="${section.section_key || section.id}">
+      <div class="cat-head"><span class="stamp">${section.icon || "📄"}</span><h3>${section.title || ""}</h3></div>
+      ${section.description ? `<p class="cat-desc">${section.description}</p>` : ""}
+      ${section.body_html || ""}
+    </section>`;
+  });
+  wrap.innerHTML = html;
+}
+
+(async()=>{
+  const r=await supabaseClient.auth.getUser();
+  if(!r.data.user)return location.href="login.html";
+  document.getElementById("welcome").textContent=(en?"Welcome, ":"مرحبًا، ")+(r.data.user.email||"")+" 👋";
+  loadGuideSections();
+})();
+document.getElementById("pwForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  document.getElementById("pwErr").style.display="none";
+  document.getElementById("pwOk").style.display="none";
+
+  const newPass = document.getElementById("newPass").value;
+  const confirmPass = document.getElementById("confirmPass").value;
+
+  if(newPass !== confirmPass){
+    const b=document.getElementById("pwErr");
+    b.textContent = en?"Passwords do not match.":"كلمتا المرور غير متطابقتين";
+    b.style.display="block";
+    return;
+  }
+  if(newPass.length < 6){
+    const b=document.getElementById("pwErr");
+    b.textContent = en?"Password must be at least 6 characters.":"كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+    b.style.display="block";
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+  if(error){
+    const b=document.getElementById("pwErr");
+    b.textContent = error.message;
+    b.style.display="block";
+    return;
+  }
+  const b=document.getElementById("pwOk");
+  b.textContent = en?"Password updated successfully.":"تم تحديث كلمة المرور بنجاح";
+  b.style.display="block";
+  document.getElementById("pwForm").reset();
+});
+
+document.getElementById("emailForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  document.getElementById("emailErr").style.display="none";
+  document.getElementById("emailOk").style.display="none";
+
+  const newEmail = document.getElementById("newEmail").value.trim();
+  const { error } = await supabaseClient.auth.updateUser({ email: newEmail });
+  if(error){
+    const b=document.getElementById("emailErr");
+    b.textContent = error.message;
+    b.style.display="block";
+    return;
+  }
+  const b=document.getElementById("emailOk");
+  b.textContent = en?"Confirmation link sent to your new email. Click it to complete the change.":"تم إرسال رابط تأكيد لبريدك الجديد، افتحه لإتمام التغيير";
+  b.style.display="block";
+  document.getElementById("emailForm").reset();
+});
+
 document.getElementById("logout").onclick=async()=>{await supabaseClient.auth.signOut();location.href="index.html"};
 </script></body></html>
