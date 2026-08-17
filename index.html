@@ -107,7 +107,7 @@ const i18n = {
     readyP:"استخدم الدليل، جهز مستنداتك، وراجع المصادر الرسمية قبل أي خطوة.",
     footer:"🇮🇹 دليل فيزا إيطاليا من مصر", footerP:"دليل معلوماتي مستقل لمساعدتك في فهم رحلة التأشيرة.",
     updated:"آخر تحديث: أغسطس 2026", lang:"English", loadingGuide:"جاري تحميل الدليل...",
-    aboutEyebrow:"About", aboutTitle:"من نحن", aboutText:"جاري التحميل...", contactTitle:"تواصل معنا"
+    aboutTitle:"من نحن", aboutText:"جاري التحميل...", contactTitle:"تواصل معنا"
   },
   en: {
     brand:"Italy Visa Guide",
@@ -138,7 +138,7 @@ const i18n = {
     readyP:"Use the guide, prepare your documents, and always check official sources before taking action.",
     footer:"🇮🇹 Italy Visa Guide — Egypt", footerP:"An independent informational guide to help you understand the visa journey.",
     updated:"Last updated: August 2026", lang:"العربية", loadingGuide:"Loading guide...",
-    aboutEyebrow:"About", aboutTitle:"About Us", aboutText:"Loading...", contactTitle:"Contact Us"
+    aboutTitle:"About Us", aboutText:"Loading...", contactTitle:"Contact Us"
   }
 };
 let currentLang = localStorage.getItem("siteLang") || "ar";
@@ -159,6 +159,8 @@ document.addEventListener("DOMContentLoaded",applyLang);
 </script>
 </head>
 <body>
+
+<div id="siteUpdateBanner" style="display:none;background:#fff3cd;border-bottom:1px solid #ffe1a8;color:#7a5b00;text-align:center;padding:10px 16px;font-weight:700;font-size:14px;line-height:1.6"></div>
 
 <nav class="nav">
   <div class="container nav-inner">
@@ -285,7 +287,6 @@ document.addEventListener("DOMContentLoaded",applyLang);
 <section class="section" id="about">
   <div class="container">
     <div class="section-head" style="text-align:center;max-width:720px;margin-inline:auto">
-      <div class="eyebrow"><span data-i18n="aboutEyebrow">من نحن</span></div>
       <h2><span data-i18n="aboutTitle">من نحن</span></h2>
       <p id="aboutText" style="color:var(--muted);font-size:17px"><span data-i18n="aboutText">جاري تحميل...</span></p>
     </div>
@@ -306,7 +307,6 @@ document.addEventListener("DOMContentLoaded",applyLang);
 <section class="section" id="contact">
   <div class="container">
     <div class="section-head" style="text-align:center;max-width:720px;margin-inline:auto">
-      <div class="eyebrow"><span data-i18n="nav5">تواصل معنا</span></div>
       <h2><span data-i18n="contactTitle">تواصل معنا</span></h2>
     </div>
     <div id="contactLinks" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
@@ -377,6 +377,20 @@ document.addEventListener("DOMContentLoaded",applyLang);
     if(ig){
       const a = document.getElementById("contactIgLink");
       a.href = ig; a.style.display = "inline-flex"; } if(wa){ const a2 = document.getElementById("contactWaLink"); a2.href = wa; a2.style.display = "inline-flex";
+    }
+
+    // site-wide "under updates" announcement banner
+    const bannerEnabledRow = byKey.site_banner_enabled;
+    const bannerEnabled = bannerEnabledRow && (bannerEnabledRow.value_ar === "true" || bannerEnabledRow.value_en === "true");
+    if(bannerEnabled){
+      const isEn = document.documentElement.lang === "en";
+      const msgRow = byKey.site_banner_message;
+      let msg = msgRow ? (isEn ? (msgRow.value_en||msgRow.value_ar) : (msgRow.value_ar||msgRow.value_en)) : (isEn ? "We're rolling out some updates." : "الموقع في شوية تحديثات.");
+      const dateRow = byKey.site_launch_date;
+      const dateVal = dateRow ? (dateRow.value_ar||dateRow.value_en) : "";
+      if(dateVal) msg += isEn ? (" Expected launch: "+dateVal) : (" — الافتتاح المتوقع: "+dateVal);
+      const bannerEl = document.getElementById("siteUpdateBanner");
+      if(bannerEl){ bannerEl.textContent = "🚧 " + msg; bannerEl.style.display = "block"; }
     }
   }
 
