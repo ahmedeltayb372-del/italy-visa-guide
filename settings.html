@@ -95,7 +95,8 @@ const T={
     pwShort:"كلمة المرور يجب أن تكون 6 أحرف على الأقل",pwWrongOld:"كلمة المرور الحالية غير صحيحة",
     delTitle:"حذف الحساب",delSub:"هيتم إرسال طلب حذف حسابك لفريق الدعم لمراجعته وتنفيذه.",
     delBtn:"طلب حذف الحساب",delConfirm:"متأكد إنك عايز تطلب حذف حسابك؟ الإجراء ده مش هيتراجع.",
-    delOk:"تم إرسال طلب حذف الحساب بنجاح، هيتم التواصل معاك.",delErr:"حصل خطأ أثناء إرسال الطلب، حاول تاني."},
+    delOk:"تم إرسال طلب حذف الحساب بنجاح، هيتم التواصل معاك.",delErr:"حصل خطأ أثناء إرسال الطلب، حاول تاني.",
+    banned:"تم إيقاف هذا الحساب. تواصل مع الدعم لمزيد من المعلومات."},
   en:{switch:"العربية",back:"Back to dashboard",pageTitle:"Account Settings",pageSub:"Manage your account details here.",
     dataTitle:"Your data",dataSub:"This information belongs to your account.",firstNameLabel:"First name",lastNameLabel:"Surname",
     emailLabel:"Email",phoneLabel:"Cellphone number",emailHint:"Email can't be changed from here.",
@@ -106,7 +107,8 @@ const T={
     pwShort:"Password must be at least 6 characters",pwWrongOld:"Current password is incorrect",
     delTitle:"Delete account",delSub:"A request to delete your account will be sent to support for review.",
     delBtn:"Request account deletion",delConfirm:"Are you sure you want to request account deletion? This can't be undone.",
-    delOk:"Your deletion request was sent successfully. We'll be in touch.",delErr:"Something went wrong sending the request, please try again."}
+    delOk:"Your deletion request was sent successfully. We'll be in touch.",delErr:"Something went wrong sending the request, please try again.",
+    banned:"This account has been suspended. Contact support for more info."}
 };
 
 function tr(){
@@ -138,6 +140,22 @@ function tr(){
 document.getElementById("lang").onclick=()=>{en=!en;tr()};
 tr();
 
+const settingsKeyMap={settings_switch:"switch",settings_back:"back",settings_page_title:"pageTitle",settings_page_sub:"pageSub",
+  settings_data_title:"dataTitle",settings_data_sub:"dataSub",settings_first_name_label:"firstNameLabel",settings_last_name_label:"lastNameLabel",
+  settings_email_label:"emailLabel",settings_phone_label:"phoneLabel",settings_email_hint:"emailHint",settings_data_submit:"dataSubmit",
+  settings_data_ok:"dataOk",settings_pw_title:"pwTitle",settings_pw_sub:"pwSub",settings_old_pass_label:"oldPassLabel",
+  settings_new_pass_label:"newPassLabel",settings_confirm_pass_label:"confirmPassLabel",settings_pw_submit:"pwSubmit",
+  settings_pw_ok:"pwOk",settings_pw_mismatch:"pwMismatch",settings_pw_short:"pwShort",settings_pw_wrong_old:"pwWrongOld",
+  settings_del_title:"delTitle",settings_del_sub:"delSub",settings_del_btn:"delBtn",settings_del_confirm:"delConfirm",
+  settings_del_ok:"delOk",settings_del_err:"delErr"};
+async function loadSiteText(){
+  const {data,error}=await supabaseClient.from("guide_settings").select("key,value_ar,value_en").eq("page_group","settings");
+  if(error||!data)return;
+  data.forEach(row=>{const k=settingsKeyMap[row.key];if(!k)return;if(row.value_ar)T.ar[k]=row.value_ar;if(row.value_en)T.en[k]=row.value_en;});
+  tr();
+}
+loadSiteText();
+
 function show(id,text){const b=document.getElementById(id);b.textContent=text;b.style.display="block";}
 function hideAll(prefix){["Err","Ok"].forEach(s=>{const b=document.getElementById(prefix+s);if(b)b.style.display="none";});}
 
@@ -145,14 +163,17 @@ function hideAll(prefix){["Err","Ok"].forEach(s=>{const b=document.getElementByI
   const r=await supabaseClient.auth.getUser();
   if(!r.data.user)return location.href="login.html";
   currentUser=r.data.user;
+  const {data:profile}=await supabaseClient.from("profiles").select("banned,first_name,last_name,phone").eq("id",currentUser.id).single();
+  if(profile&&profile.banned){await supabaseClient.auth.signOut();alert(T[en?"en":"ar"].banned);location.href="login.html";return;}
   document.getElementById("dataEmail").value=currentUser.email||"";
   const meta=currentUser.user_metadata||{};
-  document.getElementById("firstName").value=meta.first_name||"";
-  document.getElementById("lastName").value=meta.last_name||"";
-  document.getElementById("phone").value=meta.phone||"";
+  document.getElementById("firstName").value=(profile&&profile.first_name)||meta.first_name||"";
+  document.getElementById("lastName").value=(profile&&profile.last_name)||meta.last_name||"";
+  document.getElementById("phone").value=(profile&&profile.phone)||meta.phone||"";
 })();
 
-// Save "your data" (first name, last name, phone) — email is never editable here
+// Save "your data" (first name, last name, phone) — email is never editable here.
+// Written to the profiles table (source of truth), not user_metadata.
 document.getElementById("dataForm").addEventListener("submit", async function(e){
   e.preventDefault();
   hideAll("data");
@@ -161,7 +182,7 @@ document.getElementById("dataForm").addEventListener("submit", async function(e)
   const last_name=document.getElementById("lastName").value.trim();
   const phone=document.getElementById("phone").value.trim();
 
-  const { error } = await supabaseClient.auth.updateUser({ data:{ first_name, last_name, phone } });
+  const { error } = await supabaseClient.from("profiles").update({ first_name, last_name, phone }).eq("id", currentUser.id);
   if(error){ show("dataErr", error.message); return; }
   show("dataOk", t.dataOk);
 });
