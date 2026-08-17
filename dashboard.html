@@ -34,7 +34,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 .lockbox{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 .state-box{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 </style></head><body>
-<div id="siteUpdateBanner" style="display:none;background:#fff3cd;border-bottom:1px solid #ffe1a8;color:#7a5b00;text-align:center;padding:10px 16px;font-weight:700;font-size:14px;line-height:1.6"></div>
+<div id="siteUpdateBanner" style="display:none;position:fixed;inset:0;z-index:2147483647;background:#fff3cd;color:#7a5b00;text-align:center;padding:40px 24px;font-weight:700;font-size:20px;line-height:2;flex-direction:column;align-items:center;justify-content:center;overflow:auto"></div>
 <script>
 (async function(){
   var r = await supabaseClient.from("guide_settings").select("key,value_ar,value_en").in("key",["site_banner_enabled","site_banner_message","site_launch_date"]);
@@ -48,7 +48,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
   if(d) m += isEn ? (" Expected launch: "+d) : (" — الافتتاح المتوقع: "+d);
   var el = document.getElementById("siteUpdateBanner");
   el.textContent = "🚧 " + m;
-  el.style.display = "block";
+  el.style.display = "flex"; document.documentElement.style.overflow = "hidden";
 })();
 </script>
 <nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="nav-actions"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
