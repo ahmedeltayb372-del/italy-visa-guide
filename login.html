@@ -48,6 +48,6 @@ document.getElementById("form").onsubmit=async e=>{
   if(profile&&profile.banned){await supabaseClient.auth.signOut();return show(T[en?"en":"ar"].banned,"err");}
   location.href="dashboard.html"
 };
-document.getElementById("forgot").onclick=async e=>{e.preventDefault();hide();if(!email.value.trim())return show(en?"Enter your email first.":"اكتب بريدك الإلكتروني أولًا.","err");const r=await supabaseClient.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:location.origin+location.pathname.replace("login.html","dashboard.html")});if(r.error)return show(r.error.message,"err");show(T[en?"en":"ar"].sent,"ok")};
+document.getElementById("forgot").onclick=async e=>{e.preventDefault();hide();if(!email.value.trim())return show(en?"Enter your email first.":"اكتب بريدك الإلكتروني أولًا.","err");const r=await supabaseClient.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:location.origin+location.pathname.replace("login.html","reset-password.html")});if(r.error)return show(r.error.message,"err");show(T[en?"en":"ar"].sent,"ok")};
 function show(x,id){const a=document.getElementById(id);a.textContent=x;a.style.display="block"}function hide(){document.querySelectorAll(".msg").forEach(x=>x.style.display="none")}
 </script></body></html>
