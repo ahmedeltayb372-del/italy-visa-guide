@@ -33,7 +33,25 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 .category img{max-width:100%;height:auto;border-radius:14px;margin:8px 0}
 .lockbox{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 .state-box{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
-</style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="nav-actions"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
+</style></head><body>
+<div id="siteUpdateBanner" style="display:none;background:#fff3cd;border-bottom:1px solid #ffe1a8;color:#7a5b00;text-align:center;padding:10px 16px;font-weight:700;font-size:14px;line-height:1.6"></div>
+<script>
+(async function(){
+  var r = await supabaseClient.from("guide_settings").select("key,value_ar,value_en").in("key",["site_banner_enabled","site_banner_message","site_launch_date"]);
+  if(r.error||!r.data) return;
+  var by={}; r.data.forEach(function(x){by[x.key]=x});
+  var en = by.site_banner_enabled && (by.site_banner_enabled.value_ar==="true" || by.site_banner_enabled.value_en==="true");
+  if(!en) return;
+  var isEn = document.documentElement.lang==="en";
+  var m = by.site_banner_message ? (isEn ? (by.site_banner_message.value_en||by.site_banner_message.value_ar) : (by.site_banner_message.value_ar||by.site_banner_message.value_en)) : (isEn?"We are rolling out some updates.":"الموقع في شوية تحديثات.");
+  var d = by.site_launch_date ? (by.site_launch_date.value_ar||by.site_launch_date.value_en) : "";
+  if(d) m += isEn ? (" Expected launch: "+d) : (" — الافتتاح المتوقع: "+d);
+  var el = document.getElementById("siteUpdateBanner");
+  el.textContent = "🚧 " + m;
+  el.style.display = "block";
+})();
+</script>
+<nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="nav-actions"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
 <main class="dash"><div class="wrap"><section class="hero"><div style="color:#8ea3c7;font-weight:800" id="ey">لوحة حسابي</div><h1 style="color:#fff;font-size:26px" id="welcome">مرحبًا 👋</h1><p id="sub">تابع رحلتك إلى إيطاليا من مكان واحد.</p></section>
 <section style="margin-top:8px">
   <div class="guide-head">
