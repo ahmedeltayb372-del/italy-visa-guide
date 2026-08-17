@@ -44,6 +44,7 @@ button{border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-size:
 .btn-sm{padding:7px 12px;font-size:13px}
 .btn-ghost{background:#eef1f7;color:#101828}
 .btn-impersonate{background:#7c3aed;color:#fff}
+button:disabled{opacity:.6;cursor:not-allowed}
 
 .loading{text-align:center;padding:20px}
 select,input[type=text],input[type=email],input[type=tel],input[type=number],input[type=url],textarea{padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
@@ -112,6 +113,7 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
       <button class="btn-primary" onclick="openSectionModal()">+ إضافة قسم جديد</button>
     </div>
     <p class="small-note">اسحب الترتيب عن طريق رقم الترتيب. القسم اللي "مخفي" مش هيظهر للزوار في الموقع.</p>
+    <p class="small-note" id="sectionsStats" style="font-weight:bold"></p>
     <div id="sectionsLoading" class="loading">جاري التحميل...</div>
     <div class="table-scroll">
     <table id="sectionsTable" style="display:none">
@@ -135,9 +137,9 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
   <div class="card">
     <div class="card-head">
       <h2>تنبيه تحديثات الموقع</h2>
-      <button class="btn-primary" onclick="saveBannerSettings()">حفظ</button>
+      <button class="btn-primary" id="bannerSaveBtn" onclick="saveBannerSettings()">حفظ</button>
     </div>
-    <p class="small-note">لو فعّلت الخيار ده، هيظهر شريط تنبيه فوق كل صفحة في الموقع لكل الزوار.</p>
+    <p class="small-note" style="color:#b42318;font-weight:bold;background:#fff0f0;padding:10px 12px;border-radius:8px">⚠️ تنبيه هام: تفعيل الخيار ده هيقفل الموقع بالكامل أمام كل الزوار — بما في ذلك صفحة تسجيل الدخول — ومش هيفضل ظاهر غير شاشة العد التنازلي دي. الصفحة الوحيدة اللي هتفضل شغالة هي لوحة الإدارة دي، فخليك حريص وانت بتفعّله.</p>
     <div class="field">
       <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
         <input type="checkbox" id="bannerEnabled" style="width:auto">
@@ -158,7 +160,7 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
   <div class="card">
     <div class="card-head">
       <h2>نصوص الموقع العامة</h2>
-      <button class="btn-primary" onclick="saveAllSettings()">حفظ كل التعديلات</button>
+      <button class="btn-primary" id="allSettingsSaveBtn" onclick="saveAllSettings()">حفظ كل التعديلات</button>
     </div>
     <p class="small-note">النصوص دي بتظهر في الهيدر والفوتر واسم الموقع — عربي وإنجليزي.</p>
     <div id="settingsLoading" class="loading">جاري التحميل...</div>
@@ -177,6 +179,9 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
   <div class="card">
     <h2>المستخدمون</h2>
     <p class="small-note">من هنا تقدر تعدّل بيانات أي مستخدم، تحذف حسابه نهائيًا، أو تسجّل دخول كأنك هو (للدعم الفني). كل الإجراءات دي بتمر على سيرفر آمن ومسجلة.</p>
+    <div class="field" style="max-width:320px">
+      <input type="text" id="userSearch" placeholder="🔍 بحث بالإيميل أو الاسم..." oninput="renderUsersTable()">
+    </div>
     <div id="loading" class="loading">جاري التحميل...</div>
     <div class="table-scroll">
     <table>
@@ -227,7 +232,7 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
     <div class="modal-actions">
       <button class="btn-danger" id="secDeleteBtn" onclick="deleteSection()">حذف القسم</button>
       <button class="btn-outline" onclick="closeSectionModal()">إلغاء</button>
-      <button class="btn-primary" onclick="saveSection()">حفظ</button>
+      <button class="btn-primary" id="sectionSaveBtn" onclick="saveSection()">حفظ</button>
     </div>
   </div>
 </div>
@@ -256,7 +261,7 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
 
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeUserModal()">إلغاء</button>
-      <button class="btn-primary" onclick="saveUserEdit()">حفظ التعديلات</button>
+      <button class="btn-primary" id="userSaveBtn" onclick="saveUserEdit()">حفظ التعديلات</button>
     </div>
   </div>
 </div>
@@ -339,9 +344,21 @@ async function loadUsers(){
 
   usersCache = users || [];
 
-  document.getElementById("usersCount").textContent = users.length;
-  document.getElementById("adminsCount").textContent = users.filter(x=>x.role==="admin").length;
-  document.getElementById("bannedCount").textContent = users.filter(x=>x.banned).length;
+  document.getElementById("usersCount").textContent = usersCache.length;
+  document.getElementById("adminsCount").textContent = usersCache.filter(x=>x.role==="admin").length;
+  document.getElementById("bannedCount").textContent = usersCache.filter(x=>x.banned).length;
+
+  renderUsersTable();
+}
+
+function renderUsersTable(){
+  const q = (document.getElementById("userSearch")?.value || "").trim().toLowerCase();
+  const users = q
+    ? usersCache.filter(u=>{
+        const fullName = [u.first_name,u.last_name].filter(Boolean).join(" ").toLowerCase();
+        return (u.email||"").toLowerCase().includes(q) || fullName.includes(q);
+      })
+    : usersCache;
 
   let html="";
   users.forEach(user=>{
@@ -379,7 +396,7 @@ async function loadUsers(){
       <td>${actions}</td>
     </tr>`;
   });
-  document.getElementById("usersTable").innerHTML = html;
+  document.getElementById("usersTable").innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#667085">لا يوجد نتائج مطابقة</td></tr>';
 }
 
 
@@ -428,6 +445,9 @@ async function saveUserEdit(){
   const payload = { action:"update", target_user_id:id, first_name, last_name, phone, banned };
   if(email && email !== user.email) payload.email = email;
 
+  const btn = document.getElementById("userSaveBtn");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
   try{
     await callAdminAction(payload);
     closeUserModal();
@@ -437,6 +457,8 @@ async function saveUserEdit(){
     el.textContent = e.message;
     el.className = "msg error";
     el.style.display = "block";
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
   }
 }
 
@@ -506,6 +528,10 @@ async function loadSections(){
   if(error){ alert(error.message); return; }
   sectionsCache = data || [];
 
+  const visibleCount = sectionsCache.filter(s=>s.visible).length;
+  const statsEl = document.getElementById("sectionsStats");
+  if(statsEl) statsEl.textContent = `الإجمالي: ${sectionsCache.length} · ظاهر: ${visibleCount} · مخفي: ${sectionsCache.length - visibleCount}`;
+
   let html="";
   sectionsCache.forEach(sec=>{
     html += `<tr>
@@ -562,20 +588,27 @@ async function saveSection(){
     return;
   }
 
-  let error;
-  if(id){
-    ({error} = await supabaseClient.from("guide_sections").update(payload).eq("id",id));
-  } else {
-    ({error} = await supabaseClient.from("guide_sections").insert(payload));
-  }
+  const btn = document.getElementById("sectionSaveBtn");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    let error;
+    if(id){
+      ({error} = await supabaseClient.from("guide_sections").update(payload).eq("id",id));
+    } else {
+      ({error} = await supabaseClient.from("guide_sections").insert(payload));
+    }
 
-  if(error){
-    showMsg("sectionMsg", error.message, "error");
-    return;
-  }
+    if(error){
+      showMsg("sectionMsg", error.message, "error");
+      return;
+    }
 
-  closeSectionModal();
-  loadSections();
+    closeSectionModal();
+    loadSections();
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+  }
 }
 
 async function deleteSection(){
@@ -636,21 +669,28 @@ async function loadSettings(){
 }
 
 async function saveAllSettings(){
-  const items = document.querySelectorAll(".settings-item");
-  let hadError = false;
+  const btn = document.getElementById("allSettingsSaveBtn");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    const items = document.querySelectorAll(".settings-item");
+    let hadError = false;
 
-  for(const item of items){
-    const key = item.dataset.key;
-    const value_ar = item.querySelector(".val-ar").value;
-    const value_en = item.querySelector(".val-en").value;
-    const {error} = await supabaseClient.from("guide_settings").update({value_ar, value_en}).eq("key", key);
-    if(error) hadError = true;
-  }
+    for(const item of items){
+      const key = item.dataset.key;
+      const value_ar = item.querySelector(".val-ar").value;
+      const value_en = item.querySelector(".val-en").value;
+      const {error} = await supabaseClient.from("guide_settings").update({value_ar, value_en}).eq("key", key);
+      if(error) hadError = true;
+    }
 
-  if(hadError){
-    showMsg("settingsMsg","حصل خطأ في حفظ بعض الإعدادات","error");
-  } else {
-    showMsg("settingsMsg","تم حفظ كل الإعدادات بنجاح ✅","ok");
+    if(hadError){
+      showMsg("settingsMsg","حصل خطأ في حفظ بعض الإعدادات","error");
+    } else {
+      showMsg("settingsMsg","تم حفظ كل الإعدادات بنجاح ✅","ok");
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
   }
 }
 
@@ -670,27 +710,34 @@ async function loadBannerSettings(){
 }
 
 async function saveBannerSettings(){
-  const enabled = document.getElementById("bannerEnabled").checked ? "true" : "false";
-  const msgAr = document.getElementById("bannerMsgAr").value.trim();
-  const msgEn = document.getElementById("bannerMsgEn").value.trim();
-  const launchDate = document.getElementById("bannerLaunchDate").value;
+  const btn = document.getElementById("bannerSaveBtn");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    const enabled = document.getElementById("bannerEnabled").checked ? "true" : "false";
+    const msgAr = document.getElementById("bannerMsgAr").value.trim();
+    const msgEn = document.getElementById("bannerMsgEn").value.trim();
+    const launchDate = document.getElementById("bannerLaunchDate").value;
 
-  const rows = [
-    {key:"site_banner_enabled", value_ar:enabled, value_en:enabled},
-    {key:"site_banner_message", value_ar:msgAr, value_en:msgEn},
-    {key:"site_launch_date", value_ar:launchDate, value_en:launchDate}
-  ];
+    const rows = [
+      {key:"site_banner_enabled", value_ar:enabled, value_en:enabled},
+      {key:"site_banner_message", value_ar:msgAr, value_en:msgEn},
+      {key:"site_launch_date", value_ar:launchDate, value_en:launchDate}
+    ];
 
-  let hadError = false;
-  for(const row of rows){
-    const {error} = await supabaseClient.from("guide_settings").upsert(row, {onConflict:"key"});
-    if(error) hadError = true;
-  }
+    let hadError = false;
+    for(const row of rows){
+      const {error} = await supabaseClient.from("guide_settings").upsert(row, {onConflict:"key"});
+      if(error) hadError = true;
+    }
 
-  if(hadError){
-    showMsg("bannerMsg","حصل خطأ في حفظ إعدادات التنبيه","error");
-  } else {
-    showMsg("bannerMsg","تم حفظ إعدادات التنبيه بنجاح ✅","ok");
+    if(hadError){
+      showMsg("bannerMsg","حصل خطأ في حفظ إعدادات التنبيه","error");
+    } else {
+      showMsg("bannerMsg","تم حفظ إعدادات التنبيه بنجاح ✅","ok");
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
   }
 }
 
