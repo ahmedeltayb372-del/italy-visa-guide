@@ -428,8 +428,7 @@ document.addEventListener("DOMContentLoaded",applyLang);
       return;
     }
 
-    loadSections();
-  }
+const isEn2 = currentLang === "en"; wrap.innerHTML = `<div style="text-align:center;padding:70px 20px"><div style="font-size:44px;margin-bottom:16px">📖</div><h3 style="color:var(--navy);margin:0 0 10px">${isEn2 ? "Continue in your dashboard" : "تابع من لوحة حسابك"}</h3><p style="color:var(--muted);margin:0 0 24px">${isEn2 ? "The full visa guide is available in your personal dashboard." : "دليل التأشيرات الكامل متاح داخل لوحة حسابك الشخصية."}</p><a class="btn btn-primary" href="dashboard.html">${isEn2 ? "Go to my dashboard" : "روح للوحة حسابي"}</a></div>`;  }
 
   document.addEventListener("DOMContentLoaded", ()=>{
     loadSettings();
