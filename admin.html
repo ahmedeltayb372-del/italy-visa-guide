@@ -61,9 +61,11 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
 
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(10,16,30,.55);z-index:100;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:26px;width:min(900px,100%);margin-bottom:40px}
+.modal{background:#fff;border-radius:16px;padding:26px;width:min(900px,100%);margin-bottom:40px;position:relative}
 .modal h2{margin-bottom:16px}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
+.modal-close-btn{position:absolute;top:18px;right:18px;background:transparent;border:0;font-size:24px;line-height:1;color:#667085;cursor:pointer;padding:4px 10px;border-radius:8px}
+.modal-close-btn:hover{background:#f4f6fb;color:#101828}
 
 #quillEditor{background:#fff;min-height:260px}
 .ql-editor{min-height:260px}
@@ -185,6 +187,7 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
 <!-- ======================= SECTION EDIT MODAL ======================= -->
 <div class="modal-bg" id="sectionModalBg">
   <div class="modal">
+    <button type="button" class="modal-close-btn" onclick="closeSectionModal()" aria-label="إغلاق">×</button>
     <h2 id="sectionModalTitle">تعديل قسم</h2>
     <input type="hidden" id="secId">
 
@@ -225,6 +228,7 @@ input[type=text],input[type=email],input[type=tel],input[type=url],textarea{widt
 <!-- ======================= USER EDIT MODAL ======================= -->
 <div class="modal-bg" id="userModalBg">
   <div class="modal" style="width:min(600px,100%)">
+    <button type="button" class="modal-close-btn" onclick="closeUserModal()" aria-label="إغلاق">×</button>
     <h2>تعديل بيانات المستخدم</h2>
     <input type="hidden" id="userId">
 
@@ -283,6 +287,18 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.querySelectorAll(".tabpage").forEach(p=>p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* ---- Close any open modal with Escape, or by clicking outside it ---- */
+document.addEventListener("keydown", (e)=>{
+  if(e.key !== "Escape") return;
+  if(document.getElementById("sectionModalBg").classList.contains("open")) closeSectionModal();
+  if(document.getElementById("userModalBg").classList.contains("open")) closeUserModal();
+});
+document.querySelectorAll(".modal-bg").forEach(bg=>{
+  bg.addEventListener("click", (e)=>{
+    if(e.target === bg) bg.classList.remove("open");
   });
 });
 
