@@ -22,7 +22,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 @media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.card{padding:22px}.hero{padding:24px}}
 @media(max-width:480px){h1{font-size:26px}.stat b{font-size:22px}.wrap{width:calc(100% - 24px)}.nav-actions .btn{padding:9px 11px;font-size:13px}}
 .guide-head{margin:0 0 20px}.guide-head h2{margin:0 0 6px;color:#0b1730;font-size:26px}.guide-head p{margin:0;font-size:14.5px}
-.guide-wrap{display:flex;flex-direction:column;gap:16px}
+.guide-wrap{display:flex;flex-direction:column;gap:16px}.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}.cat-card{background:#fff;border:1px solid #e5eaf1;border-radius:18px;padding:22px 14px;text-align:center;cursor:pointer;transition:box-shadow .2s,transform .2s;box-shadow:0 8px 24px rgba(16,24,40,.04);font:inherit;color:inherit}.cat-card:hover{box-shadow:0 16px 36px rgba(16,24,40,.08);transform:translateY(-2px)}.cat-card .stamp{width:52px;height:52px;border-radius:14px;background:#eef4ff;display:grid;place-items:center;font-size:24px;margin:0 auto 10px}.cat-card h3{margin:0;font-size:15px;color:#0b1730;line-height:1.4}.cat-detail{display:none}.cat-detail.open{display:block}.cat-back{display:inline-flex;align-items:center;gap:6px;color:#2457ff;font-weight:800;cursor:pointer;margin-bottom:16px;background:none;border:0;padding:0;font-size:14px;font:inherit}
 .category{background:#fff;border:1px solid #e5eaf1;border-radius:20px;padding:26px 28px;box-shadow:0 8px 24px rgba(16,24,40,.04);transition:box-shadow .2s,transform .2s}
 .category:hover{box-shadow:0 16px 36px rgba(16,24,40,.08);transform:translateY(-2px)}
 .cat-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
@@ -50,33 +50,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",s1:"مهام مكتملة",s2:"قيد التنفيذ",s3:"نسبة التقدم",guideTitle:"دليل التأشيرات الكامل",guideSub:"كل اللي محتاج تعرفه عن كل نوع تأشيرة، في مكان واحد.",logout:"تسجيل الخروج",switch:"English"},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",s1:"Tasks Done",s2:"In Progress",s3:"Progress",guideTitle:"Complete Visa Guide",guideSub:"Everything you need to know about each visa type, in one place.",logout:"Logout",switch:"العربية"}};
 function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","s1","s2","s3","guideTitle","guideSub","logout","lang"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",s1:"s1",s2:"s2",s3:"s3",guideTitle:"guideTitle",guideSub:"guideSub",logout:"logout",lang:"switch"};document.getElementById(id).textContent=t[map[id]]})}
 document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
-async function loadGuideSections(){
-  const wrap = document.getElementById("dynamicSections");
-  const { data, error } = await supabaseClient
-    .from("guide_sections")
-    .select("*")
-    .eq("visible", true)
-    .order("order_index", { ascending: true });
-
-  if (error){
-    wrap.innerHTML = '<div class="lockbox">🔒<p>'+(en?"You don't have access to view this content.":"مفيش صلاحية لعرض المحتوى ده حالياً.")+'</p></div>';
-    return;
-  }
-  if (!data || !data.length){
-    wrap.innerHTML = '<div class="state-box">'+(en?"No guide content yet.":"لا يوجد محتوى مضاف حتى الآن.")+'</div>';
-    return;
-  }
-
-  let html = "";
-  data.forEach(section=>{
-    html += `<section class="category" id="${section.section_key || section.id}">
-      <div class="cat-head"><span class="stamp">${section.icon || "📄"}</span><h3>${section.title || ""}</h3></div>
-      ${section.description ? `<p class="cat-desc">${section.description}</p>` : ""}
-      <div class="body-content">${section.body_html || ""}</div>
-    </section>`;
-  });
-  wrap.innerHTML = html;
-}
+let guideSectionsCache = []; async function loadGuideSections(){ const wrap = document.getElementById("dynamicSections"); const { data, error } = await supabaseClient.from("guide_sections").select("*").eq("visible", true).order("order_index", { ascending: true }); if (error){ wrap.innerHTML = '<div class="lockbox">🔒<p>'+(en?"You don't have access to view this content.":"مفيش صلاحية لعرض المحتوى ده حالياً.")+'</p></div>'; return; } if (!data || !data.length){ wrap.innerHTML = '<div class="state-box">'+(en?"No guide content yet.":"لا يوجد محتوى مضاف حتى الآن.")+'</div>'; return; } guideSectionsCache = data; let cardsHtml = ""; data.forEach(section=>{ const catId = section.section_key || section.id; cardsHtml += `<button type="button" class="cat-card" data-cat-id="${catId}"><div class="stamp">${section.icon || "📄"}</div><h3>${section.title || ""}</h3></button>`; }); wrap.innerHTML = `<div id="catGrid" class="cat-grid">${cardsHtml}</div><div id="catDetail" class="cat-detail"></div>`; document.getElementById("catGrid").addEventListener("click", e=>{ const btn = e.target.closest(".cat-card"); if (!btn) return; showCategory(btn.dataset.catId); }); } function showCategory(catId){ const section = guideSectionsCache.find(s => String(s.section_key || s.id) === String(catId)); if (!section) return; const grid = document.getElementById("catGrid"); const detail = document.getElementById("catDetail"); detail.innerHTML = `<button type="button" class="cat-back" id="catBackBtn">${en ? "← Back to categories" : "→ رجوع لكل الأقسام"}</button><section class="category"><div class="cat-head"><span class="stamp">${section.icon || "📄"}</span><h3>${section.title || ""}</h3></div>${section.description ? `<p class="cat-desc">${section.description}</p>` : ""}<div class="body-content">${section.body_html || ""}</div></section>`; document.getElementById("catBackBtn").addEventListener("click", closeCategory); grid.style.display = "none"; detail.classList.add("open"); detail.scrollIntoView({ behavior: "smooth", block: "start" }); } function closeCategory(){ const grid = document.getElementById("catGrid"); const detail = document.getElementById("catDetail"); detail.classList.remove("open"); detail.innerHTML = ""; grid.style.display = ""; }
 
 (async()=>{
   const r=await supabaseClient.auth.getUser();
