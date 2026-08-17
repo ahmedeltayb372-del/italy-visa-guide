@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>إنشاء حساب</title>
+<title id="pageTitle">إنشاء حساب</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
 <script>
 const SUPABASE_URL = "https://sderoafpcfgabdkqvbyc.supabase.co";
 const SUPABASE_KEY = "sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
@@ -132,36 +132,36 @@ font-weight:bold;
 
 <div class="card">
 
-<h1>إنشاء حساب</h1>
+<h1 id="title">إنشاء حساب</h1>
 
-<p class="sub">
+<p class="sub" id="sub">
 أنشئ حسابك مجاناً وابدأ متابعة رحلة التأشيرة.
 </p>
 
 <form id="registerForm">
 
-<label>البريد الإلكتروني</label>
+<label id="emailLabel">البريد الإلكتروني</label>
 <input
 type="email"
 id="email"
 required
 placeholder="example@email.com">
 
-<label>كلمة المرور</label>
+<label id="passLabel">كلمة المرور</label>
 <input
 type="password"
 id="password"
 required
 minlength="6">
 
-<label>تأكيد كلمة المرور</label>
+<label id="confirmLabel">تأكيد كلمة المرور</label>
 <input
 type="password"
 id="confirm"
 required
 minlength="6">
 
-<button type="submit">
+<button type="submit" id="submitBtn">
 إنشاء الحساب
 </button>
 
@@ -171,13 +171,66 @@ minlength="6">
 <div id="successBox" class="msg success"></div>
 
 <div class="footer">
-لديك حساب بالفعل؟
-<a href="login.html">تسجيل الدخول</a>
+<span id="footerText">لديك حساب بالفعل؟</span>
+<a href="login.html" id="footerLink">تسجيل الدخول</a>
 </div>
 
 </div>
 
 <script>
+
+const T = {
+title:"إنشاء حساب",
+sub:"أنشئ حسابك مجاناً وابدأ متابعة رحلة التأشيرة.",
+email:"البريد الإلكتروني",
+pass:"كلمة المرور",
+confirm:"تأكيد كلمة المرور",
+submit:"إنشاء الحساب",
+footerText:"لديك حساب بالفعل؟",
+footerLink:"تسجيل الدخول",
+errMismatch:"كلمتا المرور غير متطابقتين",
+errShort:"كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+success:"تم إنشاء الحساب بنجاح"
+};
+
+function applyText(){
+document.getElementById("pageTitle").textContent = T.title;
+document.getElementById("title").textContent = T.title;
+document.getElementById("sub").textContent = T.sub;
+document.getElementById("emailLabel").textContent = T.email;
+document.getElementById("passLabel").textContent = T.pass;
+document.getElementById("confirmLabel").textContent = T.confirm;
+document.getElementById("submitBtn").textContent = T.submit;
+document.getElementById("footerText").textContent = T.footerText;
+document.getElementById("footerLink").textContent = T.footerLink;
+}
+applyText();
+
+const registerKeyMap = {
+register_title:"title",
+register_sub:"sub",
+register_email_label:"email",
+register_pass_label:"pass",
+register_confirm_label:"confirm",
+register_submit:"submit",
+register_footer_text:"footerText",
+register_footer_link:"footerLink",
+register_err_mismatch:"errMismatch",
+register_err_short:"errShort",
+register_success:"success"
+};
+
+async function loadSiteText(){
+  const {data,error} = await supabaseClient.from("guide_settings").select("key,value_ar,value_en").eq("page_group","register");
+  if(error || !data) return;
+  data.forEach(row=>{
+    const k = registerKeyMap[row.key];
+    if(!k) return;
+    if(row.value_ar) T[k] = row.value_ar;
+  });
+  applyText();
+}
+loadSiteText();
 
 function showError(message){
 const box = document.getElementById("errorBox");
@@ -211,12 +264,12 @@ const confirm =
 document.getElementById("confirm").value;
 
 if(password !== confirm){
-showError("كلمتا المرور غير متطابقتين");
+showError(T.errMismatch);
 return;
 }
 
 if(password.length < 6){
-showError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+showError(T.errShort);
 return;
 }
 
@@ -231,7 +284,7 @@ showError(error.message);
 return;
 }
 
-showSuccess("تم إنشاء الحساب بنجاح");
+showSuccess(T.success);
 
 setTimeout(() => {
 window.location.href = "login.html";
