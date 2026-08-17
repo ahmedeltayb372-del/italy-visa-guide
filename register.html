@@ -130,6 +130,24 @@ font-weight:bold;
 </head>
 <body>
 
+<div id="siteUpdateBanner" style="display:none;background:#fff3cd;border-bottom:1px solid #ffe1a8;color:#7a5b00;text-align:center;padding:10px 16px;font-weight:700;font-size:14px;line-height:1.6"></div>
+<script>
+(async function(){
+  var r = await supabaseClient.from("guide_settings").select("key,value_ar,value_en").in("key",["site_banner_enabled","site_banner_message","site_launch_date"]);
+  if(r.error||!r.data) return;
+  var by={}; r.data.forEach(function(x){by[x.key]=x});
+  var en = by.site_banner_enabled && (by.site_banner_enabled.value_ar==="true" || by.site_banner_enabled.value_en==="true");
+  if(!en) return;
+  var isEn = document.documentElement.lang==="en";
+  var m = by.site_banner_message ? (isEn ? (by.site_banner_message.value_en||by.site_banner_message.value_ar) : (by.site_banner_message.value_ar||by.site_banner_message.value_en)) : (isEn?"We are rolling out some updates.":"الموقع في شوية تحديثات.");
+  var d = by.site_launch_date ? (by.site_launch_date.value_ar||by.site_launch_date.value_en) : "";
+  if(d) m += isEn ? (" Expected launch: "+d) : (" — الافتتاح المتوقع: "+d);
+  var el = document.getElementById("siteUpdateBanner");
+  el.textContent = "🚧 " + m;
+  el.style.display = "block";
+})();
+</script>
+
 <div class="card">
 
 <h1 id="title">إنشاء حساب</h1>
