@@ -7,7 +7,8 @@ const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 <style>
 *{box-sizing:border-box}html,body{overflow-x:hidden;max-width:100%}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;background:#f6f8fc;color:#101828}
 .wrap{width:min(1100px,calc(100% - 32px));margin:auto}.nav{height:72px;background:#fff;border-bottom:1px solid #e8ecf2;display:flex;align-items:center}
-.navin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{font-weight:900;color:#0b1730;text-decoration:none;font-size:20px;white-space:nowrap}
+.navin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{font-weight:900;color:#0b1730;text-decoration:none;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex-shrink:1}
+.nav-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
 .btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer}.primary{background:#2457ff;color:#fff}.outline{background:#fff;border:1px solid #dfe5ee;color:#17233d}
 .card{background:#fff;border:1px solid #e5eaf1;border-radius:24px;padding:30px;box-shadow:0 15px 45px rgba(16,24,40,.05)}
 .auth{min-height:calc(100vh - 72px);display:grid;place-items:center;padding:40px 0}.authcard{width:min(460px,100%)}
@@ -19,7 +20,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.stat{background:#ffffff12;border-radius:16px;padding:18px;min-width:0}.stat b{font-size:28px;display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.task{padding:14px 0;border-bottom:1px solid #edf0f5;display:block}.task input{margin-left:8px}
 @media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.card{padding:22px}.hero{padding:24px}}
-@media(max-width:480px){h1{font-size:26px}.stat b{font-size:22px}.wrap{width:calc(100% - 24px)}}
+@media(max-width:480px){h1{font-size:26px}.stat b{font-size:22px}.wrap{width:calc(100% - 24px)}.nav-actions .btn{padding:9px 11px;font-size:13px}}
 .guide-head{margin:0 0 20px}.guide-head h2{margin:0 0 6px;color:#0b1730;font-size:26px}.guide-head p{margin:0;font-size:14.5px}
 .guide-wrap{display:flex;flex-direction:column;gap:16px}
 .category{background:#fff;border:1px solid #e5eaf1;border-radius:20px;padding:26px 28px;box-shadow:0 8px 24px rgba(16,24,40,.04);transition:box-shadow .2s,transform .2s}
@@ -33,7 +34,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 .category img{max-width:100%;height:auto;border-radius:14px;margin:8px 0}
 .lockbox{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 .state-box{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
-</style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="row"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
+</style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="nav-actions"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
 <main class="dash"><div class="wrap"><section class="hero"><div style="color:#8ea3c7;font-weight:800" id="ey">لوحة حسابي</div><h1 style="color:#fff;font-size:26px" id="welcome">مرحبًا 👋</h1><p id="sub">تابع رحلتك إلى إيطاليا من مكان واحد.</p><div class="stats"><div class="stat"><b>0</b><span id="s1">مهام مكتملة</span></div><div class="stat"><b>0</b><span id="s2">قيد التنفيذ</span></div><div class="stat"><b>0%</b><span id="s3">نسبة التقدم</span></div></div></section>
 <section style="margin-top:8px">
   <div class="guide-head">
@@ -80,7 +81,9 @@ async function loadGuideSections(){
 (async()=>{
   const r=await supabaseClient.auth.getUser();
   if(!r.data.user)return location.href="login.html";
-  document.getElementById("welcome").textContent=(en?"Welcome, ":"مرحبًا، ")+(r.data.user.email||"")+" 👋";
+  const rawEmail=r.data.user.email||"";
+  const emailSafe=rawEmail.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace("@","@<wbr>");
+  document.getElementById("welcome").innerHTML=(en?"Welcome, ":"مرحبًا، ")+'<span style="font-size:16px;font-weight:600;overflow-wrap:break-word;word-break:normal;display:inline-block;max-width:100%;vertical-align:bottom">'+emailSafe+'</span>'+" 👋";
   loadGuideSections();
 })();
 document.getElementById("logout").onclick=async()=>{await supabaseClient.auth.signOut();location.href="index.html"};
