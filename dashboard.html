@@ -17,10 +17,9 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 .msg{margin-top:15px;padding:12px;border-radius:12px;display:none}.error{background:#fff0f0;color:#b42318}.ok{background:#ecfdf3;color:#027a48}
 .links{text-align:center;margin-top:20px}.links a,.link{color:#2457ff;font-weight:800;text-decoration:none}
 .dash{padding:45px 0}.hero{background:#0b1730;color:#fff;border-radius:28px;padding:32px;margin-bottom:22px;overflow:hidden}.hero p{color:#c5cede}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}.stat{background:#ffffff12;border-radius:16px;padding:18px;min-width:0}.stat b{font-size:28px;display:block}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.task{padding:14px 0;border-bottom:1px solid #edf0f5;display:block}.task input{margin-left:8px}
-@media(max-width:650px){.stats,.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.card{padding:22px}.hero{padding:24px}}
-@media(max-width:480px){h1{font-size:26px}.stat b{font-size:22px}.wrap{width:calc(100% - 24px)}.nav-actions .btn{padding:9px 11px;font-size:13px}}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.row{flex-direction:column;align-items:stretch}.card{padding:22px}.hero{padding:24px}}
+@media(max-width:480px){h1{font-size:26px}.wrap{width:calc(100% - 24px)}.nav-actions .btn{padding:9px 11px;font-size:13px}}
 .guide-head{margin:0 0 20px}.guide-head h2{margin:0 0 6px;color:#0b1730;font-size:26px}.guide-head p{margin:0;font-size:14.5px}
 .guide-wrap{display:flex;flex-direction:column;gap:16px}.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}.cat-card{background:#fff;border:1px solid #e5eaf1;border-radius:18px;padding:22px 14px;text-align:center;cursor:pointer;transition:box-shadow .2s,transform .2s;box-shadow:0 8px 24px rgba(16,24,40,.04);font:inherit;color:inherit}.cat-card:hover{box-shadow:0 16px 36px rgba(16,24,40,.08);transform:translateY(-2px)}.cat-card .stamp{width:52px;height:52px;border-radius:14px;background:#eef4ff;display:grid;place-items:center;font-size:24px;margin:0 auto 10px}.cat-card h3{margin:0;font-size:15px;color:#0b1730;line-height:1.4}.cat-detail{display:none}.cat-detail.open{display:block}.cat-back{display:inline-flex;align-items:center;gap:6px;color:#2457ff;font-weight:800;cursor:pointer;margin-bottom:16px;background:none;border:0;padding:0;font-size:14px;font:inherit}
 .category{background:#fff;border:1px solid #e5eaf1;border-radius:20px;padding:26px 28px;box-shadow:0 8px 24px rgba(16,24,40,.04);transition:box-shadow .2s,transform .2s}
@@ -35,7 +34,7 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 .lockbox{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 .state-box{text-align:center;padding:50px 20px;background:#fff;border:1px solid #e5eaf1;border-radius:20px;color:#667085}
 </style></head><body><nav class="nav"><div class="wrap navin"><a class="brand" href="index.html">🇮🇹 Italy Visa Guide</a><div class="nav-actions"><a class="btn outline" href="settings.html" id="settingsBtn" title="الإعدادات" style="display:flex;align-items:center;justify-content:center;font-size:18px">⚙️</a><button class="btn outline" id="lang">English</button><button class="btn primary" id="logout">تسجيل الخروج</button></div></div></nav>
-<main class="dash"><div class="wrap"><section class="hero"><div style="color:#8ea3c7;font-weight:800" id="ey">لوحة حسابي</div><h1 style="color:#fff;font-size:26px" id="welcome">مرحبًا 👋</h1><p id="sub">تابع رحلتك إلى إيطاليا من مكان واحد.</p><div class="stats"><div class="stat"><b>0</b><span id="s1">مهام مكتملة</span></div><div class="stat"><b>0</b><span id="s2">قيد التنفيذ</span></div><div class="stat"><b>0%</b><span id="s3">نسبة التقدم</span></div></div></section>
+<main class="dash"><div class="wrap"><section class="hero"><div style="color:#8ea3c7;font-weight:800" id="ey">لوحة حسابي</div><h1 style="color:#fff;font-size:26px" id="welcome">مرحبًا 👋</h1><p id="sub">تابع رحلتك إلى إيطاليا من مكان واحد.</p></section>
 <section style="margin-top:8px">
   <div class="guide-head">
     <h2 id="guideTitle">دليل التأشيرات الكامل</h2>
@@ -47,10 +46,10 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 </section>
 </div></main>
 <script>
-let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",s1:"مهام مكتملة",s2:"قيد التنفيذ",s3:"نسبة التقدم",guideTitle:"دليل التأشيرات الكامل",guideSub:"كل اللي محتاج تعرفه عن كل نوع تأشيرة، في مكان واحد.",logout:"تسجيل الخروج",switch:"English",banned:"تم إيقاف هذا الحساب. تواصل مع الدعم لمزيد من المعلومات."},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",s1:"Tasks Done",s2:"In Progress",s3:"Progress",guideTitle:"Complete Visa Guide",guideSub:"Everything you need to know about each visa type, in one place.",logout:"Logout",switch:"العربية",banned:"This account has been suspended. Contact support for more info."}};
-function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","s1","s2","s3","guideTitle","guideSub","logout","lang"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",s1:"s1",s2:"s2",s3:"s3",guideTitle:"guideTitle",guideSub:"guideSub",logout:"logout",lang:"switch"};document.getElementById(id).textContent=t[map[id]]})}
+let en=false;const T={ar:{ey:"لوحة حسابي",welcome:"مرحبًا",sub:"تابع رحلتك إلى إيطاليا من مكان واحد.",guideTitle:"دليل التأشيرات الكامل",guideSub:"كل اللي محتاج تعرفه عن كل نوع تأشيرة، في مكان واحد.",logout:"تسجيل الخروج",switch:"English",banned:"تم إيقاف هذا الحساب. تواصل مع الدعم لمزيد من المعلومات."},en:{ey:"My Dashboard",welcome:"Welcome",sub:"Track your Italy journey in one place.",guideTitle:"Complete Visa Guide",guideSub:"Everything you need to know about each visa type, in one place.",logout:"Logout",switch:"العربية",banned:"This account has been suspended. Contact support for more info."}};
+function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";["ey","welcome","sub","guideTitle","guideSub","logout","lang"].forEach(id=>{const map={ey:"ey",welcome:"welcome",sub:"sub",guideTitle:"guideTitle",guideSub:"guideSub",logout:"logout",lang:"switch"};document.getElementById(id).textContent=t[map[id]]})}
 document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
-const dashKeyMap={dash_switch:"switch",dash_ey:"ey",dash_welcome:"welcome",dash_sub:"sub",dash_s1:"s1",dash_s2:"s2",dash_s3:"s3",dash_guide_title:"guideTitle",dash_guide_sub:"guideSub",dash_logout:"logout"};
+const dashKeyMap={dash_switch:"switch",dash_ey:"ey",dash_welcome:"welcome",dash_sub:"sub",dash_guide_title:"guideTitle",dash_guide_sub:"guideSub",dash_logout:"logout"};
 async function loadSiteText(){
   const {data,error}=await supabaseClient.from("guide_settings").select("key,value_ar,value_en").eq("page_group","dashboard");
   if(error||!data)return;
