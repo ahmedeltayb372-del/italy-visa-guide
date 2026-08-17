@@ -28,10 +28,26 @@ h1{font-size:34px;line-height:1.2;margin:0 0 10px;color:#0b1730;overflow-wrap:an
 <div class="msg error" id="err"></div><div class="msg ok" id="ok"></div>
 <div class="links"><span id="new">ليس لديك حساب؟</span> <a href="register.html" id="reg">إنشاء حساب</a></div></section></main>
 <script>
-let en=false;const T={ar:{title:"تسجيل الدخول",sub:"ادخل إلى حسابك لمتابعة رحلتك.",email:"البريد الإلكتروني",pass:"كلمة المرور",submit:"تسجيل الدخول",forgot:"نسيت كلمة المرور؟",new:"ليس لديك حساب؟",reg:"إنشاء حساب",switch:"English",sent:"تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."},en:{title:"Login",sub:"Sign in to track your journey.",email:"Email",pass:"Password",submit:"Login",forgot:"Forgot password?",new:"Don't have an account?",reg:"Create account",switch:"العربية",sent:"Password reset link sent to your email."}};
+let en=false;const T={ar:{title:"تسجيل الدخول",sub:"ادخل إلى حسابك لمتابعة رحلتك.",email:"البريد الإلكتروني",pass:"كلمة المرور",submit:"تسجيل الدخول",forgot:"نسيت كلمة المرور؟",new:"ليس لديك حساب؟",reg:"إنشاء حساب",switch:"English",sent:"تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",banned:"تم إيقاف هذا الحساب. تواصل مع الدعم لمزيد من المعلومات."},en:{title:"Login",sub:"Sign in to track your journey.",email:"Email",pass:"Password",submit:"Login",forgot:"Forgot password?",new:"Don't have an account?",reg:"Create account",switch:"العربية",sent:"Password reset link sent to your email.",banned:"This account has been suspended. Contact support for more info."}};
 function tr(){const t=T[en?"en":"ar"];document.documentElement.lang=en?"en":"ar";document.documentElement.dir=en?"ltr":"rtl";document.getElementById("title").textContent=t.title;document.getElementById("sub").textContent=t.sub;document.getElementById("emailLabel").textContent=t.email;document.getElementById("passLabel").textContent=t.pass;document.getElementById("submit").textContent=t.submit;document.getElementById("forgot").textContent=t.forgot;document.getElementById("new").textContent=t.new;document.getElementById("reg").textContent=t.reg;document.getElementById("lang").textContent=t.switch}
 document.getElementById("lang").onclick=()=>{en=!en;tr()};tr();
-document.getElementById("form").onsubmit=async e=>{e.preventDefault();hide();const r=await supabaseClient.auth.signInWithPassword({email:email.value.trim(),password:password.value});if(r.error)return show(r.error.message,"err");location.href="dashboard.html"};
+const loginKeyMap={login_switch:"switch",login_title:"title",login_sub:"sub",login_email_label:"email",login_pass_label:"pass",login_submit:"submit",login_forgot:"forgot",login_new:"new",login_reg:"reg",login_sent:"sent"};
+async function loadSiteText(){
+  const {data,error}=await supabaseClient.from("guide_settings").select("key,value_ar,value_en").eq("page_group","login");
+  if(error||!data)return;
+  data.forEach(row=>{const k=loginKeyMap[row.key];if(!k)return;if(row.value_ar)T.ar[k]=row.value_ar;if(row.value_en)T.en[k]=row.value_en;});
+  tr();
+}
+loadSiteText();
+document.getElementById("form").onsubmit=async e=>{
+  e.preventDefault();hide();
+  const r=await supabaseClient.auth.signInWithPassword({email:email.value.trim(),password:password.value});
+  if(r.error)return show(r.error.message,"err");
+  const uid=r.data.user.id;
+  const {data:profile}=await supabaseClient.from("profiles").select("banned").eq("id",uid).single();
+  if(profile&&profile.banned){await supabaseClient.auth.signOut();return show(T[en?"en":"ar"].banned,"err");}
+  location.href="dashboard.html"
+};
 document.getElementById("forgot").onclick=async e=>{e.preventDefault();hide();if(!email.value.trim())return show(en?"Enter your email first.":"اكتب بريدك الإلكتروني أولًا.","err");const r=await supabaseClient.auth.resetPasswordForEmail(email.value.trim(),{redirectTo:location.origin+location.pathname.replace("login.html","dashboard.html")});if(r.error)return show(r.error.message,"err");show(T[en?"en":"ar"].sent,"ok")};
 function show(x,id){const a=document.getElementById(id);a.textContent=x;a.style.display="block"}function hide(){document.querySelectorAll(".msg").forEach(x=>x.style.display="none")}
 </script></body></html>
