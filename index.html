@@ -177,7 +177,7 @@ const i18n = {
     contactEyebrow:"Get in Touch", contactTitle:"Contact Us", contactP:"Ready to start your Italy journey? Reach out and we'll get back to you.",
     ciTitle:"Contact Information", ciEmail:"Email", ciWhatsapp:"WhatsApp", ciSocial:"Social",
     formName:"Full Name *", formEmail:"Email Address *", formService:"Service", formServiceSel:"Select a service (optional)",
-    formMsg:"Message *", formSend:"Send Message", formNote:"* required fields — submitting opens WhatsApp or email with your message pre-filled.",
+    formMsg:"Message *", formSend:"Send Message", formNote:"* required fields — your message is sent directly, no redirects.", formSending:"Sending...", formSent:"Message sent! We'll get back to you soon.", formFailed:"Something went wrong — please try again or contact us on WhatsApp.",
     footerTagline:"Your Gateway to Italy", footerP:"Independent guidance and consultation services for your Italian visa journey.",
     quickLinks:"Quick Links", popularServices:"Popular Services", contactInfo:"Contact Info",
     linkHome:"Home", linkServices:"Services", linkWhy:"Why Us", linkAbout:"About", linkFaq:"FAQ", linkContact:"Contact",
@@ -220,7 +220,7 @@ const i18n = {
     contactEyebrow:"تواصل معنا", contactTitle:"اتصل بينا", contactP:"جاهز تبدأ رحلتك لإيطاليا؟ تواصل معانا وهنرد عليك.",
     ciTitle:"معلومات التواصل", ciEmail:"إيميل", ciWhatsapp:"واتساب", ciSocial:"سوشيال ميديا",
     formName:"الاسم بالكامل *", formEmail:"البريد الإلكتروني *", formService:"الخدمة", formServiceSel:"اختر خدمة (اختياري)",
-    formMsg:"الرسالة *", formSend:"إرسال الرسالة", formNote:"* حقول مطلوبة — الإرسال هيفتح واتساب أو الإيميل برسالتك جاهزة.",
+    formMsg:"الرسالة *", formSend:"إرسال الرسالة", formNote:"* حقول مطلوبة — رسالتك بتتبعت على طول من غير أي تحويل.", formSending:"جاري الإرسال...", formSent:"تم إرسال رسالتك! هنتواصل معاك قريبًا.", formFailed:"حصلت مشكلة — حاول تاني أو تواصل معنا على واتساب.",
     footerTagline:"بوابتك إلى إيطاليا", footerP:"إرشاد وخدمات استشارية مستقلة لرحلة تأشيرتك الإيطالية.",
     quickLinks:"روابط سريعة", popularServices:"خدمات شائعة", contactInfo:"معلومات التواصل",
     linkHome:"الرئيسية", linkServices:"خدماتنا", linkWhy:"ليه احنا", linkAbout:"من نحن", linkFaq:"أسئلة شائعة", linkContact:"تواصل",
@@ -419,7 +419,8 @@ document.addEventListener("DOMContentLoaded", applyLang);
           </div>
           <div class="form-field" style="margin-bottom:14px"><label data-i18n="formMsg">Message *</label><textarea id="cfMsg" required></textarea></div>
           <button type="submit" class="btn btn-blue btn-lg" style="width:100%" data-i18n="formSend">Send Message</button>
-          <div class="form-note" data-i18n="formNote">* required fields — submitting opens WhatsApp or email with your message pre-filled.</div>
+          <div class="form-note" data-i18n="formNote">* required fields — your message is sent directly, no redirects.</div>
+          <div class="form-status" id="cfStatus" style="display:none;margin-top:10px;font-size:13.5px;font-weight:700"></div>
         </form>
       </div>
     </div>
@@ -464,6 +465,7 @@ document.addEventListener("DOMContentLoaded", applyLang);
   <div class="footer-bottom" data-i18n="rights">© 2026 Italy Visa Guide. All rights reserved.</div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 /* ---------- Scroll reveal animations ---------- */
 (function(){
@@ -491,27 +493,57 @@ document.querySelectorAll(".faq-q").forEach(btn=>{
   });
 });
 
-/* ---------- Contact form (no backend — opens WhatsApp/email with prefilled message) ---------- */
+/* ---------- Contact form: sends directly via EmailJS (no redirect for the visitor) ---------- */
 let waNumber = "", contactEmail = "";
+emailjs.init({ publicKey: "4DVvxXFht9RDxIK_-" });
+
 document.getElementById("contactForm").addEventListener("submit", (e)=>{
   e.preventDefault();
   const name = document.getElementById("cfName").value.trim();
   const email = document.getElementById("cfEmail").value.trim();
   const service = document.getElementById("cfService").value;
   const msg = document.getElementById("cfMsg").value.trim();
+  const statusEl = document.getElementById("cfStatus");
+  const submitBtn = document.querySelector("#contactForm button[type=submit]");
+
   const parts = [];
   parts.push((currentLang==="ar"?"الاسم":"Name")+": "+name);
   parts.push((currentLang==="ar"?"الإيميل":"Email")+": "+email);
   if(service) parts.push((currentLang==="ar"?"الخدمة":"Service")+": "+service);
   parts.push((currentLang==="ar"?"الرسالة":"Message")+": "+msg);
   const fullText = parts.join("\n");
-  if(contactEmail){
-    window.location.href = "mailto:"+contactEmail+"?subject="+encodeURIComponent("Italy Visa Guide — "+ (service||"Contact")) +"&body="+encodeURIComponent(fullText);
-  } else if(waNumber){
-    window.open("https://wa.me/"+waNumber+"?text="+encodeURIComponent(fullText), "_blank");
-  } else {
-    alert(currentLang==="ar" ? "التواصل مش متاح دلوقتي، حاول تاني لاحقًا." : "Contact is not available right now, please try again later.");
-  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = i18n[currentLang].formSending;
+  statusEl.style.display = "none";
+
+  emailjs.send("service_jgf0u7w", "template_hfv2g8f", {
+    from_name: name,
+    from_email: email,
+    service: service || (currentLang==="ar" ? "غير محدد" : "Not specified"),
+    message: msg,
+    full_message: fullText
+  }).then(()=>{
+    statusEl.style.display = "block";
+    statusEl.style.color = "#16a34a";
+    statusEl.textContent = i18n[currentLang].formSent;
+    submitBtn.disabled = false;
+    submitBtn.textContent = i18n[currentLang].formSend;
+    document.getElementById("contactForm").reset();
+  }).catch((err)=>{
+    console.error("EmailJS error:", err);
+    submitBtn.disabled = false;
+    submitBtn.textContent = i18n[currentLang].formSend;
+    statusEl.style.display = "block";
+    statusEl.style.color = "#dc2626";
+    statusEl.textContent = i18n[currentLang].formFailed;
+    // Fallback: if EmailJS truly fails, still let the visitor reach us directly
+    if(contactEmail){
+      window.location.href = "mailto:"+contactEmail+"?subject="+encodeURIComponent("Italy Visa Guide — "+ (service||"Contact")) +"&body="+encodeURIComponent(fullText);
+    } else if(waNumber){
+      window.open("https://wa.me/"+waNumber+"?text="+encodeURIComponent(fullText), "_blank");
+    }
+  });
 });
 </script>
 
