@@ -464,7 +464,6 @@ document.addEventListener("DOMContentLoaded", applyLang);
   <div class="footer-bottom" data-i18n="rights">© 2026 Italy Visa Guide. All rights reserved.</div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 /* ---------- Scroll reveal animations ---------- */
 (function(){
@@ -492,9 +491,9 @@ document.querySelectorAll(".faq-q").forEach(btn=>{
   });
 });
 
-/* ---------- Contact form: sends directly via EmailJS (no redirect for the visitor) ---------- */
+/* ---------- Contact form: sends directly via FormSubmit (no redirect for the visitor) ---------- */
 let waNumber = "", contactEmail = "";
-emailjs.init({ publicKey: "4DVvxXFht9RDxIK_-" });
+const FORMSUBMIT_TO = "ahmedeltayb372@gmail.com";
 
 document.getElementById("contactForm").addEventListener("submit", (e)=>{
   e.preventDefault();
@@ -516,12 +515,21 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
   submitBtn.textContent = i18n[currentLang].formSending;
   statusEl.style.display = "none";
 
-  emailjs.send("service_jgf0u7w", "template_hfv2g8f", {
-    from_name: name,
-    from_email: email,
-    service: service || (currentLang==="ar" ? "غير محدد" : "Not specified"),
-    message: msg,
-    full_message: fullText
+  fetch("https://formsubmit.co/ajax/" + FORMSUBMIT_TO, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({
+      name: name,
+      email: email,
+      service: service || (currentLang==="ar" ? "غير محدد" : "Not specified"),
+      message: msg,
+      _subject: (currentLang==="ar" ? "رسالة جديدة من " : "New message from ") + name + " — Italy Visa Guide",
+      _template: "table",
+      _captcha: "false"
+    })
+  }).then((res)=>{
+    if(!res.ok) throw new Error("FormSubmit error " + res.status);
+    return res.json();
   }).then(()=>{
     statusEl.style.display = "block";
     statusEl.style.color = "#16a34a";
@@ -530,13 +538,13 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
     submitBtn.textContent = i18n[currentLang].formSend;
     document.getElementById("contactForm").reset();
   }).catch((err)=>{
-    console.error("EmailJS error:", err);
+    console.error("FormSubmit error:", err);
     submitBtn.disabled = false;
     submitBtn.textContent = i18n[currentLang].formSend;
     statusEl.style.display = "block";
     statusEl.style.color = "#dc2626";
     statusEl.textContent = i18n[currentLang].formFailed;
-    // Fallback: if EmailJS truly fails, still let the visitor reach us directly
+    // Fallback: if FormSubmit truly fails, still let the visitor reach us directly
     if(contactEmail){
       window.location.href = "mailto:"+contactEmail+"?subject="+encodeURIComponent("Italy Visa Guide — "+ (service||"Contact")) +"&body="+encodeURIComponent(fullText);
     } else if(waNumber){
