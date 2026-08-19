@@ -609,6 +609,22 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
     if(email) items.push('<svg width="13" height="13" style="vertical-align:-2px;margin-inline-end:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>'+email);
     if(wa) items.push('<svg width="13" height="13" style="vertical-align:-2px;margin-inline-end:4px" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.79 14.11c-.24.68-1.19 1.25-1.95 1.41-.52.11-1.2.2-3.5-.75-2.94-1.22-4.84-4.2-4.99-4.4-.15-.2-1.19-1.58-1.19-3.02 0-1.44.75-2.14 1.02-2.44.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.65.5.24.58.81 2 .88 2.15.07.15.12.32.02.52-.1.2-.15.32-.29.49-.15.17-.31.38-.44.51-.15.15-.31.31-.13.6.17.29.77 1.27 1.66 2.06 1.14 1.02 2.1 1.34 2.39 1.49.29.15.46.13.63-.05.17-.18.72-.83.91-1.11.19-.28.38-.24.64-.14.26.1 1.65.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.17 1.4z"/></svg>'+wa);
     fc.innerHTML = items.length ? items.map(i=>"<li>"+i+"</li>").join("") : "<li>\u2014</li>";
+
+    // content overrides (visual editor fields from admin panel)
+    try{
+      const covRes = await fetch("content-overrides.json", {cache:"no-store"});
+      if(covRes.ok){
+        const covAll = await covRes.json();
+        const cov = covAll["index.html"] || {};
+        for(const key in cov){
+          const v = cov[key];
+          if(!v) continue;
+          if(v.en && i18n.en[key] !== undefined) i18n.en[key] = v.en;
+          if(v.ar && i18n.ar[key] !== undefined) i18n.ar[key] = v.ar;
+        }
+        applyLang();
+      }
+    }catch(e){}
   }
 
   document.addEventListener("DOMContentLoaded", loadSettings);
