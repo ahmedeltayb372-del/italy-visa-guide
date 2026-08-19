@@ -119,6 +119,25 @@ function toggleLang(){
 }
 function toggleMobileMenu(){ document.getElementById("mobileMenu").classList.toggle("open"); }
 applyLang();
+
+(function(){
+  async function loadContentOverrides(){
+    try{
+      const res = await fetch("../content-overrides.json", {cache:"no-store"});
+      if(!res.ok) return;
+      const all = await res.json();
+      const ov = all["services/personal-consultation.html"] || {};
+      for(const key in ov){
+        const v = ov[key];
+        if(!v) continue;
+        if(v.en && i18n.en[key] !== undefined) i18n.en[key] = v.en;
+        if(v.ar && i18n.ar[key] !== undefined) i18n.ar[key] = v.ar;
+      }
+      applyLang();
+    }catch(e){}
+  }
+  loadContentOverrides();
+})();
 </script>
 
 </body>
