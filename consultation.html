@@ -272,6 +272,22 @@ function bookType(key){
       t2Title: byKey.stripe_video_url ? (byKey.stripe_video_url.en || byKey.stripe_video_url.ar) : "",
       t3Title: byKey.stripe_voice_url ? (byKey.stripe_voice_url.en || byKey.stripe_voice_url.ar) : ""
     };
+
+    // content overrides (visual editor fields from admin panel)
+    try{
+      const covRes = await fetch("content-overrides.json", {cache:"no-store"});
+      if(covRes.ok){
+        const covAll = await covRes.json();
+        const cov = covAll["consultation.html"] || {};
+        for(const key in cov){
+          const v = cov[key];
+          if(!v) continue;
+          if(v.en && i18n.en[key] !== undefined) i18n.en[key] = v.en;
+          if(v.ar && i18n.ar[key] !== undefined) i18n.ar[key] = v.ar;
+        }
+        applyLang();
+      }
+    }catch(e){}
   }
   document.addEventListener("DOMContentLoaded", loadSettings);
 })();
