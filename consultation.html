@@ -8,7 +8,6 @@
 <link rel="canonical" href="https://ahmedeltayb372-del.github.io/italy-visa-guide/consultation.html">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%230b1730%27/%3E%3Crect%20x%3D%2714%27%20y%3D%2716%27%20width%3D%279%27%20height%3D%2732%27%20rx%3D%272%27%20fill%3D%27%23009246%27/%3E%3Crect%20x%3D%2727.5%27%20y%3D%2716%27%20width%3D%279%27%20height%3D%2732%27%20rx%3D%272%27%20fill%3D%27%23F1F2F1%27/%3E%3Crect%20x%3D%2741%27%20y%3D%2716%27%20width%3D%279%27%20height%3D%2732%27%20rx%3D%272%27%20fill%3D%27%23CE2B37%27/%3E%3C/svg%3E" type="image/svg+xml">
 <meta name="theme-color" content="#2952e3">
-<link rel="preconnect" href="https://sderoafpcfgabdkqvbyc.supabase.co">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <style>
 :root{--navy:#0b1730;--blue:#2952e3;--blue2:#6d5bf7;--ink:#0f1b33;--muted:#65708a;--bg:#f7f8fc;--card:#fff;--line:#e8eaf3;--radius:20px;--green:#16a34a;--purple:#7c3aed;--teal:#0d9488}
@@ -167,7 +166,6 @@ h2{font-size:clamp(24px,3.2vw,32px);color:var(--navy);margin:0 0 8px}
   <span data-i18n="rights">© 2026 Italy Visa Guide. All rights reserved.</span>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 let currentLang = localStorage.getItem("siteLang") || "en";
 const i18n = {
@@ -236,7 +234,13 @@ function closeMobileMenu(){ document.getElementById("mobileMenu").classList.remo
 applyLang();
 
 let waNumber = "", contactEmail = "";
+let stripeLinks = {};
 function bookType(key){
+  const link = stripeLinks[key];
+  if(link){
+    window.open(link, "_blank");
+    return;
+  }
   const typeName = i18n[currentLang][key];
   const price = PRICES[key];
   const text = (i18n[currentLang].waFallback) + " " + typeName + " (" + price + ")";
@@ -250,18 +254,24 @@ function bookType(key){
 }
 
 (function(){
-  const SUPABASE_URL = "https://sderoafpcfgabdkqvbyc.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   async function loadSettings(){
-    const { data, error } = await sb.from("guide_settings").select("*");
-    if (error || !data) return;
-    const byKey = {};
-    data.forEach(row=>{ byKey[row.key] = row; });
-    const email = byKey.contact_email ? (byKey.contact_email.value_ar || byKey.contact_email.value_en) : "";
-    const wa = byKey.contact_whatsapp ? (byKey.contact_whatsapp.value_ar || byKey.contact_whatsapp.value_en) : "";
+    let data;
+    try{
+      const res = await fetch("site-settings.json", {cache:"no-store"});
+      if(!res.ok) return;
+      data = await res.json();
+    }catch(e){ return; }
+    if(!data) return;
+    const byKey = data;
+    const email = byKey.contact_email ? (byKey.contact_email.ar || byKey.contact_email.en) : "";
+    const wa = byKey.contact_whatsapp ? (byKey.contact_whatsapp.ar || byKey.contact_whatsapp.en) : "";
     contactEmail = email || "";
     waNumber = wa ? wa.replace(/[^0-9]/g,"") : "";
+    stripeLinks = {
+      t1Title: byKey.stripe_inperson_url ? (byKey.stripe_inperson_url.en || byKey.stripe_inperson_url.ar) : "",
+      t2Title: byKey.stripe_video_url ? (byKey.stripe_video_url.en || byKey.stripe_video_url.ar) : "",
+      t3Title: byKey.stripe_voice_url ? (byKey.stripe_voice_url.en || byKey.stripe_voice_url.ar) : ""
+    };
   }
   document.addEventListener("DOMContentLoaded", loadSettings);
 })();
