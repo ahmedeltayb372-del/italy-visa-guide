@@ -3,19 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة الإدارة</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
-
+<title>لوحة الإدارة — Italy Visa Guide</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;max-width:100%}
 body{font-family:Arial,sans-serif;background:#f4f6fb;color:#101828}
-header{background:#071a45;color:#fff;padding:25px}
-header h1{margin-bottom:2px;overflow-wrap:anywhere}
-.container{width:95%;max-width:1300px;margin:30px auto}
+header{background:#071a45;color:#fff;padding:22px 25px}
+header h1{margin-bottom:2px;font-size:20px}
+header .sub{opacity:.8;font-size:13.5px}
+.container{width:95%;max-width:1200px;margin:26px auto}
+
+.gate{position:fixed;inset:0;background:#071a45;display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
+.gate.hidden{display:none}
+.gate-box{background:#fff;border-radius:16px;padding:32px;max-width:380px;width:100%;text-align:center}
+.gate-box h2{margin-bottom:10px}
+.gate-box p{color:#667085;font-size:14px;margin-bottom:18px}
+.gate-box input{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px;margin-bottom:12px;text-align:center}
+.gate-box button{width:100%;padding:12px;border:none;border-radius:10px;background:#2457ff;color:#fff;font-weight:bold;font-size:15px;cursor:pointer}
+.gate-err{color:#b42318;font-size:13.5px;margin-top:10px;display:none}
 
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:#fff;padding:8px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
 .tab-btn{border:none;background:transparent;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:bold;font-size:15px;color:#475467}
@@ -23,295 +28,203 @@ header h1{margin-bottom:2px;overflow-wrap:anywhere}
 .tabpage{display:none}
 .tabpage.active{display:block}
 
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:20px}
-.stat{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
-
 .card{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:20px}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.card h2{font-size:18px}
 
-.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;min-width:560px;border-collapse:collapse;margin-top:20px}
-th,td{padding:14px;border-bottom:1px solid #eee;text-align:right;vertical-align:middle;white-space:nowrap}
-th{background:#f5f7fb}
-
-button{border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-size:14px}
-.btn-admin{background:#2457ff;color:#fff}
-.btn-user{background:#666;color:#fff}
-.btn-logout{background:#e53935;color:#fff;margin-top:20px}
+button{border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit}
 .btn-primary{background:#2457ff;color:#fff}
 .btn-outline{background:#fff;border:1px solid #dcdfe6;color:#101828}
 .btn-danger{background:#e53935;color:#fff}
-.btn-sm{padding:7px 12px;font-size:13px}
 .btn-ghost{background:#eef1f7;color:#101828}
-.btn-impersonate{background:#7c3aed;color:#fff}
 button:disabled{opacity:.6;cursor:not-allowed}
 
-.loading{text-align:center;padding:20px}
-select,input[type=text],input[type=email],input[type=tel],input[type=number],input[type=url],textarea{padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
-input[type=text],input[type=email],input[type=tel],input[type=url],textarea{width:100%}
-.field{margin-bottom:14px}
+select,input[type=text],input[type=email],input[type=password],input[type=url],textarea{padding:10px 11px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;width:100%}
+textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
+.field{margin-bottom:16px}
 .field label{display:block;font-weight:bold;margin-bottom:6px;font-size:14px;color:#344054}
-.row2{display:grid;grid-template-columns:80px 1fr;gap:12px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.badge-visible{background:#ecfdf3;color:#027a48;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
-.badge-hidden{background:#fff0f0;color:#b42318;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
-.badge-admin{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold;display:inline-flex;align-items:center;gap:4px}
-.badge-banned{background:#fff0f0;color:#b42318;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
-.badge-active{background:#ecfdf3;color:#027a48;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:bold}
-.actions-cell{display:flex;gap:6px;flex-wrap:wrap}
-
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(10,16,30,.55);z-index:100;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:16px;padding:26px;width:min(900px,100%);margin-bottom:40px;position:relative}
-.modal h2{margin-bottom:16px}
-.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
-.modal-close-btn{position:absolute;top:18px;right:18px;background:transparent;border:0;font-size:24px;line-height:1;color:#667085;cursor:pointer;padding:4px 10px;border-radius:8px}
-.modal-close-btn:hover{background:#f4f6fb;color:#101828}
-
-#quillEditor{background:#fff;min-height:260px}
-.ql-editor{min-height:260px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.small-note{color:#667085;font-size:13px;margin-top:4px;line-height:1.6}
 
 .msg{margin-top:12px;padding:10px 12px;border-radius:8px;display:none;font-size:14px}
 .msg.error{background:#fff0f0;color:#b42318}
 .msg.ok{background:#ecfdf3;color:#027a48}
 
-.settings-item{border-bottom:1px solid #eee;padding:16px 0}
-.settings-item:last-child{border-bottom:none}
-.settings-item .field{margin-bottom:8px}
-.small-note{color:#667085;font-size:13px;margin-top:2px}
+.pat-banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:14px 16px;border-radius:12px;margin-bottom:20px;font-size:14px;line-height:1.8}
+.pat-banner input{margin-top:10px}
+.pat-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pat-row input{flex:1;min-width:200px}
+.pat-connected{background:#ecfdf3;border-color:#a7f3d0;color:#027a48}
+
+.file-editor textarea{min-height:420px;font-size:13px;line-height:1.5}
+.file-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.file-row .field{flex:1;min-width:220px;margin-bottom:0}
 
 @media(max-width:700px){
-  .row2,.row3{grid-template-columns:1fr}
-  .modal{padding:18px;border-radius:14px}
+  .row2{grid-template-columns:1fr}
   .container{width:calc(100% - 20px);margin:16px auto}
   header{padding:18px}
   .tab-btn{padding:10px 14px;font-size:14px}
 }
 </style>
-
 </head>
 <body>
 
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <h2>🔒 دخول لوحة الإدارة</h2>
+    <p>أدخل كلمة المرور الخاصة بالإدارة للمتابعة</p>
+    <input type="password" id="gatePass" placeholder="كلمة المرور">
+    <button onclick="tryUnlock()">دخول</button>
+    <div class="gate-err" id="gateErr">كلمة المرور غلط، حاول تاني</div>
+  </div>
+</div>
+
 <header>
 <h1>لوحة الإدارة</h1>
-<div style="opacity:.8;font-size:14px">دليل فيزا إيطاليا من مصر</div>
+<div class="sub">دليل فيزا إيطاليا من مصر — تحكم كامل في محتوى الموقع</div>
 </header>
 
 <div class="container">
 
-<div class="tabs">
-  <button class="tab-btn active" data-tab="tab-content">محتوى الموقع</button>
-  <button class="tab-btn" data-tab="tab-settings">إعدادات عامة</button>
-  <button class="tab-btn" data-tab="tab-users">المستخدمون</button>
+<div class="pat-banner" id="patBanner">
+  <strong>عشان تقدر تحفظ أي تعديل، لازم توصّل GitHub Token مرة واحدة (بيتحفظ في المتصفح بتاعك بس):</strong>
+  <div class="small-note">
+    اعمل Token من هنا: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens (أو Classic) — لازم يكون عنده صلاحية <b>Contents: Read and write</b> على الريبو <code>italy-visa-guide</code>.
+  </div>
+  <div class="pat-row">
+    <input type="password" id="ghPatInput" placeholder="الصق الـ Token هنا (يبدأ بـ ghp_ أو github_pat_)">
+    <button class="btn-primary" onclick="saveGhPat()">حفظ وربط</button>
+    <button class="btn-outline" onclick="clearGhPat()" id="clearPatBtn" style="display:none">فصل الاتصال</button>
+  </div>
+  <div id="patStatus" class="small-note"></div>
 </div>
 
-<!-- ======================= CONTENT TAB ======================= -->
-<div id="tab-content" class="tabpage active">
-  <div class="card">
-    <div class="card-head">
-      <h2>أقسام الدليل</h2>
-      <button class="btn-primary" onclick="openSectionModal()">+ إضافة قسم جديد</button>
-    </div>
-    <p class="small-note">اسحب الترتيب عن طريق رقم الترتيب. القسم اللي "مخفي" مش هيظهر للزوار في الموقع.</p>
-    <p class="small-note" id="sectionsStats" style="font-weight:bold"></p>
-    <div id="sectionsLoading" class="loading">جاري التحميل...</div>
-    <div class="table-scroll">
-    <table id="sectionsTable" style="display:none">
-      <thead>
-        <tr>
-          <th>الترتيب</th>
-          <th>الأيقونة</th>
-          <th>العنوان</th>
-          <th>الحالة</th>
-          <th>الإجراءات</th>
-        </tr>
-      </thead>
-      <tbody id="sectionsBody"></tbody>
-    </table>
-    </div>
-  </div>
+<div class="tabs">
+  <button class="tab-btn active" data-tab="tab-settings">الإعدادات العامة</button>
+  <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع</button>
 </div>
 
 <!-- ======================= SETTINGS TAB ======================= -->
-<div id="tab-settings" class="tabpage">
+<div id="tab-settings" class="tabpage active">
   <div class="card">
     <div class="card-head">
-      <h2>تنبيه تحديثات الموقع</h2>
-      <button class="btn-primary" id="bannerSaveBtn" onclick="saveBannerSettings()">حفظ</button>
+      <h2>نص "من نحن"</h2>
     </div>
-    <p class="small-note" style="color:#b42318;font-weight:bold;background:#fff0f0;padding:10px 12px;border-radius:8px">⚠️ تنبيه هام: تفعيل الخيار ده هيقفل الموقع بالكامل أمام كل الزوار — بما في ذلك صفحة تسجيل الدخول — ومش هيفضل ظاهر غير شاشة العد التنازلي دي. الصفحة الوحيدة اللي هتفضل شغالة هي لوحة الإدارة دي، فخليك حريص وانت بتفعّله.</p>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
-        <input type="checkbox" id="bannerEnabled" style="width:auto">
-        إظهار رسالة "الموقع في تحديثات" لكل الزوار
-      </label>
+    <div class="row2">
+      <div class="field"><label>عربي</label><textarea id="s_about_ar" rows="4" style="font-family:inherit;direction:rtl;text-align:right"></textarea></div>
+      <div class="field"><label>English</label><textarea id="s_about_en" rows="4" style="font-family:inherit;direction:ltr;text-align:left"></textarea></div>
     </div>
-    <div class="row2" style="grid-template-columns:1fr 1fr">
-      <div class="field"><label>نص الرسالة — عربي</label><textarea id="bannerMsgAr" rows="2" placeholder="الموقع في شوية تحديثات، هنرجع قريب 🚧"></textarea></div>
-      <div class="field"><label>نص الرسالة — English</label><textarea id="bannerMsgEn" rows="2" placeholder="We are rolling out some updates, back soon 🚧"></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>بيانات التواصل</h2></div>
+    <div class="row2">
+      <div class="field"><label>الإيميل</label><input type="text" id="s_email"></div>
+      <div class="field"><label>رابط واتساب (https://wa.me/...)</label><input type="text" id="s_wa"></div>
     </div>
-    <div class="field" style="max-width:260px">
-      <label>تاريخ فتح الموقع المتوقع (اختياري)</label>
-      <input type="date" id="bannerLaunchDate">
+    <div class="row2">
+      <div class="field"><label>رابط فيسبوك</label><input type="text" id="s_fb"></div>
+      <div class="field"><label>رابط إنستجرام</label><input type="text" id="s_ig"></div>
     </div>
-    <div class="msg" id="bannerMsg"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>روابط الدفع لصفحة الاستشارات (Stripe)</h2></div>
+    <p class="small-note">الصق هنا رابط الدفع بتاع كل نوع استشارة من Stripe. لو الخانة فاضية، الزرار هيرجع لطريقة التواصل العادية (واتساب/إيميل) بدل الدفع.</p>
+    <div class="field"><label>استشارة حضورية — In-Person ($150)</label><input type="text" id="s_stripe_inperson" placeholder="https://buy.stripe.com/..."></div>
+    <div class="field"><label>استشارة فيديو — Video ($75)</label><input type="text" id="s_stripe_video" placeholder="https://buy.stripe.com/..."></div>
+    <div class="field"><label>استشارة صوتية — Voice ($50)</label><input type="text" id="s_stripe_voice" placeholder="https://buy.stripe.com/..."></div>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <h2>نصوص الموقع العامة</h2>
-      <button class="btn-primary" id="allSettingsSaveBtn" onclick="saveAllSettings()">حفظ كل التعديلات</button>
+      <h2>حفظ الإعدادات</h2>
+      <button class="btn-primary" id="settingsSaveBtn" onclick="saveSettings()">💾 حفظ ونشر على الموقع</button>
     </div>
-    <p class="small-note">النصوص دي بتظهر في الهيدر والفوتر واسم الموقع — عربي وإنجليزي.</p>
-    <div id="settingsLoading" class="loading">جاري التحميل...</div>
-    <div id="settingsList"></div>
+    <p class="small-note">الحفظ بيعمل commit مباشر على GitHub، والموقع هيتحدث تلقائي خلال دقيقة أو اتنين.</p>
     <div class="msg" id="settingsMsg"></div>
   </div>
+</div>
 
+<!-- ======================= FILE EDITOR TAB ======================= -->
+<div id="tab-files" class="tabpage file-editor">
   <div class="card">
-    <div class="card-head">
-      <h2>إعلان لوحة المستخدم</h2>
-      <button class="btn-primary" id="dashAnnounceSaveBtn" onclick="saveDashAnnouncementSettings()">حفظ</button>
-    </div>
-    <p class="small-note">شريط تنبيه قابل للإغلاق بيظهر لكل المستخدمين فوق لوحة التحكم بتاعتهم (dashboard.html) — مناسب لإعلانات أو تحديثات مؤقتة، وبيفضل يظهر لحد ما المستخدم يقفله بنفسه.</p>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
-        <input type="checkbox" id="dashAnnounceEnabled" style="width:auto">
-        إظهار الإعلان فوق لوحة المستخدم
-      </label>
-    </div>
-    <div class="row2" style="grid-template-columns:1fr 1fr">
-      <div class="field"><label>نص الإعلان — عربي</label><textarea id="dashAnnounceMsgAr" rows="2" placeholder="مثال: تمت إضافة خاصية البحث والوضع الليلي الجديدة 🎉"></textarea></div>
-      <div class="field"><label>نص الإعلان — English</label><textarea id="dashAnnounceMsgEn" rows="2" placeholder="Example: New search and dark mode features are live 🎉"></textarea></div>
-    </div>
-    <div class="msg" id="dashAnnounceMsg"></div>
-  </div>
-</div>
-
-<!-- ======================= USERS TAB ======================= -->
-<div id="tab-users" class="tabpage">
-  <div class="stats">
-    <div class="stat"><h3>عدد المستخدمين</h3><h2 id="usersCount">0</h2></div>
-    <div class="stat"><h3>عدد الأدمن</h3><h2 id="adminsCount">0</h2></div>
-    <div class="stat"><h3>حسابات محظورة</h3><h2 id="bannedCount">0</h2></div>
-  </div>
-  <div class="card">
-    <h2>المستخدمون</h2>
-    <p class="small-note">من هنا تقدر تعدّل بيانات أي مستخدم، تحذف حسابه نهائيًا، أو تسجّل دخول كأنك هو (للدعم الفني). كل الإجراءات دي بتمر على سيرفر آمن ومسجلة.</p>
-    <div class="field" style="max-width:320px">
-      <input type="text" id="userSearch" placeholder="🔍 بحث بالإيميل أو الاسم..." oninput="renderUsersTable()">
-    </div>
-    <div id="loading" class="loading">جاري التحميل...</div>
-    <div class="table-scroll">
-    <table>
-      <thead><tr><th>البريد</th><th>الاسم</th><th>الصلاحية</th><th>الحالة</th><th>الإجراءات</th></tr></thead>
-      <tbody id="usersTable"></tbody>
-    </table>
-    </div>
-  </div>
-</div>
-
-<button class="btn-logout" onclick="logout()">تسجيل الخروج</button>
-
-</div>
-
-<!-- ======================= SECTION EDIT MODAL ======================= -->
-<div class="modal-bg" id="sectionModalBg">
-  <div class="modal">
-    <button type="button" class="modal-close-btn" onclick="closeSectionModal()" aria-label="إغلاق">×</button>
-    <h2 id="sectionModalTitle">تعديل قسم</h2>
-    <input type="hidden" id="secId">
-
-    <div class="row2">
-      <div class="field"><label>الأيقونة (إيموجي)</label><input type="text" id="secIcon" placeholder="🎓"></div>
-      <div class="field"><label>عنوان القسم</label><input type="text" id="secTitle" placeholder="عنوان القسم"></div>
-    </div>
-
-    <div class="field">
-      <label>الوصف المختصر (يظهر تحت العنوان)</label>
-      <textarea id="secDescription" rows="2"></textarea>
-    </div>
-
-    <div class="field">
-      <label>محتوى القسم الكامل</label>
-      <div id="quillEditor"></div>
-    </div>
-
-    <div class="row3">
-      <div class="field"><label>ترتيب الظهور</label><input type="number" id="secOrder" value="0"></div>
-      <div class="field"><label>معرّف الرابط (اختياري، إنجليزي بدون مسافات)</label><input type="text" id="secKey" placeholder="my-section"></div>
+    <div class="card-head"><h2>محرر ملفات الموقع — تحكم كامل</h2></div>
+    <p class="small-note">من هنا تقدر تفتح وتعدّل أي ملف في الموقع مباشرة (HTML/JSON) وتنشر التعديل على GitHub فورًا. استخدمها لتعديل أي نص أو تصميم مش موجود في تبويب "الإعدادات العامة".</p>
+    <div class="file-row">
       <div class="field">
-        <label>الحالة</label>
-        <select id="secVisible"><option value="true">ظاهر للزوار</option><option value="false">مخفي</option></select>
+        <label>اختار ملف</label>
+        <select id="fileSelect" onchange="onFileSelectChange()">
+          <option value="">— اختار من القائمة —</option>
+          <option value="index.html">index.html (الصفحة الرئيسية)</option>
+          <option value="consultation.html">consultation.html (صفحة الاستشارات)</option>
+          <option value="admin.html">admin.html (لوحة الإدارة دي نفسها)</option>
+          <option value="404.html">404.html</option>
+          <option value="site-settings.json">site-settings.json (ملف الإعدادات الخام)</option>
+          <option value="services/study-visa.html">services/study-visa.html</option>
+          <option value="services/tourism-visa.html">services/tourism-visa.html</option>
+          <option value="services/work-visa.html">services/work-visa.html</option>
+          <option value="services/family-reunification.html">services/family-reunification.html</option>
+          <option value="services/document-preparation.html">services/document-preparation.html</option>
+          <option value="services/personal-consultation.html">services/personal-consultation.html</option>
+          <option value="__custom__">مسار مخصص...</option>
+        </select>
+      </div>
+      <div class="field" id="customPathField" style="display:none">
+        <label>مسار الملف</label>
+        <input type="text" id="customPath" placeholder="مثال: services/my-file.html">
+      </div>
+      <div class="field" style="flex:0 0 auto">
+        <label>&nbsp;</label>
+        <button class="btn-outline" onclick="loadFile()">تحميل الملف</button>
       </div>
     </div>
 
-    <div class="msg" id="sectionMsg"></div>
-
-    <div class="modal-actions">
-      <button class="btn-danger" id="secDeleteBtn" onclick="deleteSection()">حذف القسم</button>
-      <button class="btn-outline" onclick="closeSectionModal()">إلغاء</button>
-      <button class="btn-primary" id="sectionSaveBtn" onclick="saveSection()">حفظ</button>
+    <div class="field">
+      <label id="fileEditorLabel">محتوى الملف</label>
+      <textarea id="fileContent" placeholder="اضغط 'تحميل الملف' الأول..." spellcheck="false"></textarea>
     </div>
+
+    <div class="field">
+      <label>رسالة الحفظ (commit message)</label>
+      <input type="text" id="commitMsg" placeholder="تعديل من لوحة الإدارة">
+    </div>
+
+    <div class="card-head">
+      <button class="btn-primary" id="fileSaveBtn" onclick="saveFile()" disabled>💾 حفظ ونشر على GitHub</button>
+    </div>
+    <div class="msg" id="fileMsg"></div>
   </div>
 </div>
 
-<!-- ======================= USER EDIT MODAL ======================= -->
-<div class="modal-bg" id="userModalBg">
-  <div class="modal" style="width:min(600px,100%)">
-    <button type="button" class="modal-close-btn" onclick="closeUserModal()" aria-label="إغلاق">×</button>
-    <h2>تعديل بيانات المستخدم</h2>
-    <input type="hidden" id="userId">
-
-    <div class="row2" style="grid-template-columns:1fr 1fr">
-      <div class="field"><label>الاسم الأول</label><input type="text" id="userFirstName"></div>
-      <div class="field"><label>اسم العائلة</label><input type="text" id="userLastName"></div>
-    </div>
-    <div class="field"><label>البريد الإلكتروني</label><input type="email" id="userEmail"></div>
-    <div class="field"><label>رقم الموبايل</label><input type="tel" id="userPhone"></div>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;font-weight:normal">
-        <input type="checkbox" id="userBanned" style="width:auto">
-        إيقاف هذا الحساب (Banned) — هيتم تسجيل خروجه ومنعه من الدخول
-      </label>
-    </div>
-
-    <div class="msg" id="userMsg"></div>
-
-    <div class="modal-actions">
-      <button class="btn-outline" onclick="closeUserModal()">إلغاء</button>
-      <button class="btn-primary" id="userSaveBtn" onclick="saveUserEdit()">حفظ التعديلات</button>
-    </div>
-  </div>
 </div>
 
 <script>
+/* ======================================================================
+   ACCESS GATE (simple client-side passphrase — deters casual visitors;
+   not a substitute for real auth. Change ADMIN_PASSPHRASE below anytime
+   via the File Editor tab.)
+   ====================================================================== */
+const ADMIN_PASSPHRASE = "ItalyVisa2026!";
 
-const supabaseClient = supabase.createClient(
-"https://sderoafpcfgabdkqvbyc.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkZXJvYWZwY2ZnYWJka3F2YnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3ODE0NDIsImV4cCI6MjEwMjM1NzQ0Mn0.OON8o3-Rr4VRgrECJyf-bDO5vRGU8G3NmM6PYYKipns"
-);
-
-const ADMIN_ACTIONS_URL = "https://sderoafpcfgabdkqvbyc.supabase.co/functions/v1/admin-actions";
-
-// Calls the secure server-side Edge Function for any privileged action
-// (edit any user's data, permanently delete an account, or impersonate a
-// user). The service_role key never touches this page — the function
-// verifies the caller is an admin using their own session token instead.
-async function callAdminAction(payload){
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if(!session) throw new Error("جلستك انتهت، سجل الدخول تاني");
-  const res = await fetch(ADMIN_ACTIONS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
-    body: JSON.stringify(payload)
-  });
-  const body = await res.json().catch(()=>({}));
-  if(!res.ok){ throw new Error(body.error || "حصل خطأ غير متوقع"); }
-  return body;
+function tryUnlock(){
+  const val = document.getElementById("gatePass").value;
+  if(val === ADMIN_PASSPHRASE){
+    document.getElementById("gate").classList.add("hidden");
+    sessionStorage.setItem("admin_unlocked", "1");
+  } else {
+    document.getElementById("gateErr").style.display = "block";
+  }
+}
+document.getElementById("gatePass").addEventListener("keydown", e=>{ if(e.key==="Enter") tryUnlock(); });
+if(sessionStorage.getItem("admin_unlocked") === "1"){
+  document.getElementById("gate").classList.add("hidden");
 }
 
-/* ---------------------- Tabs ---------------------- */
+/* ======================================================================
+   TABS
+   ====================================================================== */
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -321,326 +234,134 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
   });
 });
 
-/* ---- Close any open modal with Escape, or by clicking outside it ---- */
-document.addEventListener("keydown", (e)=>{
-  if(e.key !== "Escape") return;
-  if(document.getElementById("sectionModalBg").classList.contains("open")) closeSectionModal();
-  if(document.getElementById("userModalBg").classList.contains("open")) closeUserModal();
-});
-document.querySelectorAll(".modal-bg").forEach(bg=>{
-  bg.addEventListener("click", (e)=>{
-    if(e.target === bg) bg.classList.remove("open");
-  });
-});
-
-/* ---------------------- Auth guard ---------------------- */
-async function checkAdmin(){
-  const {data:{session}} = await supabaseClient.auth.getSession();
-  if(!session){ location.href="login.html"; return; }
-
-  const userEmail = session.user.email;
-  const {data:profile,error} = await supabaseClient.from("profiles").select("*").eq("email",userEmail).single();
-
-  if(error){ alert(error.message); return; }
-  if(profile.role !== "admin"){ alert("غير مصرح بالدخول"); location.href="index.html"; return; }
-
-  loadUsers();
-  loadSections();
-  loadSettings();
-  loadBannerSettings();
-  loadDashAnnouncementSettings();
-}
-
 /* ======================================================================
-   USERS
+   GITHUB API HELPERS
    ====================================================================== */
-let usersCache = [];
+const GH_OWNER = "ahmedeltayb372-del";
+const GH_REPO = "italy-visa-guide";
+const GH_BRANCH = "main";
 
-async function loadUsers(){
-  document.getElementById("loading").style.display="block";
-  const {data:users,error} = await supabaseClient.from("profiles").select("*").order("email");
-  document.getElementById("loading").style.display="none";
-  if(error){ alert(error.message); return; }
+function getPat(){ return localStorage.getItem("gh_pat") || ""; }
 
-  usersCache = users || [];
-
-  document.getElementById("usersCount").textContent = usersCache.length;
-  document.getElementById("adminsCount").textContent = usersCache.filter(x=>x.role==="admin").length;
-  document.getElementById("bannedCount").textContent = usersCache.filter(x=>x.banned).length;
-
-  renderUsersTable();
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (m,p1)=>String.fromCharCode("0x"+p1)));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(Array.prototype.map.call(atob(str), c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
 }
 
-function renderUsersTable(){
-  const q = (document.getElementById("userSearch")?.value || "").trim().toLowerCase();
-  const users = q
-    ? usersCache.filter(u=>{
-        const fullName = [u.first_name,u.last_name].filter(Boolean).join(" ").toLowerCase();
-        return (u.email||"").toLowerCase().includes(q) || fullName.includes(q);
-      })
-    : usersCache;
-
-  let html="";
-  users.forEach(user=>{
-    const isPrimary = user.email==="ahmedeltayb372@gmail.com";
-    const fullName = [user.first_name,user.last_name].filter(Boolean).join(" ") || "-";
-    const roleBadge = user.role==="admin"
-      ? `<span class="badge-admin">🛡️ أدمن</span>`
-      : `<span style="color:#667085">مستخدم</span>`;
-    const statusBadge = user.banned
-      ? `<span class="badge-banned">محظور</span>`
-      : `<span class="badge-active">نشط</span>`;
-
-    let actions = "";
-    if(isPrimary){
-      actions = `<span style="color:#2457ff;font-weight:bold">الأدمن الرئيسي</span>`;
-    } else {
-      actions = `
-        <div class="actions-cell">
-          <button class="btn-ghost btn-sm" onclick="openUserModal('${user.id}')">تعديل</button>
-          ${
-            user.role==="admin"
-            ? `<button class="btn-user btn-sm" onclick="makeUser('${user.id}')">جعله User</button>`
-            : `<button class="btn-admin btn-sm" onclick="makeAdmin('${user.id}')">جعله Admin</button>`
-          }
-          <button class="btn-impersonate btn-sm" onclick="impersonateUser('${user.id}','${(user.email||"").replace(/'/g,"\\'")}')">تسجيل دخول كمستخدم</button>
-          <button class="btn-danger btn-sm" onclick="deleteUser('${user.id}','${(user.email||"").replace(/'/g,"\\'")}')">حذف نهائي</button>
-        </div>`;
-    }
-
-    html += `<tr>
-      <td>${user.email}</td>
-      <td>${fullName}</td>
-      <td>${roleBadge}</td>
-      <td>${statusBadge}</td>
-      <td>${actions}</td>
-    </tr>`;
+async function ghGetFile(path){
+  const pat = getPat();
+  const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`, {
+    headers: pat ? { Authorization: "token " + pat, Accept: "application/vnd.github+json" } : { Accept: "application/vnd.github+json" }
   });
-  document.getElementById("usersTable").innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#667085">لا يوجد نتائج مطابقة</td></tr>';
+  if(res.status === 404) return { exists:false, content:"", sha:null };
+  if(!res.ok){ throw new Error("GitHub error " + res.status + ": " + (await res.text()).slice(0,200)); }
+  const json = await res.json();
+  return { exists:true, content: b64DecodeUnicode(json.content.replace(/\n/g,"")), sha: json.sha };
 }
 
-
-
-async function makeAdmin(id){
-  const {error} = await supabaseClient.from("profiles").update({role:"admin"}).eq("id",id);
-  if(error){ alert(error.message); return; }
-  loadUsers();
-}
-
-async function makeUser(id){
-  const {error} = await supabaseClient.from("profiles").update({role:"user"}).eq("id",id);
-  if(error){ alert(error.message); return; }
-  loadUsers();
-}
-
-/* ---- Edit user (name / phone / email / banned) via the secure Edge Function ---- */
-function openUserModal(id){
-  const user = usersCache.find(u=>u.id===id);
-  if(!user) return;
-  document.getElementById("userMsg").style.display = "none";
-  document.getElementById("userId").value = user.id;
-  document.getElementById("userFirstName").value = user.first_name || "";
-  document.getElementById("userLastName").value = user.last_name || "";
-  document.getElementById("userEmail").value = user.email || "";
-  document.getElementById("userPhone").value = user.phone || "";
-  document.getElementById("userBanned").checked = !!user.banned;
-  document.getElementById("userModalBg").classList.add("open");
-}
-
-function closeUserModal(){
-  document.getElementById("userModalBg").classList.remove("open");
-}
-
-async function saveUserEdit(){
-  const id = document.getElementById("userId").value;
-  const user = usersCache.find(u=>u.id===id);
-  if(!user) return;
-
-  const first_name = document.getElementById("userFirstName").value.trim();
-  const last_name = document.getElementById("userLastName").value.trim();
-  const email = document.getElementById("userEmail").value.trim();
-  const phone = document.getElementById("userPhone").value.trim();
-  const banned = document.getElementById("userBanned").checked;
-
-  const payload = { action:"update", target_user_id:id, first_name, last_name, phone, banned };
-  if(email && email !== user.email) payload.email = email;
-
-  const btn = document.getElementById("userSaveBtn");
-  const originalText = btn.textContent;
-  btn.disabled = true; btn.textContent = "جاري الحفظ...";
-  try{
-    await callAdminAction(payload);
-    closeUserModal();
-    loadUsers();
-  }catch(e){
-    const el = document.getElementById("userMsg");
-    el.textContent = e.message;
-    el.className = "msg error";
-    el.style.display = "block";
-  } finally {
-    btn.disabled = false; btn.textContent = originalText;
-  }
-}
-
-/* ---- Permanently delete a user account via the secure Edge Function ---- */
-async function deleteUser(id, email){
-  if(!confirm(`متأكد إنك عايز تحذف حساب "${email}" نهائيًا؟ الإجراء ده مش هيتراجع.`)) return;
-  try{
-    await callAdminAction({ action:"delete", target_user_id:id });
-    loadUsers();
-  }catch(e){
-    alert(e.message);
-  }
-}
-
-/* ---- Impersonate: generate a one-time login link for the target user ---- */
-async function impersonateUser(id, email){
-  if(!confirm(`هيتم فتح تبويب جديد مسجل دخول باسم "${email}". متأكد؟`)) return;
-  try{
-    const result = await callAdminAction({ action:"impersonate", target_user_id:id });
-    if(result.action_link){
-      window.open(result.action_link, "_blank");
-    }
-  }catch(e){
-    alert(e.message);
-  }
-}
-
-async function logout(){
-  await supabaseClient.auth.signOut();
-  location.href="login.html";
-}
-
-/* ======================================================================
-   CONTENT (guide_sections) — full CRUD
-   ====================================================================== */
-let quill = null;
-function getQuill(){
-  if(!quill){
-    quill = new Quill('#quillEditor', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          [{ header: [2,3,4,false] }],
-          ['bold','italic','underline'],
-          [{list:'ordered'},{list:'bullet'}],
-          ['link'],
-          [{color:[]},{background:[]}],
-          ['clean']
-        ]
-      }
-    });
-  }
-  return quill;
-}
-
-let sectionsCache = [];
-
-async function loadSections(){
-  document.getElementById("sectionsLoading").style.display="block";
-  document.getElementById("sectionsTable").style.display="none";
-
-  const {data,error} = await supabaseClient.from("guide_sections").select("*").order("order_index",{ascending:true});
-
-  document.getElementById("sectionsLoading").style.display="none";
-  document.getElementById("sectionsTable").style.display="table";
-
-  if(error){ alert(error.message); return; }
-  sectionsCache = data || [];
-
-  const visibleCount = sectionsCache.filter(s=>s.visible).length;
-  const statsEl = document.getElementById("sectionsStats");
-  if(statsEl) statsEl.textContent = `الإجمالي: ${sectionsCache.length} · ظاهر: ${visibleCount} · مخفي: ${sectionsCache.length - visibleCount}`;
-
-  let html="";
-  sectionsCache.forEach(sec=>{
-    html += `<tr>
-      <td>${sec.order_index ?? 0}</td>
-      <td style="font-size:20px">${sec.icon || "📄"}</td>
-      <td>${sec.title || "-"}</td>
-      <td>${sec.visible ? '<span class="badge-visible">ظاهر</span>' : '<span class="badge-hidden">مخفي</span>'}</td>
-      <td><button class="btn-ghost btn-sm" onclick="openSectionModal('${sec.id}')">تعديل</button></td>
-    </tr>`;
-  });
-  document.getElementById("sectionsBody").innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#667085">لا يوجد أقسام بعد</td></tr>';
-}
-
-function openSectionModal(id){
-  document.getElementById("sectionMsg").style.display = "none";
-  const isNew = !id;
-  document.getElementById("sectionModalTitle").textContent = isNew ? "إضافة قسم جديد" : "تعديل القسم";
-  document.getElementById("secDeleteBtn").style.display = isNew ? "none" : "inline-block";
-
-  const sec = isNew ? null : sectionsCache.find(s=>s.id===id);
-
-  document.getElementById("secId").value = isNew ? "" : sec.id;
-  document.getElementById("secIcon").value = isNew ? "📄" : (sec.icon || "");
-  document.getElementById("secTitle").value = isNew ? "" : (sec.title || "");
-  document.getElementById("secDescription").value = isNew ? "" : (sec.description || "");
-  document.getElementById("secOrder").value = isNew ? (sectionsCache.length) : (sec.order_index ?? 0);
-  document.getElementById("secKey").value = isNew ? "" : (sec.section_key || "");
-  document.getElementById("secVisible").value = isNew ? "true" : String(!!sec.visible);
-
-  const editor = getQuill();
-  editor.root.innerHTML = isNew ? "" : (sec.body_html || "");
-
-  document.getElementById("sectionModalBg").classList.add("open");
-}
-
-function closeSectionModal(){
-  document.getElementById("sectionModalBg").classList.remove("open");
-}
-
-async function saveSection(){
-  const id = document.getElementById("secId").value;
-  const payload = {
-    icon: document.getElementById("secIcon").value.trim() || "📄",
-    title: document.getElementById("secTitle").value.trim(),
-    description: document.getElementById("secDescription").value.trim(),
-    body_html: getQuill().root.innerHTML,
-    order_index: parseInt(document.getElementById("secOrder").value || "0", 10),
-    section_key: document.getElementById("secKey").value.trim() || null,
-    visible: document.getElementById("secVisible").value === "true"
+async function ghPutFile(path, newContent, sha, message){
+  const pat = getPat();
+  if(!pat) throw new Error("لازم تربط GitHub Token الأول من فوق");
+  const body = {
+    message: message || ("تعديل " + path + " من لوحة الإدارة"),
+    content: b64EncodeUnicode(newContent),
+    branch: GH_BRANCH
   };
-
-  if(!payload.title){
-    showMsg("sectionMsg","لازم تكتب عنوان للقسم","error");
-    return;
-  }
-
-  const btn = document.getElementById("sectionSaveBtn");
-  const originalText = btn.textContent;
-  btn.disabled = true; btn.textContent = "جاري الحفظ...";
-  try{
-    let error;
-    if(id){
-      ({error} = await supabaseClient.from("guide_sections").update(payload).eq("id",id));
-    } else {
-      ({error} = await supabaseClient.from("guide_sections").insert(payload));
-    }
-
-    if(error){
-      showMsg("sectionMsg", error.message, "error");
-      return;
-    }
-
-    closeSectionModal();
-    loadSections();
-  } finally {
-    btn.disabled = false; btn.textContent = originalText;
-  }
+  if(sha) body.sha = sha;
+  const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+    method: "PUT",
+    headers: { Authorization: "token " + pat, "Content-Type": "application/json", Accept: "application/vnd.github+json" },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){ throw new Error("فشل الحفظ (" + res.status + "): " + (await res.text()).slice(0,300)); }
+  return await res.json();
 }
 
-async function deleteSection(){
-  const id = document.getElementById("secId").value;
-  if(!id) return;
-  if(!confirm("متأكد إنك عايز تحذف القسم ده؟ الحذف نهائي.")) return;
+/* ---- PAT connect UI ---- */
+function refreshPatBanner(){
+  const pat = getPat();
+  const banner = document.getElementById("patBanner");
+  const status = document.getElementById("patStatus");
+  const clearBtn = document.getElementById("clearPatBtn");
+  if(pat){
+    banner.classList.add("pat-connected");
+    status.textContent = "✅ متصل بـ GitHub — تقدر تحفظ التعديلات دلوقتي.";
+    clearBtn.style.display = "inline-block";
+  } else {
+    banner.classList.remove("pat-connected");
+    status.textContent = "";
+    clearBtn.style.display = "none";
+  }
+  document.getElementById("fileSaveBtn").disabled = !pat;
+}
+function saveGhPat(){
+  const val = document.getElementById("ghPatInput").value.trim();
+  if(!val) return;
+  localStorage.setItem("gh_pat", val);
+  document.getElementById("ghPatInput").value = "";
+  refreshPatBanner();
+}
+function clearGhPat(){
+  localStorage.removeItem("gh_pat");
+  refreshPatBanner();
+}
+refreshPatBanner();
 
-  const {error} = await supabaseClient.from("guide_sections").delete().eq("id",id);
-  if(error){ showMsg("sectionMsg", error.message, "error"); return; }
+/* ======================================================================
+   SETTINGS TAB (site-settings.json)
+   ====================================================================== */
+let settingsSha = null;
+let settingsData = null;
 
-  closeSectionModal();
-  loadSections();
+async function loadSettingsTab(){
+  try{
+    const r = await ghGetFile("site-settings.json");
+    settingsSha = r.sha;
+    settingsData = r.exists ? JSON.parse(r.content) : {};
+  }catch(e){
+    settingsData = {};
+    showMsg("settingsMsg", "تعذر تحميل الإعدادات الحالية: " + e.message, "error");
+  }
+  const g = (key, sub) => (settingsData[key] && settingsData[key][sub]) || "";
+  document.getElementById("s_about_ar").value = g("about_text","ar");
+  document.getElementById("s_about_en").value = g("about_text","en");
+  document.getElementById("s_email").value = g("contact_email","en") || g("contact_email","ar");
+  document.getElementById("s_wa").value = g("contact_whatsapp","en") || g("contact_whatsapp","ar");
+  document.getElementById("s_fb").value = g("contact_facebook","en") || g("contact_facebook","ar");
+  document.getElementById("s_ig").value = g("contact_instagram","en") || g("contact_instagram","ar");
+  document.getElementById("s_stripe_inperson").value = g("stripe_inperson_url","en") || g("stripe_inperson_url","ar");
+  document.getElementById("s_stripe_video").value = g("stripe_video_url","en") || g("stripe_video_url","ar");
+  document.getElementById("s_stripe_voice").value = g("stripe_voice_url","en") || g("stripe_voice_url","ar");
+}
+
+async function saveSettings(){
+  const btn = document.getElementById("settingsSaveBtn");
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    const bothLangs = (v) => ({ ar: v, en: v });
+    const newData = Object.assign({}, settingsData, {
+      about_text: { ar: document.getElementById("s_about_ar").value, en: document.getElementById("s_about_en").value },
+      contact_email: bothLangs(document.getElementById("s_email").value.trim()),
+      contact_whatsapp: bothLangs(document.getElementById("s_wa").value.trim()),
+      contact_facebook: bothLangs(document.getElementById("s_fb").value.trim()),
+      contact_instagram: bothLangs(document.getElementById("s_ig").value.trim()),
+      stripe_inperson_url: bothLangs(document.getElementById("s_stripe_inperson").value.trim()),
+      stripe_video_url: bothLangs(document.getElementById("s_stripe_video").value.trim()),
+      stripe_voice_url: bothLangs(document.getElementById("s_stripe_voice").value.trim())
+    });
+    const jsonStr = JSON.stringify(newData, null, 2);
+    const result = await ghPutFile("site-settings.json", jsonStr, settingsSha, "تحديث إعدادات الموقع من لوحة الإدارة");
+    settingsSha = result.content ? result.content.sha : settingsSha;
+    settingsData = newData;
+    showMsg("settingsMsg", "تم الحفظ والنشر بنجاح ✅ — التعديلات هتظهر على الموقع خلال دقيقة أو اتنين.", "ok");
+  }catch(e){
+    showMsg("settingsMsg", e.message, "error");
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
 }
 
 function showMsg(elId, text, type){
@@ -651,161 +372,57 @@ function showMsg(elId, text, type){
 }
 
 /* ======================================================================
-   SETTINGS (guide_settings) — key/value editor
+   FILE EDITOR TAB
    ====================================================================== */
-let settingsCache = [];
+let currentFileSha = null;
+let currentFilePath = null;
 
-const settingsLabels = {
-  brand: "اسم الموقع (في القائمة العلوية)",
-  footer_brand: "اسم الموقع (في الفوتر)",
-  hero_badge: "شارة الهيدر الصغيرة",
-  hero_title: "العنوان الرئيسي",
-  hero_text: "الفقرة تحت العنوان الرئيسي",
-  footer_text: "وصف الفوتر",
-  updated_label: "نص آخر تحديث",
-  about_text: "فقرة \"من نحن\"",
-  contact_email: "الإيميل (يظهر في تواصل معنا) — نفس القيمة في الخانتين",
-  contact_facebook: "رابط فيسبوك (اسيبه فاضي لو مفيش) — نفس القيمة في الخانتين",
-  contact_instagram: "رابط إنستجرام (اسيبه فاضي لو مفيش) — نفس القيمة في الخانتين", contact_whatsapp: "رابط واتساب (اسيبه فاضي لو مفيش) — نفس القيمة في الخانتين"
-};
-
-async function loadSettings(){
-  document.getElementById("settingsLoading").style.display="block";
-  const {data,error} = await supabaseClient.from("guide_settings").select("*").order("key");
-  document.getElementById("settingsLoading").style.display="none";
-
-  if(error){ alert(error.message); return; }
-  settingsCache = data || [];
-
-  let html="";
-  settingsCache.forEach(s=>{
-    const label = settingsLabels[s.key] || s.key;
-    html += `<div class="settings-item" data-key="${s.key}">
-      <div class="field"><label>${label} — عربي</label><textarea rows="2" class="val-ar">${s.value_ar || ""}</textarea></div>
-      <div class="field"><label>${label} — English</label><textarea rows="2" class="val-en">${s.value_en || ""}</textarea></div>
-    </div>`;
-  });
-  document.getElementById("settingsList").innerHTML = html || '<p style="color:#667085">لا يوجد إعدادات بعد</p>';
+function onFileSelectChange(){
+  const sel = document.getElementById("fileSelect").value;
+  document.getElementById("customPathField").style.display = sel === "__custom__" ? "block" : "none";
 }
 
-async function saveAllSettings(){
-  const btn = document.getElementById("allSettingsSaveBtn");
-  const originalText = btn.textContent;
-  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+async function loadFile(){
+  const sel = document.getElementById("fileSelect").value;
+  const path = sel === "__custom__" ? document.getElementById("customPath").value.trim() : sel;
+  if(!path){ showMsg("fileMsg", "اختار ملف الأول", "error"); return; }
+
+  document.getElementById("fileMsg").style.display = "none";
+  document.getElementById("fileContent").value = "جاري التحميل...";
   try{
-    const items = document.querySelectorAll(".settings-item");
-    let hadError = false;
-
-    for(const item of items){
-      const key = item.dataset.key;
-      const value_ar = item.querySelector(".val-ar").value;
-      const value_en = item.querySelector(".val-en").value;
-      const {error} = await supabaseClient.from("guide_settings").update({value_ar, value_en}).eq("key", key);
-      if(error) hadError = true;
-    }
-
-    if(hadError){
-      showMsg("settingsMsg","حصل خطأ في حفظ بعض الإعدادات","error");
-    } else {
-      showMsg("settingsMsg","تم حفظ كل الإعدادات بنجاح ✅","ok");
-    }
-  } finally {
-    btn.disabled = false; btn.textContent = originalText;
+    const r = await ghGetFile(path);
+    currentFilePath = path;
+    currentFileSha = r.sha;
+    document.getElementById("fileContent").value = r.exists ? r.content : "";
+    document.getElementById("fileEditorLabel").textContent = "محتوى الملف — " + path + (r.exists ? "" : " (ملف جديد، مش موجود لسه)");
+    document.getElementById("commitMsg").value = "تعديل " + path + " من لوحة الإدارة";
+  }catch(e){
+    document.getElementById("fileContent").value = "";
+    showMsg("fileMsg", e.message, "error");
   }
 }
 
-
-/* ======================================================================
-   SITE UPDATES BANNER (guide_settings: site_banner_enabled / site_banner_message / site_launch_date)
-   ====================================================================== */
-async function loadBannerSettings(){
-  const {data,error} = await supabaseClient.from("guide_settings").select("*").in("key",["site_banner_enabled","site_banner_message","site_launch_date"]);
-  if(error) return;
-  const byKey = {};
-  (data||[]).forEach(r=>{byKey[r.key]=r});
-  document.getElementById("bannerEnabled").checked = !!(byKey.site_banner_enabled && (byKey.site_banner_enabled.value_ar === "true" || byKey.site_banner_enabled.value_en === "true"));
-  document.getElementById("bannerMsgAr").value = byKey.site_banner_message ? (byKey.site_banner_message.value_ar || "") : "";
-  document.getElementById("bannerMsgEn").value = byKey.site_banner_message ? (byKey.site_banner_message.value_en || "") : "";
-  document.getElementById("bannerLaunchDate").value = byKey.site_launch_date ? (byKey.site_launch_date.value_ar || byKey.site_launch_date.value_en || "") : "";
-}
-
-async function saveBannerSettings(){
-  const btn = document.getElementById("bannerSaveBtn");
-  const originalText = btn.textContent;
-  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+async function saveFile(){
+  if(!currentFilePath){ showMsg("fileMsg", "حمّل ملف الأول", "error"); return; }
+  const btn = document.getElementById("fileSaveBtn");
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري النشر...";
   try{
-    const enabled = document.getElementById("bannerEnabled").checked ? "true" : "false";
-    const msgAr = document.getElementById("bannerMsgAr").value.trim();
-    const msgEn = document.getElementById("bannerMsgEn").value.trim();
-    const launchDate = document.getElementById("bannerLaunchDate").value;
-
-    const rows = [
-      {key:"site_banner_enabled", value_ar:enabled, value_en:enabled},
-      {key:"site_banner_message", value_ar:msgAr, value_en:msgEn},
-      {key:"site_launch_date", value_ar:launchDate, value_en:launchDate}
-    ];
-
-    let hadError = false;
-    for(const row of rows){
-      const {error} = await supabaseClient.from("guide_settings").upsert(row, {onConflict:"key"});
-      if(error) hadError = true;
-    }
-
-    if(hadError){
-      showMsg("bannerMsg","حصل خطأ في حفظ إعدادات التنبيه","error");
-    } else {
-      showMsg("bannerMsg","تم حفظ إعدادات التنبيه بنجاح ✅","ok");
-    }
+    const content = document.getElementById("fileContent").value;
+    const msg = document.getElementById("commitMsg").value.trim() || ("تعديل " + currentFilePath);
+    const result = await ghPutFile(currentFilePath, content, currentFileSha, msg);
+    currentFileSha = result.content ? result.content.sha : currentFileSha;
+    showMsg("fileMsg", "تم النشر بنجاح ✅ — الموقع هيتحدث خلال دقيقة أو اتنين.", "ok");
+  }catch(e){
+    showMsg("fileMsg", e.message, "error");
   } finally {
-    btn.disabled = false; btn.textContent = originalText;
+    btn.disabled = false; btn.textContent = original;
+    document.getElementById("fileSaveBtn").disabled = !getPat();
   }
 }
 
-/* ======================================================================
-   DASHBOARD ANNOUNCEMENT (guide_settings: dashboard_announcement_enabled / dashboard_announcement_message)
-   ====================================================================== */
-async function loadDashAnnouncementSettings(){
-  const {data,error} = await supabaseClient.from("guide_settings").select("*").in("key",["dashboard_announcement_enabled","dashboard_announcement_message"]);
-  if(error) return;
-  const byKey = {};
-  (data||[]).forEach(r=>{byKey[r.key]=r});
-  document.getElementById("dashAnnounceEnabled").checked = !!(byKey.dashboard_announcement_enabled && (byKey.dashboard_announcement_enabled.value_ar === "true" || byKey.dashboard_announcement_enabled.value_en === "true"));
-  document.getElementById("dashAnnounceMsgAr").value = byKey.dashboard_announcement_message ? (byKey.dashboard_announcement_message.value_ar || "") : "";
-  document.getElementById("dashAnnounceMsgEn").value = byKey.dashboard_announcement_message ? (byKey.dashboard_announcement_message.value_en || "") : "";
-}
-
-async function saveDashAnnouncementSettings(){
-  const btn = document.getElementById("dashAnnounceSaveBtn");
-  const originalText = btn.textContent;
-  btn.disabled = true; btn.textContent = "جاري الحفظ...";
-  try{
-    const enabled = document.getElementById("dashAnnounceEnabled").checked ? "true" : "false";
-    const msgAr = document.getElementById("dashAnnounceMsgAr").value.trim();
-    const msgEn = document.getElementById("dashAnnounceMsgEn").value.trim();
-
-    const rows = [
-      {key:"dashboard_announcement_enabled", value_ar:enabled, value_en:enabled},
-      {key:"dashboard_announcement_message", value_ar:msgAr, value_en:msgEn}
-    ];
-
-    let hadError = false;
-    for(const row of rows){
-      const {error} = await supabaseClient.from("guide_settings").upsert(row, {onConflict:"key"});
-      if(error) hadError = true;
-    }
-
-    if(hadError){
-      showMsg("dashAnnounceMsg","حصل خطأ في حفظ إعدادات الإعلان","error");
-    } else {
-      showMsg("dashAnnounceMsg","تم حفظ إعدادات الإعلان بنجاح ✅","ok");
-    }
-  } finally {
-    btn.disabled = false; btn.textContent = originalText;
-  }
-}
-
-checkAdmin();
-
+/* init */
+loadSettingsTab();
 </script>
 
 </body>
