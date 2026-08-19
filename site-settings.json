@@ -1,0 +1,34 @@
+{
+  "about_text": {
+    "ar": "منصة دليل فيزا إيطاليا من مصر منصة معلوماتية مستقلة، هدفها إنها تساعدك تفهم رحلة التأشيرة الإيطالية خطوة بخطوة، من غير تعقيد ومن غير معلومات ناقصة.",
+    "en": "Italy Visa Guide — Egypt is an independent informational platform that helps you understand the Italian visa journey step by step, clearly and reliably."
+  },
+  "contact_email": {
+    "ar": "ahmedeltayb372@gmail.com",
+    "en": "ahmedeltayb372@gmail.com"
+  },
+  "contact_whatsapp": {
+    "ar": "https://wa.me/201011318575",
+    "en": "https://wa.me/201011318575"
+  },
+  "contact_facebook": {
+    "ar": "https://www.facebook.com/PonteAccademia",
+    "en": "https://www.facebook.com/PonteAccademia"
+  },
+  "contact_instagram": {
+    "ar": "",
+    "en": ""
+  },
+  "stripe_inperson_url": {
+    "ar": "",
+    "en": ""
+  },
+  "stripe_video_url": {
+    "ar": "",
+    "en": ""
+  },
+  "stripe_voice_url": {
+    "ar": "",
+    "en": ""
+  }
+}
