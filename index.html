@@ -9,7 +9,6 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%230b1730%27/%3E%3Crect%20x%3D%2714%27%20y%3D%2716%27%20width%3D%279%27%20height%3D%2732%27%20rx%3D%272%27%20fill%3D%27%23009246%27/%3E%3Crect%20x%3D%2727.5%27%20y%3D%2716%27%20width%3D%279%27%20height%3D%2732%27%20rx%3D%272%27%20fill%3D%27%23F1F2F1%27/%3E%3Crect%20x%3D%2741%27%20y%3D%2716%27%20width%3D%279%27%20height%3D%2732%27%20rx%3D%272%27%20fill%3D%27%23CE2B37%27/%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#2952e3">
-<link rel="preconnect" href="https://sderoafpcfgabdkqvbyc.supabase.co">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 <meta property="og:type" content="website">
@@ -547,34 +546,33 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
 });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
-  const SUPABASE_URL = "https://sderoafpcfgabdkqvbyc.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_UY5vKu9IGqYLSv_j3xp9fQ_qi-LKvb3";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
   async function loadSettings(){
-    const { data, error } = await sb.from("guide_settings").select("*");
-    if (error || !data) return;
+    let data;
+    try{
+      const res = await fetch("site-settings.json", {cache:"no-store"});
+      if(!res.ok) return;
+      data = await res.json();
+    }catch(e){ return; }
+    if(!data) return;
 
-    const byKey = {};
-    data.forEach(row=>{ byKey[row.key] = row; });
+    const byKey = data;
 
     // about text override
     const about = byKey.about_text;
     if(about){
-      i18n.en.aboutFallback = about.value_en || i18n.en.aboutFallback;
-      i18n.ar.aboutFallback = about.value_ar || i18n.ar.aboutFallback;
+      i18n.en.aboutFallback = about.en || i18n.en.aboutFallback;
+      i18n.ar.aboutFallback = about.ar || i18n.ar.aboutFallback;
       const val = currentLang==="en" ? i18n.en.aboutFallback : i18n.ar.aboutFallback;
       const el = document.getElementById("aboutText");
       if(el) el.textContent = val;
     }
 
-    const email = byKey.contact_email ? (byKey.contact_email.value_ar || byKey.contact_email.value_en) : "";
-    const wa = byKey.contact_whatsapp ? (byKey.contact_whatsapp.value_ar || byKey.contact_whatsapp.value_en) : "";
-    const fb = byKey.contact_facebook ? (byKey.contact_facebook.value_ar || byKey.contact_facebook.value_en) : "";
-    const ig = byKey.contact_instagram ? (byKey.contact_instagram.value_ar || byKey.contact_instagram.value_en) : "";
+    const email = byKey.contact_email ? (byKey.contact_email.ar || byKey.contact_email.en) : "";
+    const wa = byKey.contact_whatsapp ? (byKey.contact_whatsapp.ar || byKey.contact_whatsapp.en) : "";
+    const fb = byKey.contact_facebook ? (byKey.contact_facebook.ar || byKey.contact_facebook.en) : "";
+    const ig = byKey.contact_instagram ? (byKey.contact_instagram.ar || byKey.contact_instagram.en) : "";
 
     contactEmail = email || "";
     waNumber = wa ? wa.replace(/[^0-9]/g,"") : "";
@@ -594,7 +592,7 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
     if(ig) socialLinks.push('<a href="'+ig+'" target="_blank" rel="noopener">Instagram</a>');
     if(socialLinks.length){
       document.getElementById("rowSocial").style.display = "flex";
-      document.getElementById("ciSocialLinks").innerHTML = socialLinks.join(" · ");
+      document.getElementById("ciSocialLinks").innerHTML = socialLinks.join(" \u00b7 ");
     }
 
     // footer contact list
@@ -602,7 +600,7 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
     const items = [];
     if(email) items.push('<svg width="13" height="13" style="vertical-align:-2px;margin-inline-end:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>'+email);
     if(wa) items.push('<svg width="13" height="13" style="vertical-align:-2px;margin-inline-end:4px" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.79 14.11c-.24.68-1.19 1.25-1.95 1.41-.52.11-1.2.2-3.5-.75-2.94-1.22-4.84-4.2-4.99-4.4-.15-.2-1.19-1.58-1.19-3.02 0-1.44.75-2.14 1.02-2.44.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.65.5.24.58.81 2 .88 2.15.07.15.12.32.02.52-.1.2-.15.32-.29.49-.15.17-.31.38-.44.51-.15.15-.31.31-.13.6.17.29.77 1.27 1.66 2.06 1.14 1.02 2.1 1.34 2.39 1.49.29.15.46.13.63-.05.17-.18.72-.83.91-1.11.19-.28.38-.24.64-.14.26.1 1.65.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.17 1.4z"/></svg>'+wa);
-    fc.innerHTML = items.length ? items.map(i=>"<li>"+i+"</li>").join("") : "<li>—</li>";
+    fc.innerHTML = items.length ? items.map(i=>"<li>"+i+"</li>").join("") : "<li>\u2014</li>";
   }
 
   document.addEventListener("DOMContentLoaded", loadSettings);
