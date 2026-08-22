@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة الإدارة — Italy Visa Guide</title>
+<title>لوحة الإدارة — Italy Gateway</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;max-width:100%}
@@ -82,7 +82,7 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 
 <header>
 <h1>لوحة الإدارة</h1>
-<div class="sub">دليل فيزا إيطاليا من مصر — تحكم كامل في محتوى الموقع</div>
+<div class="sub">بوابة إيطاليا من مصر — تحكم كامل في محتوى الموقع</div>
 </header>
 
 <div class="container">
@@ -102,7 +102,8 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="tab-settings">الإعدادات العامة</button>
-  <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع</button>
+  <button class="tab-btn" data-tab="tab-visual">المحرر المرئي</button>
+  <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع (كود)</button>
 </div>
 
 <!-- ======================= SETTINGS TAB ======================= -->
@@ -138,12 +139,45 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   </div>
 
   <div class="card">
+    <div class="card-head"><h2>أمان لوحة الإدارة</h2></div>
+    <p class="small-note">غيّر كلمة مرور الدخول للوحة الإدارة من هنا مباشرة — من غير ما تلمس أي كود. لما تحفظ، أي شخص هيحاول يدخل بعد كده هيحتاج الباسورد الجديد.</p>
+    <div class="field" style="max-width:340px"><label>كلمة مرور لوحة الإدارة</label><input type="text" id="s_admin_pass" placeholder="اكتب كلمة مرور جديدة"></div>
+  </div>
+
+  <div class="card">
     <div class="card-head">
       <h2>حفظ الإعدادات</h2>
       <button class="btn-primary" id="settingsSaveBtn" onclick="saveSettings()">💾 حفظ ونشر على الموقع</button>
     </div>
     <p class="small-note">الحفظ بيعمل commit مباشر على GitHub، والموقع هيتحدث تلقائي خلال دقيقة أو اتنين.</p>
     <div class="msg" id="settingsMsg"></div>
+  </div>
+</div>
+
+<!-- ======================= VISUAL EDITOR TAB ======================= -->
+<div id="tab-visual" class="tabpage">
+  <div class="card">
+    <div class="card-head"><h2>المحرر المرئي — عدّل نصوص أي صفحة بفورم بسيط</h2></div>
+    <p class="small-note">اختار الصفحة اللي عايز تعدلها، واملأ بس الحقول اللي عايز تغيّرها (سيبها فاضية لو عايز تسيب النص زي ما هو — النص الافتراضي هيفضل شغال). كل حقل فاضي = بيفضل زي النص الأصلي المكتوب كمثال رمادي (placeholder) جوه الخانة.</p>
+    <div class="field" style="max-width:420px">
+      <label>اختار الصفحة</label>
+      <select id="vfPageSelect" onchange="loadVisualPage()">
+        <option value="">— اختار من القائمة —</option>
+        <option value="index.html">الصفحة الرئيسية (index.html)</option>
+          <option value="consultation.html">صفحة الاستشارات (consultation.html)</option>
+          <option value="services/study-visa.html">خدمة: تأشيرة الدراسة</option>
+          <option value="services/tourism-visa.html">خدمة: تأشيرة السياحة</option>
+          <option value="services/work-visa.html">خدمة: تأشيرة العمل</option>
+          <option value="services/family-reunification.html">خدمة: لمّ الشمل</option>
+          <option value="services/document-preparation.html">خدمة: تجهيز ومراجعة المستندات</option>
+          <option value="services/personal-consultation.html">خدمة: استشارة شخصية</option>
+      </select>
+    </div>
+    <div id="vfFieldsContainer"></div>
+    <div class="card-head" id="vfSaveRow" style="display:none">
+      <button class="btn-primary" id="vfSaveBtn" onclick="saveVisualPage()">💾 حفظ ونشر على الموقع</button>
+    </div>
+    <div class="msg" id="vfMsg"></div>
   </div>
 </div>
 
@@ -203,10 +237,18 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 <script>
 /* ======================================================================
    ACCESS GATE (simple client-side passphrase — deters casual visitors;
-   not a substitute for real auth. Change ADMIN_PASSPHRASE below anytime
-   via the File Editor tab.)
+   not a substitute for real auth. Stored in site-settings.json so it can
+   be changed from the "أمان لوحة الإدارة" field in Settings — no code
+   edits needed. This fallback is only used before that file loads.)
    ====================================================================== */
-const ADMIN_PASSPHRASE = "ItalyVisa2026!";
+let ADMIN_PASSPHRASE = "Ahmed123@";
+
+(function(){
+  fetch("https://raw.githubusercontent.com/ahmedeltayb372-del/italy-visa-guide/main/site-settings.json?t=" + Date.now(), {cache:"no-store"})
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { if(data && typeof data.admin_passphrase === "string" && data.admin_passphrase) ADMIN_PASSPHRASE = data.admin_passphrase; })
+    .catch(()=>{});
+})();
 
 function tryUnlock(){
   const val = document.getElementById("gatePass").value;
@@ -334,6 +376,7 @@ async function loadSettingsTab(){
   document.getElementById("s_stripe_inperson").value = g("stripe_inperson_url","en") || g("stripe_inperson_url","ar");
   document.getElementById("s_stripe_video").value = g("stripe_video_url","en") || g("stripe_video_url","ar");
   document.getElementById("s_stripe_voice").value = g("stripe_voice_url","en") || g("stripe_voice_url","ar");
+  document.getElementById("s_admin_pass").value = settingsData.admin_passphrase || ADMIN_PASSPHRASE || "";
 }
 
 async function saveSettings(){
@@ -350,8 +393,10 @@ async function saveSettings(){
       contact_instagram: bothLangs(document.getElementById("s_ig").value.trim()),
       stripe_inperson_url: bothLangs(document.getElementById("s_stripe_inperson").value.trim()),
       stripe_video_url: bothLangs(document.getElementById("s_stripe_video").value.trim()),
-      stripe_voice_url: bothLangs(document.getElementById("s_stripe_voice").value.trim())
+      stripe_voice_url: bothLangs(document.getElementById("s_stripe_voice").value.trim()),
+      admin_passphrase: document.getElementById("s_admin_pass").value.trim() || settingsData.admin_passphrase || ADMIN_PASSPHRASE
     });
+    if(newData.admin_passphrase) ADMIN_PASSPHRASE = newData.admin_passphrase;
     const jsonStr = JSON.stringify(newData, null, 2);
     const result = await ghPutFile("site-settings.json", jsonStr, settingsSha, "تحديث إعدادات الموقع من لوحة الإدارة");
     settingsSha = result.content ? result.content.sha : settingsSha;
@@ -418,6 +463,87 @@ async function saveFile(){
   } finally {
     btn.disabled = false; btn.textContent = original;
     document.getElementById("fileSaveBtn").disabled = !getPat();
+  }
+}
+
+/* ======================================================================
+   VISUAL EDITOR TAB (form-based content editor, no code required)
+   ====================================================================== */
+const VISUAL_SCHEMAS = {"index.html": [{"section": "قسم الهيرو (أعلى الصفحة)"}, {"key": "heroBadge", "label": "شارة الترحيب", "type": "text", "def": {"en": "🇮🇹 Welcome", "ar": "🇮🇹 أهلاً بيك"}}, {"key": "heroTitlePre", "label": "بداية العنوان الرئيسي", "type": "text", "def": {"en": "Your Gateway to", "ar": "بوابتك إلى"}}, {"key": "heroTitleAccent", "label": "الكلمة المميزة في العنوان", "type": "text", "def": {"en": "Italy", "ar": "إيطاليا"}}, {"key": "heroP", "label": "الوصف تحت العنوان", "type": "textarea", "def": {"en": "Independent guidance and consultation services for the Italian visa process from Egypt — study, tourism, work, and family reunification.", "ar": "إرشاد وخدمات استشارية مستقلة لإجراءات التأشيرة الإيطالية من مصر — دراسة، سياحة، عمل، ولمّ الشمل."}}, {"key": "exploreBtn", "label": "زرار \"استكشف خدماتنا\"", "type": "text", "def": {"en": "Explore Our Services", "ar": "استكشف خدماتنا"}}, {"key": "bookBtn2", "label": "زرار \"احجز استشارة\" في الهيرو", "type": "text", "def": {"en": "Book a Consultation", "ar": "احجز استشارة"}}, {"key": "mini1", "label": "نص صغير 1", "type": "text", "def": {"en": "Guidance & Consultation", "ar": "إرشاد واستشارات"}}, {"key": "mini2", "label": "نص صغير 2", "type": "text", "def": {"en": "Document Support", "ar": "دعم المستندات"}}, {"key": "badge1", "label": "الشارة العائمة 1", "type": "text", "def": {"en": "100% Free Guide", "ar": "دليل مجاني 100%"}}, {"key": "badge2", "label": "الشارة العائمة 2", "type": "text", "def": {"en": "8+ Services Available", "ar": "+8 خدمات متاحة"}}, {"section": "قسم \"ليه احنا\""}, {"key": "whyEyebrow", "label": "العنوان الصغير فوق", "type": "text", "def": {"en": "Why Us", "ar": "ليه احنا"}}, {"key": "whyTitle", "label": "العنوان الرئيسي", "type": "text", "def": {"en": "Why Choose This Guide?", "ar": "ليه تختار الدليل ده؟"}}, {"key": "whyP", "label": "الوصف", "type": "text", "def": {"en": "Independent, transparent support throughout your Italy journey", "ar": "دعم مستقل وشفاف طول رحلتك لإيطاليا"}}, {"key": "why1T", "label": "بطاقة 1 — العنوان", "type": "text", "def": {"en": "Clear Guidance", "ar": "إرشاد واضح"}}, {"key": "why1P", "label": "بطاقة 1 — الوصف", "type": "textarea", "def": {"en": "Organized, easy-to-follow information based on official sources.", "ar": "معلومات منظمة وسهلة مبنية على مصادر رسمية."}}, {"key": "why2T", "label": "بطاقة 2 — العنوان", "type": "text", "def": {"en": "Document Support", "ar": "دعم المستندات"}}, {"key": "why2P", "label": "بطاقة 2 — الوصف", "type": "textarea", "def": {"en": "Help preparing, reviewing and organizing your required paperwork.", "ar": "مساعدة في تجهيز ومراجعة وتنظيم أوراقك المطلوبة."}}, {"key": "why3T", "label": "بطاقة 3 — العنوان", "type": "text", "def": {"en": "Study & Work Focus", "ar": "تركيز على الدراسة والعمل"}}, {"key": "why3P", "label": "بطاقة 3 — الوصف", "type": "textarea", "def": {"en": "Guidance for university admission, work and family reunification cases.", "ar": "إرشاد لحالات القبول الجامعي، تأشيرة العمل، ولمّ الشمل."}}, {"key": "why4T", "label": "بطاقة 4 — العنوان", "type": "text", "def": {"en": "Ongoing Support", "ar": "دعم مستمر"}}, {"key": "why4P", "label": "بطاقة 4 — الوصف", "type": "textarea", "def": {"en": "From your first question to the day you travel, we're with you.", "ar": "من أول سؤال ليك لحد يوم سفرك، إحنا معاك."}}, {"section": "قسم \"خدماتنا\""}, {"key": "svcEyebrow", "label": "العنوان الصغير فوق", "type": "text", "def": {"en": "Our Services", "ar": "خدماتنا"}}, {"key": "svcTitle", "label": "العنوان الرئيسي", "type": "text", "def": {"en": "Everything You Need for Your Italy Journey", "ar": "كل اللي هتحتاجه لرحلتك إلى إيطاليا"}}, {"key": "svcP", "label": "الوصف", "type": "text", "def": {"en": "Guidance, consultation and document support — all in one place", "ar": "إرشاد، استشارات، ودعم مستندات في مكان واحد"}}, {"key": "svc1T", "label": "خدمة 1 — العنوان", "type": "text", "def": {"en": "Study Visa", "ar": "تأشيرة الدراسة"}}, {"key": "svc1P", "label": "خدمة 1 — الوصف", "type": "textarea", "def": {"en": "Guidance on university admission, enrollment documents, financial proof and accommodation.", "ar": "إرشاد بخصوص القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن."}}, {"key": "svc2T", "label": "خدمة 2 — العنوان", "type": "text", "def": {"en": "Tourism Visa", "ar": "تأشيرة السياحة"}}, {"key": "svc2P", "label": "خدمة 2 — الوصف", "type": "textarea", "def": {"en": "Help understanding the requirements and documents for a Schengen tourism visa.", "ar": "مساعدة في فهم متطلبات ومستندات تأشيرة شنغن السياحية."}}, {"key": "svc3T", "label": "خدمة 3 — العنوان", "type": "text", "def": {"en": "Work Visa", "ar": "تأشيرة العمل"}}, {"key": "svc3P", "label": "خدمة 3 — الوصف", "type": "textarea", "def": {"en": "General guidance on the work visa (Nulla Osta) pathway to Italy.", "ar": "إرشاد عام عن مسار تأشيرة العمل (Nulla Osta) لإيطاليا."}}, {"key": "svc4T", "label": "خدمة 4 — العنوان", "type": "text", "def": {"en": "Family Reunification", "ar": "لمّ الشمل"}}, {"key": "svc4P", "label": "خدمة 4 — الوصف", "type": "textarea", "def": {"en": "Support understanding the family reunification requirements and process.", "ar": "دعم لفهم متطلبات وإجراءات لمّ شمل الأسرة."}}, {"key": "svc5T", "label": "خدمة 5 — العنوان", "type": "text", "def": {"en": "Document Preparation & Review", "ar": "تجهيز ومراجعة المستندات"}}, {"key": "svc5P", "label": "خدمة 5 — الوصف", "type": "textarea", "def": {"en": "Professional review and organization of your required documentation.", "ar": "مراجعة احترافية وتنظيم لمستنداتك المطلوبة."}}, {"key": "svc6T", "label": "خدمة 6 — العنوان", "type": "text", "def": {"en": "Personal Consultation", "ar": "استشارة شخصية"}}, {"key": "svc6P", "label": "خدمة 6 — الوصف", "type": "textarea", "def": {"en": "Book a one-on-one session to discuss your specific case in detail.", "ar": "احجز جلسة فردية لمناقشة حالتك بالتفصيل."}}, {"section": "بانر الدعوة لحجز استشارة"}, {"key": "ctaTitle", "label": "العنوان", "type": "text", "def": {"en": "Need Personal Guidance for Your Italy Case?", "ar": "محتاج إرشاد شخصي لحالتك في إيطاليا؟"}}, {"key": "ctaP", "label": "الوصف", "type": "textarea", "def": {"en": "Get dedicated one-on-one time to discuss your situation — by chat, phone or video.", "ar": "احصل على وقت مخصص لمناقشة حالتك — عن طريق شات، تليفون أو فيديو كول."}}, {"section": "قسم \"عن الدليل\" (نص \"من نحن\" الكامل في تبويب الإعدادات العامة)"}, {"key": "aboutEyebrow", "label": "العنوان الصغير فوق", "type": "text", "def": {"en": "Our Story", "ar": "قصتنا"}}, {"key": "aboutTitle", "label": "العنوان الرئيسي", "type": "text", "def": {"en": "About This Guide", "ar": "عن الدليل ده"}}, {"section": "الأسئلة الشائعة (FAQ)"}, {"key": "faqEyebrow", "label": "العنوان الصغير فوق", "type": "text", "def": {"en": "FAQ", "ar": "أسئلة شائعة"}}, {"key": "faqTitle", "label": "العنوان الرئيسي", "type": "text", "def": {"en": "Frequently Asked Questions", "ar": "أكتر الأسئلة اللي بتوصلنا"}}, {"key": "faqP", "label": "الوصف", "type": "text", "def": {"en": "Quick answers to the questions we hear most", "ar": "إجابات سريعة على أكتر الأسئلة اللي بنسمعها"}}, {"key": "faq1q", "label": "سؤال 1", "type": "text", "def": {"en": "Is this an official government or embassy website?", "ar": "الموقع ده تابع لجهة رسمية أو سفارة؟"}}, {"key": "faq1a", "label": "إجابة 1", "type": "textarea", "def": {"en": "No. This is an independent informational guide and consultation service, not affiliated with any embassy, consulate or VFS Global. Always verify sensitive details (dates, fees, required documents) with the official source before making decisions.", "ar": "لأ، ده دليل معلوماتي وخدمة استشارية مستقلة، مش تابع لأي سفارة أو قنصلية أو VFS Global. دايمًا تأكد من التفاصيل الحساسة (مواعيد، رسوم، مستندات) من المصدر الرسمي قبل اتخاذ أي قرار."}}, {"key": "faq2q", "label": "سؤال 2", "type": "text", "def": {"en": "Do I need to create an account to use the guide?", "ar": "هل محتاج أعمل حساب عشان استخدم الدليل؟"}}, {"key": "faq2a", "label": "إجابة 2", "type": "textarea", "def": {"en": "Not at all — the guide is free to browse with no sign-up required.", "ar": "لأ خالص، الدليل متاح مجانًا من غير أي تسجيل."}}, {"key": "faq3q", "label": "سؤال 3", "type": "text", "def": {"en": "How can I book a consultation?", "ar": "إزاي أحجز استشارة؟"}}, {"key": "faq3a", "label": "إجابة 3", "type": "textarea", "def": {"en": "Use the \"Book a Consultation\" button or the contact form below, and we'll get back to you to schedule a time.", "ar": "استخدم زرار \"احجز استشارة\" أو فورم التواصل تحت، وهنرد عليك لتحديد ميعاد."}}, {"key": "faq4q", "label": "سؤال 4", "type": "text", "def": {"en": "Which visa types can you help with?", "ar": "بتساعدوا في أنهي أنواع تأشيرات؟"}}, {"key": "faq4a", "label": "إجابة 4", "type": "textarea", "def": {"en": "We provide guidance across study, tourism, work and family reunification cases.", "ar": "بنقدم إرشاد في حالات الدراسة، السياحة، العمل، ولمّ الشمل."}}, {"key": "faq5q", "label": "سؤال 5", "type": "text", "def": {"en": "Is the guide really free?", "ar": "الدليل مجاني فعلاً؟"}}, {"key": "faq5a", "label": "إجابة 5", "type": "textarea", "def": {"en": "Yes, browsing the guide and general information is 100% free. Personal consultations are discussed directly with you.", "ar": "أيوه، تصفح الدليل والمعلومات العامة مجاني 100%. الاستشارات الشخصية بنتناقش فيها معاك مباشرة."}}, {"key": "faq6q", "label": "سؤال 6", "type": "text", "def": {"en": "Where can I find official, binding information?", "ar": "فين ألاقي معلومات رسمية وملزمة؟"}}, {"key": "faq6a", "label": "إجابة 6", "type": "textarea", "def": {"en": "Always confirm official requirements, fees and timelines on the VFS Global or Italian Embassy website — this guide is for informational support only.", "ar": "دايمًا تأكد من المتطلبات والرسوم والمواعيد الرسمية من موقع VFS Global أو السفارة الإيطالية — الدليل ده لدعم معلوماتي بس."}}, {"section": "قسم التواصل"}, {"key": "contactEyebrow", "label": "العنوان الصغير فوق", "type": "text", "def": {"en": "Get in Touch", "ar": "تواصل معنا"}}, {"key": "contactTitle", "label": "العنوان الرئيسي", "type": "text", "def": {"en": "Contact Us", "ar": "اتصل بينا"}}, {"key": "contactP", "label": "الوصف", "type": "text", "def": {"en": "Ready to start your Italy journey? Reach out and we'll get back to you.", "ar": "جاهز تبدأ رحلتك لإيطاليا؟ تواصل معانا وهنرد عليك."}}, {"section": "الفوتر"}, {"key": "footerTagline", "label": "الشعار تحت اسم الموقع", "type": "text", "def": {"en": "Your Gateway to Italy", "ar": "بوابتك إلى إيطاليا"}}, {"key": "footerP", "label": "الوصف", "type": "textarea", "def": {"en": "Independent guidance and consultation services for your Italian visa journey.", "ar": "إرشاد وخدمات استشارية مستقلة لرحلة تأشيرتك الإيطالية."}}], "consultation.html": [{"section": "الهيدر"}, {"key": "badge", "label": "الشارة العلوية", "type": "text", "def": {"en": "1-ON-1 EXPERT GUIDANCE", "ar": "استشارة فردية متخصصة"}}, {"key": "title", "label": "العنوان الرئيسي", "type": "text", "def": {"en": "Book a Consultation", "ar": "احجز استشارة"}}, {"key": "sub", "label": "العنوان الفرعي", "type": "text", "def": {"en": "Need personalized guidance regarding your case in Italy?", "ar": "محتاج إرشاد شخصي بخصوص حالتك في إيطاليا؟"}}, {"key": "desc", "label": "الوصف", "type": "textarea", "def": {"en": "Our consultation service gives you dedicated one-on-one time with a specialist to review your situation and outline your options based on your individual case.", "ar": "خدمة الاستشارة بتديك وقت مخصص لواحد لواحد مع مستشار لمراجعة حالتك وتوضيح خياراتك على حسب ظروفك الشخصية."}}, {"key": "notice", "label": "ملاحظة الدفع", "type": "textarea", "def": {"en": "If you decide to proceed with the service discussed during your consultation, the consultation fee may be deducted from the total cost of that service.", "ar": "لو قررت تكمل في الخدمة اللي اتكلمنا عليها في الاستشارة، ممكن يتم خصم رسوم الاستشارة من إجمالي تكلفة الخدمة."}}, {"section": "أنواع الاستشارات"}, {"key": "chooseTitle", "label": "عنوان قسم الاختيار", "type": "text", "def": {"en": "Choose your consultation type", "ar": "اختار نوع الاستشارة"}}, {"key": "t1Title", "label": "النوع 1 — العنوان (حضورية)", "type": "text", "def": {"en": "In-Person Consultation", "ar": "استشارة حضورية"}}, {"key": "t1Desc", "label": "النوع 1 — الوصف", "type": "textarea", "def": {"en": "Meet with one of our advisors in person for a private 60-minute consultation about your case.", "ar": "قابل أحد مستشارينا وجهًا لوجه في جلسة خاصة مدتها 60 دقيقة لمناقشة حالتك."}}, {"key": "t2Title", "label": "النوع 2 — العنوان (فيديو)", "type": "text", "def": {"en": "Video Consultation", "ar": "استشارة فيديو"}}, {"key": "t2Desc", "label": "النوع 2 — الوصف", "type": "textarea", "def": {"en": "Book a private 60-minute video meeting from anywhere in the world. Ideal for clients who prefer a face-to-face online consultation.", "ar": "احجز مكالمة فيديو خاصة مدتها 60 دقيقة من أي مكان في العالم. مناسبة لو بتفضل استشارة أونلاين وجهًا لوجه."}}, {"key": "t3Title", "label": "النوع 3 — العنوان (صوتية)", "type": "text", "def": {"en": "Voice Consultation", "ar": "استشارة صوتية"}}, {"key": "t3Desc", "label": "النوع 3 — الوصف", "type": "textarea", "def": {"en": "Speak directly with one of our advisors through a private 60-minute voice call — perfect for discussing your questions without a video meeting.", "ar": "اتكلم مباشرة مع أحد مستشارينا في مكالمة صوتية خاصة مدتها 60 دقيقة — مثالية لمناقشة أسئلتك من غير فيديو."}}, {"key": "duration", "label": "كلمة \"المدة\"", "type": "text", "def": {"en": "Duration", "ar": "المدة"}}, {"key": "durVal", "label": "قيمة المدة", "type": "text", "def": {"en": "60 Minutes", "ar": "60 دقيقة"}}, {"key": "price", "label": "كلمة \"السعر\"", "type": "text", "def": {"en": "Price", "ar": "السعر"}}, {"key": "book1", "label": "زرار حجز 1", "type": "text", "def": {"en": "Book In-Person Consultation", "ar": "احجز استشارة حضورية"}}, {"key": "book2", "label": "زرار حجز 2", "type": "text", "def": {"en": "Book Video Consultation", "ar": "احجز استشارة فيديو"}}, {"key": "book3", "label": "زرار حجز 3", "type": "text", "def": {"en": "Book Voice Consultation", "ar": "احجز استشارة صوتية"}}, {"section": "بعد الحجز"}, {"key": "afterTitle", "label": "العنوان", "type": "text", "def": {"en": "✅ After Booking", "ar": "✅ بعد الحجز"}}, {"key": "after1", "label": "نقطة 1", "type": "textarea", "def": {"en": "Tap a button above to send us your booking request on WhatsApp with the consultation type you chose.", "ar": "دوس على أي زرار فوق عشان تبعتلنا طلب الحجز على واتساب مع نوع الاستشارة اللي اخترتها."}}, {"key": "after2", "label": "نقطة 2", "type": "textarea", "def": {"en": "Our team will get back to you to confirm your appointment and share all the details you need before your consultation.", "ar": "فريقنا هيتواصل معاك لتأكيد الموعد ويديك كل التفاصيل اللي محتاجها قبل الاستشارة."}}], "services/study-visa.html": [{"key": "cat", "label": "التصنيف (فوق العنوان)", "type": "text", "def": {"en": "Visa", "ar": "تأشيرة"}}, {"key": "title", "label": "عنوان الخدمة", "type": "text", "def": {"en": "Study Visa", "ar": "تأشيرة الدراسة"}}, {"key": "desc", "label": "وصف الخدمة", "type": "textarea", "def": {"en": "Guidance on university admission, enrollment documents, financial proof and accommodation. Get in touch to discuss your specific situation and next steps.", "ar": "إرشاد بخصوص القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن. تواصل معنا لمناقشة حالتك والخطوات القادمة."}}], "services/tourism-visa.html": [{"key": "cat", "label": "التصنيف (فوق العنوان)", "type": "text", "def": {"en": "Visa", "ar": "تأشيرة"}}, {"key": "title", "label": "عنوان الخدمة", "type": "text", "def": {"en": "Tourism Visa", "ar": "تأشيرة السياحة"}}, {"key": "desc", "label": "وصف الخدمة", "type": "textarea", "def": {"en": "Help understanding the requirements and documents for a Schengen tourism visa. Get in touch to discuss your specific situation and next steps.", "ar": "مساعدة في فهم متطلبات ومستندات تأشيرة شنغن السياحية. تواصل معنا لمناقشة حالتك والخطوات القادمة."}}], "services/work-visa.html": [{"key": "cat", "label": "التصنيف (فوق العنوان)", "type": "text", "def": {"en": "Visa", "ar": "تأشيرة"}}, {"key": "title", "label": "عنوان الخدمة", "type": "text", "def": {"en": "Work Visa", "ar": "تأشيرة العمل"}}, {"key": "desc", "label": "وصف الخدمة", "type": "textarea", "def": {"en": "General guidance on the work visa (Nulla Osta) pathway to Italy. Get in touch to discuss your specific situation and next steps.", "ar": "إرشاد عام عن مسار تأشيرة العمل (Nulla Osta) لإيطاليا. تواصل معنا لمناقشة حالتك والخطوات القادمة."}}], "services/family-reunification.html": [{"key": "cat", "label": "التصنيف (فوق العنوان)", "type": "text", "def": {"en": "Service", "ar": "خدمة"}}, {"key": "title", "label": "عنوان الخدمة", "type": "text", "def": {"en": "Family Reunification", "ar": "لمّ الشمل"}}, {"key": "desc", "label": "وصف الخدمة", "type": "textarea", "def": {"en": "Support understanding the family reunification requirements and process. Get in touch to discuss your specific situation and next steps.", "ar": "دعم لفهم متطلبات وإجراءات لمّ شمل الأسرة. تواصل معنا لمناقشة حالتك والخطوات القادمة."}}], "services/document-preparation.html": [{"key": "cat", "label": "التصنيف (فوق العنوان)", "type": "text", "def": {"en": "Service", "ar": "خدمة"}}, {"key": "title", "label": "عنوان الخدمة", "type": "text", "def": {"en": "Document Preparation & Review", "ar": "تجهيز ومراجعة المستندات"}}, {"key": "desc", "label": "وصف الخدمة", "type": "textarea", "def": {"en": "Professional review and organization of your required documentation. Get in touch to discuss your specific situation and next steps.", "ar": "مراجعة احترافية وتنظيم لمستنداتك المطلوبة. تواصل معنا لمناقشة حالتك والخطوات القادمة."}}], "services/personal-consultation.html": [{"key": "cat", "label": "التصنيف (فوق العنوان)", "type": "text", "def": {"en": "Service", "ar": "خدمة"}}, {"key": "title", "label": "عنوان الخدمة", "type": "text", "def": {"en": "Personal Consultation", "ar": "استشارة شخصية"}}, {"key": "desc", "label": "وصف الخدمة", "type": "textarea", "def": {"en": "Book a one-on-one session to discuss your specific case in detail. Get in touch to discuss your specific situation and next steps.", "ar": "احجز جلسة فردية لمناقشة حالتك بالتفصيل. تواصل معنا لمناقشة حالتك والخطوات القادمة."}}]};
+
+let vfCurrentPage = null;
+let vfAllOverrides = null;
+let vfOverridesSha = null;
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+async function loadVisualPage(){
+  const page = document.getElementById("vfPageSelect").value;
+  const container = document.getElementById("vfFieldsContainer");
+  const saveRow = document.getElementById("vfSaveRow");
+  document.getElementById("vfMsg").style.display = "none";
+  if(!page){ container.innerHTML = ""; saveRow.style.display = "none"; return; }
+  vfCurrentPage = page;
+  container.innerHTML = "<p class='small-note'>جاري التحميل...</p>";
+  try{
+    const r = await ghGetFile("content-overrides.json");
+    vfOverridesSha = r.sha;
+    vfAllOverrides = r.exists ? JSON.parse(r.content) : {};
+  }catch(e){
+    vfAllOverrides = {};
+    showMsg("vfMsg", "تعذر تحميل الإعدادات الحالية: " + e.message, "error");
+  }
+  const pageOverrides = vfAllOverrides[page] || {};
+  const fields = VISUAL_SCHEMAS[page] || [];
+  let html = "";
+  fields.forEach(f=>{
+    if(f.section){
+      html += '<h3 style="margin:22px 0 10px;font-size:15.5px;color:#2457ff;border-top:1px solid #eef1f7;padding-top:18px">' + escapeHtml(f.section) + '</h3>';
+      return;
+    }
+    const cur = pageOverrides[f.key] || {};
+    const arField = f.type === "textarea"
+      ? '<textarea rows="3" style="font-family:inherit;direction:rtl;text-align:right" data-vf-key="'+f.key+'" data-vf-lang="ar" placeholder="'+escapeHtml(f.def.ar)+'">'+escapeHtml(cur.ar||"")+'</textarea>'
+      : '<input type="text" style="direction:rtl;text-align:right" data-vf-key="'+f.key+'" data-vf-lang="ar" placeholder="'+escapeHtml(f.def.ar)+'" value="'+escapeHtml(cur.ar||"")+'">';
+    const enField = f.type === "textarea"
+      ? '<textarea rows="3" style="font-family:inherit;direction:ltr;text-align:left" data-vf-key="'+f.key+'" data-vf-lang="en" placeholder="'+escapeHtml(f.def.en)+'">'+escapeHtml(cur.en||"")+'</textarea>'
+      : '<input type="text" style="direction:ltr;text-align:left" data-vf-key="'+f.key+'" data-vf-lang="en" placeholder="'+escapeHtml(f.def.en)+'" value="'+escapeHtml(cur.en||"")+'">';
+    html += '<div class="field"><label>'+escapeHtml(f.label)+'</label><div class="row2">' +
+      '<div><div class="small-note" style="margin-bottom:4px">عربي</div>'+arField+'</div>' +
+      '<div><div class="small-note" style="margin-bottom:4px">English</div>'+enField+'</div>' +
+      '</div></div>';
+  });
+  container.innerHTML = html;
+  saveRow.style.display = "flex";
+}
+
+async function saveVisualPage(){
+  if(!vfCurrentPage) return;
+  const btn = document.getElementById("vfSaveBtn");
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    const fields = VISUAL_SCHEMAS[vfCurrentPage] || [];
+    const pageData = {};
+    fields.forEach(f=>{
+      if(!f.key) return;
+      const arEl = document.querySelector('[data-vf-key="'+f.key+'"][data-vf-lang="ar"]');
+      const enEl = document.querySelector('[data-vf-key="'+f.key+'"][data-vf-lang="en"]');
+      const arVal = arEl ? arEl.value.trim() : "";
+      const enVal = enEl ? enEl.value.trim() : "";
+      if(arVal || enVal){ pageData[f.key] = { ar: arVal, en: enVal }; }
+    });
+    vfAllOverrides[vfCurrentPage] = pageData;
+    const jsonStr = JSON.stringify(vfAllOverrides, null, 2);
+    const result = await ghPutFile("content-overrides.json", jsonStr, vfOverridesSha, "تحديث محتوى " + vfCurrentPage + " من المحرر المرئي");
+    vfOverridesSha = result.content ? result.content.sha : vfOverridesSha;
+    showMsg("vfMsg", "تم الحفظ والنشر بنجاح ✅ — التعديلات هتظهر على الموقع خلال دقيقة أو اتنين.", "ok");
+  }catch(e){
+    showMsg("vfMsg", e.message, "error");
+  } finally {
+    btn.disabled = false; btn.textContent = original;
   }
 }
 
