@@ -1,7 +1,7 @@
 {
   "about_text": {
-    "ar": "منصة دليل فيزا إيطاليا من مصر منصة معلوماتية مستقلة، هدفها إنها تساعدك تفهم رحلة التأشيرة الإيطالية خطوة بخطوة، من غير تعقيد ومن غير معلومات ناقصة.",
-    "en": "Italy Visa Guide — Egypt is an independent informational platform that helps you understand the Italian visa journey step by step, clearly and reliably."
+    "ar": "منصة بوابة إيطاليا من مصر منصة معلوماتية مستقلة، هدفها إنها تساعدك تفهم رحلة التأشيرة الإيطالية خطوة بخطوة، من غير تعقيد ومن غير معلومات ناقصة.",
+    "en": "Italy Gateway — Egypt is an independent informational platform that helps you understand the Italian visa journey step by step, clearly and reliably."
   },
   "contact_email": {
     "ar": "ahmedeltayb372@gmail.com",
@@ -30,5 +30,6 @@
   "stripe_voice_url": {
     "ar": "",
     "en": ""
-  }
+  },
+  "admin_passphrase": "Ahmed123@"
 }
