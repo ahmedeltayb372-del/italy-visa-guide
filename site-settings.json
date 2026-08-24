@@ -31,5 +31,7 @@
     "ar": "",
     "en": ""
   },
-  "admin_passphrase": "Ahmed123@"
+  "admin_passphrase": "Ahmed123@",
+  "ga_measurement_id": "",
+  "requests_webhook_url": ""
 }
