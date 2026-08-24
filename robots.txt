@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /site-settings.json
+Disallow: /content-overrides.json
+Disallow: /testimonials.json
+
+Sitemap: https://ahmedeltayb372-del.github.io/italy-visa-guide/sitemap.xml
