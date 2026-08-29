@@ -104,6 +104,8 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   <button class="tab-btn active" data-tab="tab-settings">الإعدادات العامة</button>
   <button class="tab-btn" data-tab="tab-visual">المحرر المرئي</button>
   <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع (كود)</button>
+  <button class="tab-btn" data-tab="tab-testimonials">آراء العملاء</button>
+  <button class="tab-btn" data-tab="tab-media">الوسائط والصور</button>
 </div>
 
 <!-- ======================= SETTINGS TAB ======================= -->
@@ -136,6 +138,15 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
     <div class="field"><label>استشارة حضورية — In-Person ($150)</label><input type="text" id="s_stripe_inperson" placeholder="https://buy.stripe.com/..."></div>
     <div class="field"><label>استشارة فيديو — Video ($75)</label><input type="text" id="s_stripe_video" placeholder="https://buy.stripe.com/..."></div>
     <div class="field"><label>استشارة صوتية — Voice ($50)</label><input type="text" id="s_stripe_voice" placeholder="https://buy.stripe.com/..."></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>التحليلات وطلبات التواصل</h2></div>
+    <p class="small-note">حط الـ Google Analytics Measurement ID عشان تتابع زوار موقعك، ورابط Google Sheets Webhook عشان كل رسالة من فورم التواصل تتسجل تلقائي في شيت خاص بيك (إضافة لإرسالها بالإيميل). سيب أي خانة فاضية لو مش عايز الخاصية دي.</p>
+    <div class="row2">
+      <div class="field"><label>Google Analytics Measurement ID</label><input type="text" id="s_ga_id" placeholder="G-XXXXXXXXXX"></div>
+      <div class="field"><label>رابط Google Sheets Webhook</label><input type="text" id="s_webhook" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -232,6 +243,39 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   </div>
 </div>
 
+<!-- ======================= TESTIMONIALS TAB ======================= -->
+<div id="tab-testimonials" class="tabpage">
+  <div class="card">
+    <div class="card-head">
+      <h2>آراء العملاء (Testimonials)</h2>
+      <button class="btn-primary" onclick="addTestimonial()">+ إضافة رأي جديد</button>
+    </div>
+    <p class="small-note">آراء العملاء دي بتظهر في قسم "آراء العملاء" بالصفحة الرئيسية. لو مفيش آراء، القسم بيتخفي تلقائي من نفسه.</p>
+    <div id="testimonialsList"></div>
+    <div class="card-head" style="margin-top:14px">
+      <button class="btn-primary" id="testimonialsSaveBtn" onclick="saveTestimonials()">💾 حفظ ونشر على الموقع</button>
+    </div>
+    <div class="msg" id="testimonialsMsg"></div>
+  </div>
+</div>
+
+<!-- ======================= MEDIA TAB ======================= -->
+<div id="tab-media" class="tabpage">
+  <div class="card">
+    <div class="card-head"><h2>رفع صورة جديدة</h2></div>
+    <p class="small-note">ارفع صورة (JPG/PNG/WebP) وهتترفع في مجلد <code>media/</code> على GitHub، وهيديك رابط مباشر تقدر تستخدمه في أي مكان بالموقع.</p>
+    <div class="file-row">
+      <div class="field"><label>اختار صورة</label><input type="file" id="mediaFileInput" accept="image/*"></div>
+      <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="btn-primary" id="mediaUploadBtn" onclick="uploadMedia()">⬆️ رفع</button></div>
+    </div>
+    <div class="msg" id="mediaMsg"></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>الصور المرفوعة</h2><button class="btn-outline" onclick="loadMediaList()">🔄 تحديث القائمة</button></div>
+    <div id="mediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px"></div>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -267,12 +311,16 @@ if(sessionStorage.getItem("admin_unlocked") === "1"){
 /* ======================================================================
    TABS
    ====================================================================== */
+let testimonialsLoaded = false;
+let mediaLoaded = false;
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
     document.querySelectorAll(".tabpage").forEach(p=>p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(btn.dataset.tab).classList.add("active");
+    if(btn.dataset.tab === "tab-testimonials" && !testimonialsLoaded){ testimonialsLoaded = true; loadTestimonialsTab(); }
+    if(btn.dataset.tab === "tab-media" && !mediaLoaded){ mediaLoaded = true; loadMediaList(); }
   });
 });
 
@@ -377,6 +425,8 @@ async function loadSettingsTab(){
   document.getElementById("s_stripe_video").value = g("stripe_video_url","en") || g("stripe_video_url","ar");
   document.getElementById("s_stripe_voice").value = g("stripe_voice_url","en") || g("stripe_voice_url","ar");
   document.getElementById("s_admin_pass").value = settingsData.admin_passphrase || ADMIN_PASSPHRASE || "";
+  document.getElementById("s_ga_id").value = settingsData.ga_measurement_id || "";
+  document.getElementById("s_webhook").value = settingsData.requests_webhook_url || "";
 }
 
 async function saveSettings(){
@@ -392,6 +442,8 @@ async function saveSettings(){
       contact_facebook: bothLangs(document.getElementById("s_fb").value.trim()),
       contact_instagram: bothLangs(document.getElementById("s_ig").value.trim()),
       stripe_inperson_url: bothLangs(document.getElementById("s_stripe_inperson").value.trim()),
+      ga_measurement_id: document.getElementById("s_ga_id").value.trim(),
+      requests_webhook_url: document.getElementById("s_webhook").value.trim(),
       stripe_video_url: bothLangs(document.getElementById("s_stripe_video").value.trim()),
       stripe_voice_url: bothLangs(document.getElementById("s_stripe_voice").value.trim()),
       admin_passphrase: document.getElementById("s_admin_pass").value.trim() || settingsData.admin_passphrase || ADMIN_PASSPHRASE
@@ -544,6 +596,184 @@ async function saveVisualPage(){
     showMsg("vfMsg", e.message, "error");
   } finally {
     btn.disabled = false; btn.textContent = original;
+  }
+}
+
+/* ======================================================================
+   TESTIMONIALS TAB (testimonials.json)
+   ====================================================================== */
+let testimonialsData = [];
+let testimonialsSha = null;
+
+async function loadTestimonialsTab(){
+  const wrap = document.getElementById("testimonialsList");
+  wrap.innerHTML = "<p class='small-note'>جاري التحميل...</p>";
+  try{
+    const r = await ghGetFile("testimonials.json");
+    testimonialsSha = r.sha;
+    testimonialsData = (r.exists && r.content) ? JSON.parse(r.content) : [];
+    if(!Array.isArray(testimonialsData)) testimonialsData = [];
+  }catch(e){
+    testimonialsData = [];
+    showMsg("testimonialsMsg", "تعذر تحميل آراء العملاء: " + e.message, "error");
+  }
+  renderTestimonialsList();
+}
+
+function renderTestimonialsList(){
+  const wrap = document.getElementById("testimonialsList");
+  if(!testimonialsData.length){
+    wrap.innerHTML = '<p class="small-note">مفيش آراء لسه. دوس "+ إضافة رأي جديد" عشان تضيف أول رأي.</p>';
+    return;
+  }
+  wrap.innerHTML = testimonialsData.map((t,i)=>{
+    const name = t.name || {ar:"",en:""};
+    const service = t.service || {ar:"",en:""};
+    const text = t.text || {ar:"",en:""};
+    const rating = t.rating || 5;
+    let ratingOptions = "";
+    for(let n=1; n<=5; n++){ ratingOptions += '<option value="'+n+'" '+(rating==n?"selected":"")+'>'+n+' نجوم</option>'; }
+    return '<div class="card" style="background:#f9fafc;box-shadow:none;border:1px solid #eef1f7">' +
+      '<div class="card-head"><h2 style="font-size:15px">رأي #' + (i+1) + '</h2>' +
+      '<button class="btn-danger" onclick="removeTestimonial('+i+')">حذف</button></div>' +
+      '<div class="row2">' +
+        '<div class="field"><label>الاسم (عربي)</label><input type="text" style="direction:rtl;text-align:right" data-t-idx="'+i+'" data-t-key="name" data-t-lang="ar" value="'+escapeHtml(name.ar||"")+'"></div>' +
+        '<div class="field"><label>Name (English)</label><input type="text" data-t-idx="'+i+'" data-t-key="name" data-t-lang="en" value="'+escapeHtml(name.en||"")+'"></div>' +
+      '</div>' +
+      '<div class="row2">' +
+        '<div class="field"><label>الخدمة (عربي)</label><input type="text" style="direction:rtl;text-align:right" data-t-idx="'+i+'" data-t-key="service" data-t-lang="ar" value="'+escapeHtml(service.ar||"")+'"></div>' +
+        '<div class="field"><label>Service (English)</label><input type="text" data-t-idx="'+i+'" data-t-key="service" data-t-lang="en" value="'+escapeHtml(service.en||"")+'"></div>' +
+      '</div>' +
+      '<div class="row2">' +
+        '<div class="field"><label>الرأي (عربي)</label><textarea rows="3" style="font-family:inherit;direction:rtl;text-align:right" data-t-idx="'+i+'" data-t-key="text" data-t-lang="ar">'+escapeHtml(text.ar||"")+'</textarea></div>' +
+        '<div class="field"><label>Review (English)</label><textarea rows="3" style="font-family:inherit" data-t-idx="'+i+'" data-t-key="text" data-t-lang="en">'+escapeHtml(text.en||"")+'</textarea></div>' +
+      '</div>' +
+      '<div class="field" style="max-width:160px"><label>التقييم</label><select data-t-idx="'+i+'" data-t-key="rating">' + ratingOptions + '</select></div>' +
+    '</div>';
+  }).join("");
+}
+
+function addTestimonial(){
+  testimonialsData.push({name:{ar:"",en:""}, service:{ar:"",en:""}, text:{ar:"",en:""}, rating:5});
+  renderTestimonialsList();
+}
+function removeTestimonial(i){
+  testimonialsData.splice(i,1);
+  renderTestimonialsList();
+}
+
+function syncTestimonialsFromForm(){
+  document.querySelectorAll("#testimonialsList [data-t-idx]").forEach(el=>{
+    const idx = parseInt(el.dataset.tIdx, 10);
+    const key = el.dataset.tKey;
+    if(!testimonialsData[idx]) return;
+    if(key === "rating"){
+      testimonialsData[idx].rating = parseInt(el.value, 10) || 5;
+    } else {
+      const lang = el.dataset.tLang;
+      if(!testimonialsData[idx][key]) testimonialsData[idx][key] = {ar:"",en:""};
+      testimonialsData[idx][key][lang] = el.value.trim();
+    }
+  });
+}
+
+async function saveTestimonials(){
+  const btn = document.getElementById("testimonialsSaveBtn");
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الحفظ...";
+  try{
+    syncTestimonialsFromForm();
+    const jsonStr = JSON.stringify(testimonialsData, null, 2);
+    const result = await ghPutFile("testimonials.json", jsonStr, testimonialsSha, "تحديث آراء العملاء من لوحة الإدارة");
+    testimonialsSha = result.content ? result.content.sha : testimonialsSha;
+    showMsg("testimonialsMsg", "تم الحفظ والنشر بنجاح ✅ — التعديلات هتظهر على الموقع خلال دقيقة أو اتنين.", "ok");
+  }catch(e){
+    showMsg("testimonialsMsg", e.message, "error");
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+/* ======================================================================
+   MEDIA TAB (image upload to media/ folder via GitHub Contents API)
+   ====================================================================== */
+async function uploadMedia(){
+  const input = document.getElementById("mediaFileInput");
+  const file = input.files[0];
+  if(!file){ showMsg("mediaMsg", "اختار صورة الأول", "error"); return; }
+  if(!getPat()){ showMsg("mediaMsg", "لازم تربط GitHub Token الأول من فوق", "error"); return; }
+  const btn = document.getElementById("mediaUploadBtn");
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = "جاري الرفع...";
+  const reader = new FileReader();
+  reader.onload = async function(){
+    try{
+      const b64 = reader.result.split(",")[1];
+      const safeName = Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = "media/" + safeName;
+      const pat = getPat();
+      const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+        method: "PUT",
+        headers: { Authorization: "token " + pat, "Content-Type": "application/json", Accept: "application/vnd.github+json" },
+        body: JSON.stringify({ message: "رفع صورة من لوحة الإدارة: " + safeName, content: b64, branch: GH_BRANCH })
+      });
+      if(!res.ok) throw new Error("فشل الرفع (" + res.status + "): " + (await res.text()).slice(0,300));
+      const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+      showMsg("mediaMsg", "تم الرفع بنجاح ✅ — الرابط: " + rawUrl, "ok");
+      input.value = "";
+      loadMediaList();
+    }catch(e){
+      showMsg("mediaMsg", e.message, "error");
+    } finally {
+      btn.disabled = false; btn.textContent = original;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function loadMediaList(){
+  const grid = document.getElementById("mediaGrid");
+  grid.innerHTML = '<p class="small-note">جاري التحميل...</p>';
+  try{
+    const pat = getPat();
+    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/media?ref=${GH_BRANCH}`, {
+      headers: pat ? { Authorization: "token " + pat, Accept: "application/vnd.github+json" } : { Accept: "application/vnd.github+json" }
+    });
+    if(res.status === 404){ grid.innerHTML = '<p class="small-note">مفيش صور مرفوعة لسه.</p>'; return; }
+    if(!res.ok) throw new Error("تعذر تحميل القائمة (" + res.status + ")");
+    const files = await res.json();
+    if(!Array.isArray(files) || !files.length){ grid.innerHTML = '<p class="small-note">مفيش صور مرفوعة لسه.</p>'; return; }
+    grid.innerHTML = files.map(f => {
+      const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/media/${f.name}`;
+      return '<div style="border:1px solid #eef1f7;border-radius:10px;padding:8px;text-align:center">' +
+        '<img src="'+rawUrl+'" style="width:100%;height:90px;object-fit:cover;border-radius:6px;margin-bottom:6px" loading="lazy">' +
+        '<div style="font-size:11px;word-break:break-all;color:#667085;margin-bottom:6px">'+escapeHtml(f.name)+'</div>' +
+        '<button class="btn-outline" style="width:100%;font-size:12px;padding:6px;margin-bottom:4px" onclick="copyMediaUrl(\''+rawUrl+'\')">نسخ الرابط</button>' +
+        '<button class="btn-danger" style="width:100%;font-size:12px;padding:6px" onclick="deleteMedia(\''+f.name+'\',\''+f.sha+'\')">حذف</button>' +
+      '</div>';
+    }).join("");
+  }catch(e){
+    grid.innerHTML = '<p class="small-note" style="color:#b42318">'+escapeHtml(e.message)+'</p>';
+  }
+}
+
+function copyMediaUrl(url){
+  navigator.clipboard.writeText(url).then(()=> showMsg("mediaMsg", "تم نسخ الرابط ✅", "ok")).catch(()=>{});
+}
+
+async function deleteMedia(name, sha){
+  if(!confirm("متأكد عايز تحذف " + name + "؟")) return;
+  try{
+    const pat = getPat();
+    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/media/${encodeURIComponent(name)}`, {
+      method: "DELETE",
+      headers: { Authorization: "token " + pat, "Content-Type": "application/json", Accept: "application/vnd.github+json" },
+      body: JSON.stringify({ message: "حذف صورة من لوحة الإدارة: " + name, sha: sha, branch: GH_BRANCH })
+    });
+    if(!res.ok) throw new Error("فشل الحذف (" + res.status + ")");
+    loadMediaList();
+  }catch(e){
+    showMsg("mediaMsg", e.message, "error");
   }
 }
 
