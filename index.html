@@ -144,6 +144,9 @@ h2{font-size:clamp(26px,3.6vw,40px);line-height:1.2;margin:0 0 10px;color:var(--
   .t-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
   .t-name{font-weight:800;font-size:14px;color:var(--navy)}
   .t-service{font-size:12.5px;color:var(--muted)}
+  .star-picker{display:flex;gap:6px;font-size:26px;color:#d7dbe6;cursor:pointer;user-select:none}
+  .star-picker span{transition:color .15s}
+  .star-picker span.active{color:#f5a623}
   @media(max-width:980px){.t-grid{grid-template-columns:1fr}}
 </style>
 
@@ -192,7 +195,9 @@ const i18n = {
     linkHome:"Home", linkServices:"Services", linkWhy:"Why Us", linkAbout:"About", linkFaq:"FAQ", linkContact:"Contact",
     rights:"© 2026 Italy Gateway. All rights reserved.", lang:"العربية",
     aboutFallback:"This guide is built and maintained independently to help Egyptians understand the Italian visa process and get organized, reliable support along the way.",
-    testimonialsEyebrow:"Testimonials", testimonialsTitle:"What Our Clients Say", testimonialsP:"Real feedback from people we helped along their Italy visa journey"
+    testimonialsEyebrow:"Testimonials", testimonialsTitle:"What Our Clients Say", testimonialsP:"Real feedback from people we helped along their Italy visa journey",
+    reviewFormEyebrow:"Share Your Experience", reviewFormTitle:"Add Your Review", reviewFormP:"Tell other visitors about your experience with us. Your review will be checked before it appears publicly.",
+    rfName:"Your Name *", rfRating:"Your Rating", rfText:"Your Review *", rfSend:"Submit Review", rfNote:"* Reviews are checked before publishing \u2014 it won\u2019t appear immediately.", rfSending:"Sending...", rfSent:"Thanks! Your review has been sent and will appear after it\u2019s reviewed.", rfFailed:"Something went wrong \u2014 please try again later."
   },
   ar: {
     brand:"بوابة إيطاليا",
@@ -236,7 +241,9 @@ const i18n = {
     linkHome:"الرئيسية", linkServices:"خدماتنا", linkWhy:"ليه احنا", linkAbout:"من نحن", linkFaq:"أسئلة شائعة", linkContact:"تواصل",
     rights:"© 2026 بوابة إيطاليا. جميع الحقوق محفوظة.", lang:"English",
     aboutFallback:"الدليل ده متبني ومتدار بشكل مستقل عشان يساعد المصريين يفهموا إجراءات التأشيرة الإيطالية، ويحصلوا على دعم منظم وموثوق طول الطريق.",
-    testimonialsEyebrow:"آراء العملاء", testimonialsTitle:"إيه رأي عملائنا", testimonialsP:"آراء حقيقية من ناس ساعدناهم في رحلة تأشيرتهم لإيطاليا"
+    testimonialsEyebrow:"آراء العملاء", testimonialsTitle:"إيه رأي عملائنا", testimonialsP:"آراء حقيقية من ناس ساعدناهم في رحلة تأشيرتهم لإيطاليا",
+    reviewFormEyebrow:"شاركنا تجربتك", reviewFormTitle:"اضف تقييمك", reviewFormP:"احكيلنا عن تجربتك معانا. تقييمك هيتم مراجعته الأول قبل ما يظهر للزوار.",
+    rfName:"اسمك *", rfRating:"تقييمك", rfText:"رأيك *", rfSend:"إرسال التقييم", rfNote:"* التقييمات بتتم مراجعتها قبل النشر \u2014 مش هتظهر فورًا.", rfSending:"جاري الإرسال...", rfSent:"شكرًا! تقييمك اتبعت وهيظهر بعد المراجعة.", rfFailed:"حصلت مشكلة \u2014 حاول تاني بعدين."
   }
 };
 function applyLang(){
@@ -387,6 +394,43 @@ document.addEventListener("DOMContentLoaded", applyLang);
       <p data-i18n="testimonialsP">Real feedback from people we helped along their Italy visa journey</p>
     </div>
     <div class="t-grid" id="testimonialsGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="addReviewSection" style="background:#fff">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow" data-i18n="reviewFormEyebrow">Share Your Experience</span>
+      <h2 data-i18n="reviewFormTitle">Add Your Review</h2>
+      <p data-i18n="reviewFormP">Tell other visitors about your experience with us. Your review will be checked before it appears publicly.</p>
+    </div>
+    <div class="form-card reveal" style="max-width:560px;margin:0 auto">
+      <form id="reviewForm">
+        <div class="form-field" style="margin-bottom:14px"><label data-i18n="rfName">Your Name *</label><input type="text" id="rfName" required></div>
+        <div class="form-field" style="margin-bottom:14px">
+          <label data-i18n="formService">Service</label>
+          <select id="rfService">
+            <option value="" data-i18n="formServiceSel">Select a service (optional)</option>
+            <option data-i18n="svc1T">Study Visa</option>
+            <option data-i18n="svc2T">Tourism Visa</option>
+            <option data-i18n="svc3T">Work Visa</option>
+            <option data-i18n="svc4T">Family Reunification</option>
+            <option data-i18n="svc5T">Document Preparation & Review</option>
+            <option data-i18n="svc6T">Personal Consultation</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:14px">
+          <label data-i18n="rfRating">Your Rating</label>
+          <div class="star-picker" id="rfStars" data-value="5">
+            <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+          </div>
+        </div>
+        <div class="form-field" style="margin-bottom:14px"><label data-i18n="rfText">Your Review *</label><textarea id="rfText" required></textarea></div>
+        <button type="submit" class="btn btn-blue btn-lg" style="width:100%" data-i18n="rfSend">Submit Review</button>
+        <div class="form-note" data-i18n="rfNote">* Reviews are checked before publishing.</div>
+        <div class="form-status" id="rfStatus" style="display:none;margin-top:10px;font-size:13.5px;font-weight:700"></div>
+      </form>
+    </div>
   </div>
 </section>
 
@@ -587,6 +631,80 @@ document.getElementById("contactForm").addEventListener("submit", (e)=>{
     }
   });
 });
+
+/* ---------- Review form: public submissions are sent for admin approval, not auto-published ---------- */
+const rfStarsEl = document.getElementById("rfStars");
+const rfSpans = rfStarsEl ? rfStarsEl.querySelectorAll("span") : [];
+function rfPaint(v){ rfSpans.forEach(s=>{ s.classList.toggle("active", parseInt(s.dataset.v,10) <= v); }); }
+if(rfStarsEl){
+  rfPaint(5);
+  rfSpans.forEach(s=>{
+    s.addEventListener("click", ()=>{ rfStarsEl.dataset.value = s.dataset.v; rfPaint(parseInt(s.dataset.v,10)); });
+    s.addEventListener("mouseenter", ()=> rfPaint(parseInt(s.dataset.v,10)));
+  });
+  rfStarsEl.addEventListener("mouseleave", ()=> rfPaint(parseInt(rfStarsEl.dataset.value,10)));
+}
+
+const reviewFormEl = document.getElementById("reviewForm");
+if(reviewFormEl){
+  reviewFormEl.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    const rname = document.getElementById("rfName").value.trim();
+    const rservice = document.getElementById("rfService").value;
+    const rrating = parseInt(document.getElementById("rfStars").dataset.value || "5", 10);
+    const rtext = document.getElementById("rfText").value.trim();
+    const rstatusEl = document.getElementById("rfStatus");
+    const rsubmitBtn = reviewFormEl.querySelector("button[type=submit]");
+
+    rsubmitBtn.disabled = true;
+    rsubmitBtn.textContent = i18n[currentLang].rfSending;
+    rstatusEl.style.display = "none";
+
+    if(requestsWebhookUrl){
+      try{
+        fetch(requestsWebhookUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {"Content-Type":"text/plain;charset=utf-8"},
+          body: JSON.stringify({type: currentLang==="ar" ? "تقييم جديد - بانتظار الموافقة" : "New review - pending approval", name: rname, service: rservice || "", rating: rrating, review: rtext})
+        });
+      }catch(e){}
+    }
+
+    fetch("https://formsubmit.co/ajax/" + FORMSUBMIT_TO, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        name: rname,
+        service: rservice || (currentLang==="ar" ? "غير محدد" : "Not specified"),
+        rating: rrating + " / 5",
+        review: rtext,
+        _subject: (currentLang==="ar" ? "تقييم جديد بانتظار الموافقة من " : "New review pending approval from ") + rname + " — Italy Gateway",
+        _template: "table",
+        _captcha: "false"
+      })
+    }).then((res)=>{
+      if(!res.ok) throw new Error("FormSubmit error " + res.status);
+      return res.json();
+    }).then(()=>{
+      rstatusEl.style.display = "block";
+      rstatusEl.style.color = "#16a34a";
+      rstatusEl.textContent = i18n[currentLang].rfSent;
+      rsubmitBtn.disabled = false;
+      rsubmitBtn.textContent = i18n[currentLang].rfSend;
+      reviewFormEl.reset();
+      document.getElementById("rfStars").dataset.value = "5";
+      rfPaint(5);
+    }).catch((err)=>{
+      console.error("Review FormSubmit error:", err);
+      rsubmitBtn.disabled = false;
+      rsubmitBtn.textContent = i18n[currentLang].rfSend;
+      rstatusEl.style.display = "block";
+      rstatusEl.style.color = "#dc2626";
+      rstatusEl.textContent = i18n[currentLang].rfFailed;
+    });
+  });
+}
 </script>
 
 <script>
