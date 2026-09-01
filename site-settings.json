@@ -33,5 +33,5 @@
   },
   "admin_passphrase": "Ahmed123@@",
   "ga_measurement_id": "",
-  "requests_webhook_url": ""
+  "requests_webhook_url": "https://script.google.com/macros/s/AKfycbzFL3tFzMgv9Vh2YRRRZctrlOUoLQUYmaz2Mt2SoeNuWk6AHtoYO1yBXyDpX9vzd5XDFQ/exec"
 }
