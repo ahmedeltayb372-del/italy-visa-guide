@@ -105,6 +105,7 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   <button class="tab-btn" data-tab="tab-visual">المحرر المرئي</button>
   <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع (كود)</button>
   <button class="tab-btn" data-tab="tab-testimonials">آراء العملاء</button>
+  <button class="tab-btn" data-tab="tab-pending">المراجعات والرسائل الجديدة</button>
   <button class="tab-btn" data-tab="tab-media">الوسائط والصور</button>
 </div>
 
@@ -259,6 +260,19 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   </div>
 </div>
 
+<!-- ======================= PENDING REVIEWS TAB ======================= -->
+<div id="tab-pending" class="tabpage">
+  <div class="card">
+    <div class="card-head">
+      <h2>المراجعات والرسائل الجديدة (من جوجل شيت)</h2>
+      <button class="btn-outline" onclick="loadPendingTab()">🔄 تحديث</button>
+    </div>
+    <p class="small-note">دي التقييمات ورسائل التواصل اللي بعتها الزوار من الموقع وبتتجمع تلقائي في جوجل شيت. لو التقييم حلو تقدر "تنشره" فيروح فورًا لقسم آراء العملاء بالموقع، أو "تحذفه" من القايمة بعد ما تتعامل معاه (زي الرد عليه بالإيميل أو رفضه).</p>
+    <div id="pendingList"></div>
+    <div class="msg" id="pendingMsg"></div>
+  </div>
+</div>
+
 <!-- ======================= MEDIA TAB ======================= -->
 <div id="tab-media" class="tabpage">
   <div class="card">
@@ -313,6 +327,7 @@ if(sessionStorage.getItem("admin_unlocked") === "1"){
    ====================================================================== */
 let testimonialsLoaded = false;
 let mediaLoaded = false;
+let pendingLoaded = false;
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -321,6 +336,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.getElementById(btn.dataset.tab).classList.add("active");
     if(btn.dataset.tab === "tab-testimonials" && !testimonialsLoaded){ testimonialsLoaded = true; loadTestimonialsTab(); }
     if(btn.dataset.tab === "tab-media" && !mediaLoaded){ mediaLoaded = true; loadMediaList(); }
+    if(btn.dataset.tab === "tab-pending" && !pendingLoaded){ pendingLoaded = true; loadPendingTab(); }
   });
 });
 
@@ -691,6 +707,134 @@ async function saveTestimonials(){
     showMsg("testimonialsMsg", e.message, "error");
   } finally {
     btn.disabled = false; btn.textContent = original;
+  }
+}
+
+/* ======================================================================
+   PENDING REVIEWS/MESSAGES TAB (read + act on the Google Sheet webhook)
+   ====================================================================== */
+let pendingItems = [];
+
+function jsonpFetch(url){
+  return new Promise((resolve, reject)=>{
+    const cbName = "__ivgJsonp" + Date.now() + Math.floor(Math.random()*100000);
+    const script = document.createElement("script");
+    let done = false;
+    window[cbName] = (data)=>{ done = true; resolve(data); cleanup(); };
+    function cleanup(){ delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+    script.onerror = ()=>{ if(!done){ reject(new Error("تعذر الاتصال بجوجل شيت")); cleanup(); } };
+    script.src = url + (url.indexOf("?")===-1?"?":"&") + "callback=" + cbName + "&t=" + Date.now();
+    document.body.appendChild(script);
+    setTimeout(()=>{ if(!done){ reject(new Error("انتهت المهلة أثناء تحميل البيانات من جوجل شيت")); cleanup(); } }, 15000);
+  });
+}
+
+function isReviewType(t){
+  t = (t || "").toString();
+  return t.indexOf("تقييم") !== -1 || t.toLowerCase().indexOf("review") !== -1;
+}
+
+async function loadPendingTab(){
+  const wrap = document.getElementById("pendingList");
+  wrap.innerHTML = "<p class='small-note'>جاري التحميل...</p>";
+  document.getElementById("pendingMsg").style.display = "none";
+  if(!settingsData){ try{ await loadSettingsTab(); }catch(e){} }
+  const webhookUrl = (settingsData && settingsData.requests_webhook_url) || "";
+  if(!webhookUrl){
+    wrap.innerHTML = '<p class="small-note">لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".</p>';
+    return;
+  }
+  try{
+    const data = await jsonpFetch(webhookUrl);
+    if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+    pendingItems = data.items || [];
+  }catch(e){
+    wrap.innerHTML = "";
+    showMsg("pendingMsg", "تعذر تحميل البيانات من جوجل شيت: " + e.message, "error");
+    return;
+  }
+  renderPendingList();
+}
+
+function renderPendingList(){
+  const wrap = document.getElementById("pendingList");
+  if(!pendingItems.length){
+    wrap.innerHTML = '<p class="small-note">مفيش حاجة جديدة دلوقتي. 🎉</p>';
+    return;
+  }
+  wrap.innerHTML = pendingItems.map(item=>{
+    const isReview = isReviewType(item.type);
+    const rating = Math.max(1, Math.min(5, parseInt(item.rating,10) || 5));
+    const stars = isReview ? "⭐".repeat(rating) : "";
+    return '<div class="card" style="background:#f9fafc;box-shadow:none;border:1px solid #eef1f7">' +
+      '<div class="card-head"><h2 style="font-size:14.5px">' + escapeHtml(item.type || "") +
+        (item.date ? ' <span style="color:#98a2b3;font-weight:normal;font-size:12.5px">— ' + escapeHtml(String(item.date)) + '</span>' : '') + '</h2>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+          (isReview ? '<button class="btn-primary" onclick="publishPendingReview(' + item.row + ')">✅ نشر كرأي عميل</button>' : '') +
+          '<button class="btn-danger" onclick="deletePendingItem(' + item.row + ')">🗑 حذف</button>' +
+        '</div>' +
+      '</div>' +
+      '<p style="margin:4px 0"><b>الاسم:</b> ' + escapeHtml(item.name || "") + '</p>' +
+      (item.email ? '<p style="margin:4px 0"><b>الإيميل:</b> ' + escapeHtml(item.email) + '</p>' : '') +
+      (item.service ? '<p style="margin:4px 0"><b>الخدمة:</b> ' + escapeHtml(item.service) + '</p>' : '') +
+      (stars ? '<p style="margin:4px 0"><b>التقييم:</b> ' + stars + '</p>' : '') +
+      '<p style="margin:4px 0"><b>الرسالة:</b> ' + escapeHtml(item.message || "") + '</p>' +
+    '</div>';
+  }).join("");
+}
+
+async function callSheetDelete(row){
+  const webhookUrl = (settingsData && settingsData.requests_webhook_url) || "";
+  if(!webhookUrl) throw new Error("لسه مفيش رابط جوجل شيت متسجل");
+  await fetch(webhookUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({action:"delete", row: row, secret: ADMIN_PASSPHRASE})
+  });
+}
+
+async function deletePendingItem(row){
+  if(!confirm("متأكد عايز تحذف العنصر ده من الشيت؟")) return;
+  try{
+    await callSheetDelete(row);
+    pendingItems = pendingItems.filter(it => it.row !== row);
+    renderPendingList();
+    showMsg("pendingMsg", "تم الحذف ✅", "ok");
+  }catch(e){
+    showMsg("pendingMsg", e.message, "error");
+  }
+}
+
+async function publishPendingReview(row){
+  const item = pendingItems.find(it => it.row === row);
+  if(!item) return;
+  if(!confirm("هينشر التقييم ده في قسم آراء العملاء بالموقع. تكمل؟")) return;
+  try{
+    if(!testimonialsSha && !testimonialsData.length){
+      const r = await ghGetFile("testimonials.json");
+      testimonialsSha = r.sha;
+      testimonialsData = (r.exists && r.content) ? JSON.parse(r.content) : [];
+      if(!Array.isArray(testimonialsData)) testimonialsData = [];
+    }
+    testimonialsData.push({
+      name: {ar: item.name || "", en: item.name || ""},
+      service: {ar: item.service || "", en: item.service || ""},
+      text: {ar: item.message || "", en: item.message || ""},
+      rating: Math.max(1, Math.min(5, parseInt(item.rating, 10) || 5))
+    });
+    const jsonStr = JSON.stringify(testimonialsData, null, 2);
+    const result = await ghPutFile("testimonials.json", jsonStr, testimonialsSha, "نشر تقييم جديد من لوحة الإدارة");
+    testimonialsSha = result.content ? result.content.sha : testimonialsSha;
+    testimonialsLoaded = true;
+    renderTestimonialsList();
+
+    await callSheetDelete(row);
+    pendingItems = pendingItems.filter(it => it.row !== row);
+    renderPendingList();
+    showMsg("pendingMsg", "تم النشر بنجاح ✅ — التقييم هيظهر على الموقع خلال دقيقة أو اتنين.", "ok");
+  }catch(e){
+    showMsg("pendingMsg", e.message, "error");
   }
 }
 
