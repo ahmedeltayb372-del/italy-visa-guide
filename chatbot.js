@@ -9,6 +9,15 @@
   var PREFIX = location.pathname.indexOf("/services/") !== -1 ? "../" : "";
   var WA_NUMBER = "201011318575";
   var SESSION_KEY = "igchatTeaserShown";
+  var GAS_URL = "https://script.google.com/macros/s/AKfycbzFL3tFzMgv9Vh2YRRRZctrlOUoLQUYmaz2Mt2SoeNuWk6AHtoYO1yBXyDpX9vzd5XDFQ/exec";
+  var CONV_KEY = "igchatConversationId";
+  var LIVECHAT_KEY = "igchatLiveActive";
+  var conversationId = localStorage.getItem(CONV_KEY) || null;
+  var liveChatActive = localStorage.getItem(LIVECHAT_KEY) === "1";
+  var renderedChatRows = {};
+  var sentTexts = [];
+  var chatPollTimer = null;
+  var hydrated = false;
 
   function lang(){
     return localStorage.getItem("siteLang") || "en";
@@ -18,8 +27,8 @@
   var T = {
     en: {
       brand: "Italy Gateway",
-      subtitle: "We usually reply within minutes",
-      teaser: "Hi! Need help with your Italy visa journey? Chat with us 👋",
+      subtitle: "Available 24/7 • usually replies within minutes",
+      teaser: "Hi! I'm Marco 👋 Need help with your Italy visa journey? Chat with us!",
       placeholder: "Type your question…",
       send: "Send",
       quickTitle: "Quick questions",
@@ -28,13 +37,12 @@
       qSchengen: "Schengen visa requirements",
       qFaq: "Frequently asked questions",
       qAgent: "Talk to customer service",
-      agentBtn: "Continue on WhatsApp",
-      greeting: "Hello! 👋 I'm the Italy Gateway assistant. Ask me about visa types, prices, or how to book a consultation — or tap a quick question below.",
-      fallback: "I'm not fully sure about that one. I can connect you with our team on WhatsApp so they can help directly.",
+      greeting: "Welcome to Italy Gateway! 👋 I'm Marco, your smart assistant — here to help you make the most of our visa guidance, day or night. Ask me about visa types, prices, or how to book a consultation, or tap a quick question below.",
+      fallback: "I'm not fully sure about that one — want me to transfer you to our customer service team?",
       thanks: "You're welcome! 🌸 Anything else I can help with?",
       bye: "Take care! Feel free to come back anytime you have a question. 🇮🇹",
-      humanHandoff: "Sure — tap below and our team will continue the conversation with you on WhatsApp.",
-      waFallbackMsg: "Hello, I have a question about the Italy visa process.",
+      humanHandoff: "Sure — I'm transferring you to our customer service team now. They'll reply right here in this chat as soon as possible 💬",
+      liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
       servicesList: "Here's what we help with:\n🎓 Study Visa — university admission, enrollment documents, financial proof and accommodation.\n✈️ Tourism Visa — Schengen tourism visa requirements and documents.\n💼 Work Visa — the work visa (Nulla Osta) pathway to Italy.\n👨‍👩‍👧 Family Reunification — requirements and process.\n📋 Document Preparation & Review — professional review of your paperwork.\n📅 Personal Consultation — a one-on-one session about your specific case.",
       pricesList: "Consultation prices:\n🏢 In-person (60 min) — $150\n🎥 Video call (60 min) — $75\n🎧 Voice call (60 min) — $50\n\nThese are for one-on-one consultations. Browsing the guide itself is always free.",
       schengenInfo: "For a Schengen tourism visa we help you understand the required documents and process — passport, financial proof, accommodation booking, travel insurance, and the application steps with VFS Global. Want a personal consultation to review your specific case?",
@@ -51,8 +59,8 @@
     },
     ar: {
       brand: "بوابة إيطاليا",
-      subtitle: "بنرد عادةً خلال دقايق",
-      teaser: "أهلاً! محتاج مساعدة في رحلة تأشيرتك لإيطاليا؟ كلمنا 👋",
+      subtitle: "متاحين على مدار الساعة • بنرد عادةً خلال دقايق",
+      teaser: "أهلاً! أنا ماركو 👋 محتاج مساعدة في رحلة تأشيرتك لإيطاليا؟ كلمنا!",
       placeholder: "اكتب سؤالك…",
       send: "إرسال",
       quickTitle: "أسئلة سريعة",
@@ -61,13 +69,12 @@
       qSchengen: "شروط تأشيرة الشنجن",
       qFaq: "أسئلة شائعة",
       qAgent: "تواصل مع خدمة العملاء",
-      agentBtn: "كمّل على واتساب",
-      greeting: "أهلاً بيك! 👋 أنا مساعد بوابة إيطاليا. اسألني عن أنواع التأشيرات، الأسعار، أو إزاي تحجز استشارة — أو دوس على سؤال سريع تحت.",
-      fallback: "مش متأكد إني فاهم سؤالك بالظبط. أقدر أوصّلك بفريقنا على واتساب عشان يساعدوك مباشرة.",
+      greeting: "أهلاً بيك في بوابة إيطاليا! 👋 أنا ماركو، مساعدك الذكي هنا، وموجود على مدار الساعة عشان أساعدك تستفيد من خدماتنا. اسألني عن أنواع التأشيرات، الأسعار، أو إزاي تحجز استشارة — أو دوس على سؤال سريع تحت.",
+      fallback: "مش متأكد إني فاهم سؤالك بالظبط — تحب أحولك لفريق خدمة العملاء؟",
       thanks: "العفو! 🌸 محتاج حاجة تانية؟",
       bye: "ربنا معاك! ارجعلنا في أي وقت لو عندك سؤال. 🇮🇹",
-      humanHandoff: "تمام، دوس على الزرار تحت وفريقنا هيكمل معاك المحادثة على واتساب.",
-      waFallbackMsg: "مرحبا، عندي سؤال بخصوص إجراءات تأشيرة إيطاليا.",
+      humanHandoff: "تمام، هحولك دلوقتي لفريق خدمة العملاء، وهيردوا عليك هنا في نفس الشات في أقرب وقت 💬",
+      liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
       servicesList: "دي الخدمات اللي بنساعد فيها:\n🎓 تأشيرة الدراسة — القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن.\n✈️ تأشيرة السياحة — متطلبات ومستندات تأشيرة شنغن.\n💼 تأشيرة العمل — مسار تأشيرة العمل (Nulla Osta) لإيطاليا.\n👨‍👩‍👧 لمّ الشمل — المتطلبات والإجراءات.\n📋 تجهيز ومراجعة المستندات — مراجعة احترافية لأوراقك.\n📅 استشارة شخصية — جلسة فردية لمناقشة حالتك.",
       pricesList: "أسعار الاستشارات:\n🏢 حضورية (60 دقيقة) — 150$\n🎥 فيديو (60 دقيقة) — 75$\n🎧 صوتية (60 دقيقة) — 50$\n\nدي أسعار الاستشارات الفردية. تصفح الدليل نفسه مجاني دايمًا.",
       schengenInfo: "بالنسبة لتأشيرة شنغن السياحية بنساعدك تفهم المستندات المطلوبة والإجراءات — الباسبور، الإثبات المالي، حجز السكن، تأمين السفر، وخطوات التقديم عبر VFS Global. تحب تحجز استشارة شخصية لمراجعة حالتك بالتفصيل؟",
@@ -132,6 +139,7 @@
   + ".igchat-launcher{position:fixed;bottom:22px;inset-inline-end:22px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#2952e3,#6d5bf7);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(41,82,227,.35);cursor:pointer;z-index:999;border:0;transition:transform .18s;padding:0}"
   + ".igchat-launcher:hover{transform:scale(1.07)}"
   + ".igchat-launcher svg{width:28px;height:28px}"
+  + ".igchat-badge{position:absolute;top:2px;inset-inline-end:2px;width:13px;height:13px;border-radius:50%;background:#ef4444;border:2px solid #fff}"
   + ".igchat-teaser{position:fixed;bottom:92px;inset-inline-end:20px;max-width:250px;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 16px 40px rgba(15,27,51,.18);font-size:13.5px;line-height:1.5;color:#0f1b33;z-index:998;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;cursor:pointer;animation:igchat-pop .25s ease}"
   + ".igchat-teaser button{position:absolute;top:6px;inset-inline-end:8px;border:0;background:none;color:#9aa3c2;font-size:14px;cursor:pointer;line-height:1;padding:2px}"
   + "@keyframes igchat-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"
@@ -175,8 +183,9 @@
   var launcher = document.createElement("button");
   launcher.className = "igchat-launcher";
   launcher.setAttribute("aria-label", "Chat");
-  launcher.innerHTML = ICON_CHAT;
+  launcher.innerHTML = '<span class="igchat-launcher-icon">' + ICON_CHAT + '</span><span class="igchat-badge" style="display:none"></span>';
   document.body.appendChild(launcher);
+  var launcherIcon = launcher.querySelector(".igchat-launcher-icon");
 
   var panel = document.createElement("div");
   panel.className = "igchat-panel";
@@ -247,55 +256,141 @@
     ];
   }
 
-  function offerAgent(t){
-    var el = document.createElement("div");
-    el.style.cssText = "align-self:flex-start;margin-top:-4px";
-    var a = document.createElement("a");
-    a.href = waLink(t.waFallbackMsg);
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.className = "igchat-chip igchat-agent";
-    a.textContent = t.agentBtn;
-    el.appendChild(a);
-    body.appendChild(el);
-    body.scrollTop = body.scrollHeight;
+  /* ---------- Live chat (real two-way handoff to customer service) ---------- */
+  function jsonpFetch(url){
+    return new Promise(function(resolve, reject){
+      var cbName = "__igchatJsonp" + Date.now() + Math.floor(Math.random()*100000);
+      var script = document.createElement("script");
+      var done = false;
+      window[cbName] = function(data){ done = true; resolve(data); cleanup(); };
+      function cleanup(){ delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+      script.onerror = function(){ if(!done){ reject(new Error("network error")); cleanup(); } };
+      script.src = url + (url.indexOf("?")===-1?"?":"&") + "callback=" + cbName + "&t=" + Date.now();
+      document.body.appendChild(script);
+      setTimeout(function(){ if(!done){ reject(new Error("timeout")); cleanup(); } }, 15000);
+    });
   }
 
-  function replyWithTopic(topic, t){
+  function genConvId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "c" + Date.now() + Math.random().toString(36).slice(2);
+  }
+
+  function ensureConversationId(){
+    if(!conversationId){
+      conversationId = genConvId();
+      localStorage.setItem(CONV_KEY, conversationId);
+    }
+    return conversationId;
+  }
+
+  function showUnreadBadge(show){
+    var badge = launcher.querySelector(".igchat-badge");
+    if(badge) badge.style.display = show ? "block" : "none";
+  }
+
+  function sendVisitorChatMessage(text){
+    if(!GAS_URL || !text) return;
+    fetch(GAS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({ type:"chat_visitor", conversationId: ensureConversationId(), message: text })
+    }).catch(function(){});
+  }
+
+  function syncChatMessages(){
+    if(!GAS_URL || !conversationId) return;
+    jsonpFetch(GAS_URL + "?conversationId=" + encodeURIComponent(conversationId)).then(function(data){
+      if(!data || data.status !== "success") return;
+      (data.items || []).forEach(function(item){
+        if(renderedChatRows[item.row]) return;
+        renderedChatRows[item.row] = true;
+        if(item.type === "chat_admin"){
+          addMsg(item.message || "", "bot");
+          if(!opened) showUnreadBadge(true);
+        } else if(item.type === "chat_visitor"){
+          if(sentTexts.length && sentTexts[0] === item.message){
+            sentTexts.shift();
+          } else {
+            addMsg(item.message || "", "user");
+          }
+        }
+      });
+    }).catch(function(){});
+  }
+
+  function scheduleNextSync(){
+    if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
+    if(!liveChatActive || !conversationId) return;
+    var delay = opened ? 6000 : 20000;
+    chatPollTimer = setTimeout(function(){
+      syncChatMessages();
+      scheduleNextSync();
+    }, delay);
+  }
+
+  function beginLiveChat(triggerText){
+    liveChatActive = true;
+    localStorage.setItem(LIVECHAT_KEY, "1");
+    hydrated = true;
+    setChips([]);
+    sentTexts.push(triggerText);
+    sendVisitorChatMessage(triggerText);
+    scheduleNextSync();
+  }
+
+  function hydrateLiveChatIfNeeded(){
+    if(!liveChatActive || !conversationId || hydrated) return;
+    hydrated = true;
+    var t = T[lang()];
+    setChips([]);
+    addMsg(t.liveChatWelcomeBack, "bot");
+    syncChatMessages();
+    scheduleNextSync();
+  }
+
+  function replyWithTopic(topic, t, triggerText){
     var typingEl = addTyping();
     setTimeout(function(){
       typingEl.remove();
       addMsg(topic.reply(t), "bot");
       if(topic.handoff){
-        offerAgent(t);
+        beginLiveChat(triggerText);
+      } else {
+        setChips(baseChips(t));
       }
-      setChips(baseChips(t));
     }, 420 + Math.random()*260);
   }
 
   function handleUserPick(label, topicId){
     addMsg(label, "user");
     var t = T[lang()];
+    if(liveChatActive){ sentTexts.push(label); sendVisitorChatMessage(label); return; }
     var found = null;
     topics().some(function(tp){ if(tp.id === topicId){ found = tp; return true; } return false; });
-    if(found){ replyWithTopic(found, t); }
+    if(found){ replyWithTopic(found, t, label); }
   }
 
   function handleFreeText(msg){
     var t = T[lang()];
     addMsg(msg, "user");
+    if(liveChatActive){
+      sentTexts.push(msg);
+      sendVisitorChatMessage(msg);
+      return;
+    }
     var found = matchTopic(msg);
     var typingEl = addTyping();
     setTimeout(function(){
       typingEl.remove();
       if(found){
         addMsg(found.reply(t), "bot");
-        if(found.handoff){ offerAgent(t); }
+        if(found.handoff){ beginLiveChat(msg); } else { setChips(baseChips(t)); }
       } else {
         addMsg(t.fallback, "bot");
-        offerAgent(t);
+        setChips(baseChips(t));
       }
-      setChips(baseChips(t));
     }, 420 + Math.random()*260);
   }
 
@@ -310,11 +405,15 @@
   function openPanel(){
     refreshLabels();
     panel.classList.add("igchat-open");
-    launcher.innerHTML = ICON_CLOSE_LAUNCH;
+    launcherIcon.innerHTML = ICON_CLOSE_LAUNCH;
     opened = true;
+    showUnreadBadge(false);
     var teaser = document.getElementById("igchatTeaser");
     if(teaser) teaser.remove();
-    if(!greeted){
+    if(liveChatActive){
+      hydrateLiveChatIfNeeded();
+      scheduleNextSync();
+    } else if(!greeted){
       greeted = true;
       var t = T[lang()];
       setTimeout(function(){
@@ -327,9 +426,12 @@
 
   function closePanel(){
     panel.classList.remove("igchat-open");
-    launcher.innerHTML = ICON_CHAT;
+    launcherIcon.innerHTML = ICON_CHAT;
     opened = false;
+    scheduleNextSync();
   }
+
+  if(liveChatActive){ scheduleNextSync(); }
 
   launcher.addEventListener("click", function(){
     if(opened) closePanel(); else openPanel();
@@ -372,13 +474,16 @@
   var oldBtn = document.getElementById("waFloatBtn");
   if(oldBtn) oldBtn.style.display = "none";
 
-  /* ---------- Pull the WhatsApp number from site-settings.json (fallback stays hardcoded) ---------- */
+  /* ---------- Pull the WhatsApp number + chat backend URL from site-settings.json (fallbacks stay hardcoded) ---------- */
   fetch(PREFIX + "site-settings.json", { cache: "no-store" }).then(function(r){ return r.ok ? r.json() : null; }).then(function(data){
     if(!data) return;
     var wa = data.contact_whatsapp && (data.contact_whatsapp.ar || data.contact_whatsapp.en);
     if(wa){
       var m = wa.match(/(\d{8,15})\s*$/) || wa.match(/wa\.me\/(\d{8,15})/);
       if(m) WA_NUMBER = m[1];
+    }
+    if(typeof data.requests_webhook_url === "string" && data.requests_webhook_url){
+      GAS_URL = data.requests_webhook_url;
     }
   }).catch(function(){});
 
