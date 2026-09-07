@@ -802,7 +802,7 @@ async function loadPendingTab(){
   try{
     const data = await jsonpFetch(webhookUrl);
     if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
-    pendingItems = data.items || [];
+    pendingItems = (data.items || []).filter(it => it.type !== "chat_visitor" && it.type !== "chat_admin");
   }catch(e){
     wrap.innerHTML = "";
     showMsg("pendingMsg", "تعذر تحميل البيانات من جوجل شيت: " + e.message, "error");
