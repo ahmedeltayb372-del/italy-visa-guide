@@ -1,0 +1,385 @@
+/* =====================================================================
+   Italy Gateway — Site Chat Assistant (chatbot.js)
+   Self-contained floating chat widget: quick FAQs + keyword bot,
+   escalates to WhatsApp when needed. No backend required.
+   ===================================================================== */
+(function(){
+  "use strict";
+
+  var PREFIX = location.pathname.indexOf("/services/") !== -1 ? "../" : "";
+  var WA_NUMBER = "201011318575";
+  var SESSION_KEY = "igchatTeaserShown";
+
+  function lang(){
+    return localStorage.getItem("siteLang") || "en";
+  }
+
+  /* ---------- Knowledge base ---------- */
+  var T = {
+    en: {
+      brand: "Italy Gateway",
+      subtitle: "We usually reply within minutes",
+      teaser: "Hi! Need help with your Italy visa journey? Chat with us 👋",
+      placeholder: "Type your question…",
+      send: "Send",
+      quickTitle: "Quick questions",
+      qServices: "Our services",
+      qPrices: "Consultation prices",
+      qSchengen: "Schengen visa requirements",
+      qFaq: "Frequently asked questions",
+      qAgent: "Talk to customer service",
+      agentBtn: "Continue on WhatsApp",
+      greeting: "Hello! 👋 I'm the Italy Gateway assistant. Ask me about visa types, prices, or how to book a consultation — or tap a quick question below.",
+      fallback: "I'm not fully sure about that one. I can connect you with our team on WhatsApp so they can help directly.",
+      thanks: "You're welcome! 🌸 Anything else I can help with?",
+      bye: "Take care! Feel free to come back anytime you have a question. 🇮🇹",
+      humanHandoff: "Sure — tap below and our team will continue the conversation with you on WhatsApp.",
+      waFallbackMsg: "Hello, I have a question about the Italy visa process.",
+      servicesList: "Here's what we help with:\n🎓 Study Visa — university admission, enrollment documents, financial proof and accommodation.\n✈️ Tourism Visa — Schengen tourism visa requirements and documents.\n💼 Work Visa — the work visa (Nulla Osta) pathway to Italy.\n👨‍👩‍👧 Family Reunification — requirements and process.\n📋 Document Preparation & Review — professional review of your paperwork.\n📅 Personal Consultation — a one-on-one session about your specific case.",
+      pricesList: "Consultation prices:\n🏢 In-person (60 min) — $150\n🎥 Video call (60 min) — $75\n🎧 Voice call (60 min) — $50\n\nThese are for one-on-one consultations. Browsing the guide itself is always free.",
+      schengenInfo: "For a Schengen tourism visa we help you understand the required documents and process — passport, financial proof, accommodation booking, travel insurance, and the application steps with VFS Global. Want a personal consultation to review your specific case?",
+      studyInfo: "For a Study Visa we guide you through university admission requirements, enrollment documents, proof of financial means and accommodation arrangements for Italy.",
+      workInfo: "For a Work Visa we provide general guidance on the Nulla Osta work permit pathway to Italy — the employer's role, required steps, and timing.",
+      familyInfo: "For Family Reunification we help you understand the eligibility requirements and the steps to bring your family members to Italy.",
+      docsInfo: "We offer professional review and organization of your required documentation — making sure everything is complete and correctly prepared before you submit.",
+      bookingInfo: "You can book a one-on-one consultation (in-person, video or voice) from the \"Book a Consultation\" page — just pick a type and we'll confirm your appointment on WhatsApp.",
+      contactInfo: "You can reach us by email at ahmedeltayb372@gmail.com, on WhatsApp, or via our Facebook page — all linked in the Contact section of the site.",
+      faq1: "No — this is an independent informational guide and consultation service, not affiliated with any embassy, consulate or VFS Global. Always verify sensitive details (dates, fees, documents) with the official source.",
+      faq2: "Not at all — the guide is free to browse with no sign-up required.",
+      faq5: "Yes, browsing the guide and general information is 100% free. Personal consultations are discussed directly with you.",
+      faq6: "Always confirm official requirements, fees and timelines on the VFS Global or Italian Embassy website — this guide is for informational support only."
+    },
+    ar: {
+      brand: "بوابة إيطاليا",
+      subtitle: "بنرد عادةً خلال دقايق",
+      teaser: "أهلاً! محتاج مساعدة في رحلة تأشيرتك لإيطاليا؟ كلمنا 👋",
+      placeholder: "اكتب سؤالك…",
+      send: "إرسال",
+      quickTitle: "أسئلة سريعة",
+      qServices: "خدماتنا",
+      qPrices: "أسعار الاستشارات",
+      qSchengen: "شروط تأشيرة الشنجن",
+      qFaq: "أسئلة شائعة",
+      qAgent: "تواصل مع خدمة العملاء",
+      agentBtn: "كمّل على واتساب",
+      greeting: "أهلاً بيك! 👋 أنا مساعد بوابة إيطاليا. اسألني عن أنواع التأشيرات، الأسعار، أو إزاي تحجز استشارة — أو دوس على سؤال سريع تحت.",
+      fallback: "مش متأكد إني فاهم سؤالك بالظبط. أقدر أوصّلك بفريقنا على واتساب عشان يساعدوك مباشرة.",
+      thanks: "العفو! 🌸 محتاج حاجة تانية؟",
+      bye: "ربنا معاك! ارجعلنا في أي وقت لو عندك سؤال. 🇮🇹",
+      humanHandoff: "تمام، دوس على الزرار تحت وفريقنا هيكمل معاك المحادثة على واتساب.",
+      waFallbackMsg: "مرحبا، عندي سؤال بخصوص إجراءات تأشيرة إيطاليا.",
+      servicesList: "دي الخدمات اللي بنساعد فيها:\n🎓 تأشيرة الدراسة — القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن.\n✈️ تأشيرة السياحة — متطلبات ومستندات تأشيرة شنغن.\n💼 تأشيرة العمل — مسار تأشيرة العمل (Nulla Osta) لإيطاليا.\n👨‍👩‍👧 لمّ الشمل — المتطلبات والإجراءات.\n📋 تجهيز ومراجعة المستندات — مراجعة احترافية لأوراقك.\n📅 استشارة شخصية — جلسة فردية لمناقشة حالتك.",
+      pricesList: "أسعار الاستشارات:\n🏢 حضورية (60 دقيقة) — 150$\n🎥 فيديو (60 دقيقة) — 75$\n🎧 صوتية (60 دقيقة) — 50$\n\nدي أسعار الاستشارات الفردية. تصفح الدليل نفسه مجاني دايمًا.",
+      schengenInfo: "بالنسبة لتأشيرة شنغن السياحية بنساعدك تفهم المستندات المطلوبة والإجراءات — الباسبور، الإثبات المالي، حجز السكن، تأمين السفر، وخطوات التقديم عبر VFS Global. تحب تحجز استشارة شخصية لمراجعة حالتك بالتفصيل؟",
+      studyInfo: "بالنسبة لتأشيرة الدراسة بنوجّهك في متطلبات القبول الجامعي، مستندات التسجيل، إثبات الإمكانيات المالية وترتيبات السكن في إيطاليا.",
+      workInfo: "بالنسبة لتأشيرة العمل بنقدّم إرشاد عام عن مسار تصريح العمل (Nulla Osta) لإيطاليا — دور صاحب العمل، الخطوات المطلوبة، والتوقيت.",
+      familyInfo: "بالنسبة للمّ الشمل بنساعدك تفهم شروط الأهلية وخطوات جلب أفراد أسرتك لإيطاليا.",
+      docsInfo: "بنقدّم مراجعة احترافية وتنظيم لمستنداتك المطلوبة — عشان نتأكد إن كل حاجة كاملة ومجهزة صح قبل التقديم.",
+      bookingInfo: "تقدر تحجز استشارة فردية (حضورية، فيديو، أو صوتية) من صفحة \"احجز استشارة\" — اختار النوع وهنأكدلك الميعاد على واتساب.",
+      contactInfo: "تقدر توصلنا عن طريق الإيميل ahmedeltayb372@gmail.com، أو واتساب، أو صفحتنا على فيسبوك — كل الروابط موجودة في قسم التواصل بالموقع.",
+      faq1: "لأ، ده دليل معلوماتي وخدمة استشارية مستقلة، مش تابع لأي سفارة أو قنصلية أو VFS Global. دايمًا تأكد من التفاصيل الحساسة (مواعيد، رسوم، مستندات) من المصدر الرسمي.",
+      faq2: "لأ خالص، الدليل متاح مجانًا من غير أي تسجيل.",
+      faq5: "أيوه، تصفح الدليل والمعلومات العامة مجاني 100%. الاستشارات الشخصية بنتناقش فيها معاك مباشرة.",
+      faq6: "دايمًا تأكد من المتطلبات والرسوم والمواعيد الرسمية من موقع VFS Global أو السفارة الإيطالية — الدليل ده لدعم معلوماتي بس."
+    }
+  };
+
+  /* ---------- Keyword topics (checked in order, first match with score>0 wins) ---------- */
+  function topics(){
+    return [
+      { id:"thanks", kw:["شكرا","متشكر","تسلم","thanks","thank you","thx"], reply:function(t){ return t.thanks; } },
+      { id:"bye", kw:["مع السلامة","باي","تصبح على خير","bye","goodbye","see you"], reply:function(t){ return t.bye; } },
+      { id:"agent", kw:["خدمه العملاء","خدمة العملاء","عايز حد","اتكلم مع حد","مسئول","ممثل","human","agent","representative","customer service","real person","حد يرد"], reply:function(t){ return t.humanHandoff; }, handoff:true },
+      { id:"prices", kw:["سعر","اسعار","السعر","الاسعار","تكلفه","تكلفة","فلوس","بكام","price","prices","cost","how much","fees"], reply:function(t){ return t.pricesList; } },
+      { id:"schengen", kw:["شنجن","شنغن","سياحه","سياحة","tourist","tourism","schengen"], reply:function(t){ return t.schengenInfo; } },
+      { id:"study", kw:["دراسه","دراسة","جامعه","جامعة","طالب","study","university","student"], reply:function(t){ return t.studyInfo; } },
+      { id:"work", kw:["عمل","شغل","وظيفه","وظيفة","nulla osta","work visa","job"], reply:function(t){ return t.workInfo; } },
+      { id:"family", kw:["لم الشمل","لمّ الشمل","اسره","اسرة","عائله","عائلة","family reunification","family"], reply:function(t){ return t.familyInfo; } },
+      { id:"docs", kw:["مستندات","اوراق","أوراق","ورق","documents","paperwork"], reply:function(t){ return t.docsInfo; } },
+      { id:"booking", kw:["احجز","حجز","استشاره","استشارة","booking","book","consultation","appointment","ميعاد"], reply:function(t){ return t.bookingInfo; } },
+      { id:"contact", kw:["تواصل","ايميل","إيميل","فيسبوك","facebook","email","contact","instagram"], reply:function(t){ return t.contactInfo; } },
+      { id:"official", kw:["رسمي","سفاره","سفارة","حكومي","official","embassy","government"], reply:function(t){ return t.faq1; } },
+      { id:"account", kw:["حساب","تسجيل","account","sign up","signup","register"], reply:function(t){ return t.faq2; } },
+      { id:"free", kw:["مجاني","ببلاش","free"], reply:function(t){ return t.faq5; } },
+      { id:"binding", kw:["ملزم","رسميه وملزمه","binding","official info"], reply:function(t){ return t.faq6; } },
+      { id:"services", kw:["خدمات","خدماتكم","تساعدوا","تساعدونا","بتعملوا ايه","services","what do you offer","help with","what can you do"], reply:function(t){ return t.servicesList; } },
+      { id:"greeting", kw:["اهلا","أهلا","السلام عليكم","هاي","هلا","صباح الخير","مساء الخير","hello","hi","hey"], reply:function(t){ return t.greeting; } }
+    ];
+  }
+
+  function normalize(s){
+    s = (s || "").toLowerCase().trim();
+    s = s.replace(/[ً-ْـ]/g, "");
+    s = s.replace(/[إأآا]/g, "ا").replace(/ى/g, "ي").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/ة/g,"ه");
+    return s;
+  }
+
+  function matchTopic(msg){
+    var n = normalize(msg);
+    var list = topics();
+    for(var i=0;i<list.length;i++){
+      for(var j=0;j<list[i].kw.length;j++){
+        if(n.indexOf(normalize(list[i].kw[j])) !== -1){
+          return list[i];
+        }
+      }
+    }
+    return null;
+  }
+
+  /* ---------- Styles ---------- */
+  var css = ""
+  + ".igchat-launcher{position:fixed;bottom:22px;inset-inline-end:22px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#2952e3,#6d5bf7);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(41,82,227,.35);cursor:pointer;z-index:999;border:0;transition:transform .18s;padding:0}"
+  + ".igchat-launcher:hover{transform:scale(1.07)}"
+  + ".igchat-launcher svg{width:28px;height:28px}"
+  + ".igchat-teaser{position:fixed;bottom:92px;inset-inline-end:20px;max-width:250px;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 16px 40px rgba(15,27,51,.18);font-size:13.5px;line-height:1.5;color:#0f1b33;z-index:998;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;cursor:pointer;animation:igchat-pop .25s ease}"
+  + ".igchat-teaser button{position:absolute;top:6px;inset-inline-end:8px;border:0;background:none;color:#9aa3c2;font-size:14px;cursor:pointer;line-height:1;padding:2px}"
+  + "@keyframes igchat-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"
+  + ".igchat-panel{position:fixed;bottom:92px;inset-inline-end:22px;width:360px;max-width:92vw;height:min(560px,76vh);background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(15,27,51,.28);display:none;flex-direction:column;overflow:hidden;z-index:1000;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif}"
+  + ".igchat-panel.igchat-open{display:flex}"
+  + ".igchat-head{background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}"
+  + ".igchat-head .igchat-dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.35);flex-shrink:0}"
+  + ".igchat-head-text{flex:1;min-width:0}"
+  + ".igchat-head-text b{display:block;font-size:15px;font-weight:800}"
+  + ".igchat-head-text span{display:block;font-size:12px;opacity:.85;margin-top:1px}"
+  + ".igchat-close{background:rgba(255,255,255,.18);border:0;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;flex-shrink:0}"
+  + ".igchat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f7f8fc}"
+  + ".igchat-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;white-space:pre-line;word-wrap:break-word}"
+  + ".igchat-msg.bot{background:#eef1ff;color:#0f1b33;align-self:flex-start;border-end-start-radius:4px}"
+  + ".igchat-msg.user{background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;align-self:flex-end;border-end-end-radius:4px}"
+  + ".igchat-typing{align-self:flex-start;background:#eef1ff;border-radius:14px;padding:11px 15px;display:flex;gap:4px}"
+  + ".igchat-typing span{width:6px;height:6px;border-radius:50%;background:#8b93ab;animation:igchat-blink 1.2s infinite}"
+  + ".igchat-typing span:nth-child(2){animation-delay:.2s}.igchat-typing span:nth-child(3){animation-delay:.4s}"
+  + "@keyframes igchat-blink{0%,80%,100%{opacity:.3}40%{opacity:1}}"
+  + ".igchat-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 16px 12px;background:#f7f8fc;flex-shrink:0}"
+  + ".igchat-chip{border:1px solid #e8eaf3;background:#fff;color:#2952e3;font-weight:700;font-size:12.5px;padding:7px 12px;border-radius:999px;cursor:pointer;transition:background .15s}"
+  + ".igchat-chip:hover{background:#eef1ff}"
+  + ".igchat-chip.igchat-agent{border-color:#16a34a;color:#16a34a}"
+  + ".igchat-chip.igchat-agent:hover{background:#eafff2}"
+  + ".igchat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid #e8eaf3;flex-shrink:0;background:#fff}"
+  + ".igchat-input-row input{flex:1;border:1px solid #e8eaf3;border-radius:12px;padding:10px 13px;font-size:13.5px;font-family:inherit;background:#fbfcff;color:#0f1b33;min-width:0}"
+  + ".igchat-input-row input:focus{outline:2px solid #2952e3;outline-offset:1px}"
+  + ".igchat-send{border:0;background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}"
+  + ".igchat-send svg{width:17px;height:17px}"
+  + "@media(max-width:480px){.igchat-panel{width:94vw;inset-inline-end:3vw;bottom:86px}}";
+
+  var styleEl = document.createElement("style");
+  styleEl.textContent = css;
+  document.head.appendChild(styleEl);
+
+  /* ---------- Markup ---------- */
+  var ICON_CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+  var ICON_CLOSE_LAUNCH = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  var ICON_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>';
+
+  var launcher = document.createElement("button");
+  launcher.className = "igchat-launcher";
+  launcher.setAttribute("aria-label", "Chat");
+  launcher.innerHTML = ICON_CHAT;
+  document.body.appendChild(launcher);
+
+  var panel = document.createElement("div");
+  panel.className = "igchat-panel";
+  panel.innerHTML =
+    '<div class="igchat-head">' +
+      '<span class="igchat-dot"></span>' +
+      '<div class="igchat-head-text"><b class="igchat-brand"></b><span class="igchat-subtitle"></span></div>' +
+      '<button class="igchat-close" aria-label="Close">✕</button>' +
+    '</div>' +
+    '<div class="igchat-body" id="igchatBody"></div>' +
+    '<div class="igchat-chips" id="igchatChips"></div>' +
+    '<div class="igchat-input-row">' +
+      '<input type="text" id="igchatInput" autocomplete="off">' +
+      '<button class="igchat-send" id="igchatSend" aria-label="Send">' + ICON_SEND + '</button>' +
+    '</div>';
+  document.body.appendChild(panel);
+
+  var body = panel.querySelector("#igchatBody");
+  var chipsRow = panel.querySelector("#igchatChips");
+  var input = panel.querySelector("#igchatInput");
+  var sendBtn = panel.querySelector("#igchatSend");
+  var closeBtn = panel.querySelector(".igchat-close");
+  var brandEl = panel.querySelector(".igchat-brand");
+  var subtitleEl = panel.querySelector(".igchat-subtitle");
+
+  var opened = false;
+  var greeted = false;
+
+  function waLink(text){
+    return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text);
+  }
+
+  function addMsg(text, who){
+    var el = document.createElement("div");
+    el.className = "igchat-msg " + who;
+    el.textContent = text;
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+    return el;
+  }
+
+  function addTyping(){
+    var el = document.createElement("div");
+    el.className = "igchat-typing";
+    el.innerHTML = "<span></span><span></span><span></span>";
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+    return el;
+  }
+
+  function setChips(list){
+    chipsRow.innerHTML = "";
+    list.forEach(function(c){
+      var b = document.createElement("button");
+      b.className = "igchat-chip" + (c.agent ? " igchat-agent" : "");
+      b.textContent = c.label;
+      b.onclick = c.onClick;
+      chipsRow.appendChild(b);
+    });
+  }
+
+  function baseChips(t){
+    return [
+      { label: t.qServices, onClick: function(){ handleUserPick(t.qServices, "services"); } },
+      { label: t.qPrices, onClick: function(){ handleUserPick(t.qPrices, "prices"); } },
+      { label: t.qSchengen, onClick: function(){ handleUserPick(t.qSchengen, "schengen"); } },
+      { label: t.qAgent, onClick: function(){ handleUserPick(t.qAgent, "agent"); }, agent:true }
+    ];
+  }
+
+  function offerAgent(t){
+    var el = document.createElement("div");
+    el.style.cssText = "align-self:flex-start;margin-top:-4px";
+    var a = document.createElement("a");
+    a.href = waLink(t.waFallbackMsg);
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.className = "igchat-chip igchat-agent";
+    a.textContent = t.agentBtn;
+    el.appendChild(a);
+    body.appendChild(el);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function replyWithTopic(topic, t){
+    var typingEl = addTyping();
+    setTimeout(function(){
+      typingEl.remove();
+      addMsg(topic.reply(t), "bot");
+      if(topic.handoff){
+        offerAgent(t);
+      }
+      setChips(baseChips(t));
+    }, 420 + Math.random()*260);
+  }
+
+  function handleUserPick(label, topicId){
+    addMsg(label, "user");
+    var t = T[lang()];
+    var found = null;
+    topics().some(function(tp){ if(tp.id === topicId){ found = tp; return true; } return false; });
+    if(found){ replyWithTopic(found, t); }
+  }
+
+  function handleFreeText(msg){
+    var t = T[lang()];
+    addMsg(msg, "user");
+    var found = matchTopic(msg);
+    var typingEl = addTyping();
+    setTimeout(function(){
+      typingEl.remove();
+      if(found){
+        addMsg(found.reply(t), "bot");
+        if(found.handoff){ offerAgent(t); }
+      } else {
+        addMsg(t.fallback, "bot");
+        offerAgent(t);
+      }
+      setChips(baseChips(t));
+    }, 420 + Math.random()*260);
+  }
+
+  function refreshLabels(){
+    var t = T[lang()];
+    brandEl.textContent = t.brand;
+    subtitleEl.textContent = t.subtitle;
+    input.placeholder = t.placeholder;
+    panel.dir = lang() === "ar" ? "rtl" : "ltr";
+  }
+
+  function openPanel(){
+    refreshLabels();
+    panel.classList.add("igchat-open");
+    launcher.innerHTML = ICON_CLOSE_LAUNCH;
+    opened = true;
+    var teaser = document.getElementById("igchatTeaser");
+    if(teaser) teaser.remove();
+    if(!greeted){
+      greeted = true;
+      var t = T[lang()];
+      setTimeout(function(){
+        addMsg(t.greeting, "bot");
+        setChips(baseChips(t));
+      }, 300);
+    }
+    input.focus();
+  }
+
+  function closePanel(){
+    panel.classList.remove("igchat-open");
+    launcher.innerHTML = ICON_CHAT;
+    opened = false;
+  }
+
+  launcher.addEventListener("click", function(){
+    if(opened) closePanel(); else openPanel();
+  });
+  closeBtn.addEventListener("click", closePanel);
+
+  function submitInput(){
+    var v = input.value.trim();
+    if(!v) return;
+    input.value = "";
+    handleFreeText(v);
+  }
+  sendBtn.addEventListener("click", submitInput);
+  input.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ submitInput(); }
+  });
+
+  /* ---------- Proactive teaser bubble ---------- */
+  function showTeaser(){
+    if(opened) return;
+    if(sessionStorage.getItem(SESSION_KEY)) return;
+    sessionStorage.setItem(SESSION_KEY, "1");
+    var t = T[lang()];
+    var el = document.createElement("div");
+    el.className = "igchat-teaser";
+    el.id = "igchatTeaser";
+    el.dir = lang() === "ar" ? "rtl" : "ltr";
+    el.innerHTML = '<button aria-label="close">✕</button><div class="igchat-teaser-text"></div>';
+    el.querySelector(".igchat-teaser-text").textContent = t.teaser;
+    el.addEventListener("click", function(e){
+      if(e.target.tagName === "BUTTON"){ el.remove(); return; }
+      openPanel();
+    });
+    document.body.appendChild(el);
+    setTimeout(function(){ if(document.body.contains(el)) el.remove(); }, 12000);
+  }
+  setTimeout(showTeaser, 3500);
+
+  /* ---------- Hide the old simple WhatsApp float button, if present ---------- */
+  var oldBtn = document.getElementById("waFloatBtn");
+  if(oldBtn) oldBtn.style.display = "none";
+
+  /* ---------- Pull the WhatsApp number from site-settings.json (fallback stays hardcoded) ---------- */
+  fetch(PREFIX + "site-settings.json", { cache: "no-store" }).then(function(r){ return r.ok ? r.json() : null; }).then(function(data){
+    if(!data) return;
+    var wa = data.contact_whatsapp && (data.contact_whatsapp.ar || data.contact_whatsapp.en);
+    if(wa){
+      var m = wa.match(/(\d{8,15})\s*$/) || wa.match(/wa\.me\/(\d{8,15})/);
+      if(m) WA_NUMBER = m[1];
+    }
+  }).catch(function(){});
+
+})();
