@@ -44,7 +44,7 @@ h1.detail-title{font-size:clamp(30px,4vw,46px);line-height:1.15;margin:14px 0 18
 .footer-simple{background:var(--navy);color:#9aa3c2;padding:34px 0;text-align:center;font-size:13px;margin-top:20px}
 @media(max-width:900px){.navlinks{display:none}.hamburger{display:flex}}
 @media(max-width:820px){.detail-grid{grid-template-columns:1fr}.detail-icon-box{max-width:280px;margin:0 auto}}
-@media(max-width:640px){.nav-inner{height:64px;gap:10px}.brand{font-size:16px}.actions .btn:not(.langBtn){padding:9px 13px;font-size:13px}}
+@media(max-width:640px){.nav-inner{height:64px;gap:10px}.brand{font-size:16px}.actions .btn:not(.hamburger){display:none}}
 
 </style>
 </head>
@@ -74,8 +74,9 @@ h1.detail-title{font-size:clamp(30px,4vw,46px);line-height:1.15;margin:14px 0 18
     <a href="../index.html#faq" data-i18n="navFaq">FAQ</a>
     <a href="../index.html#contact" data-i18n="navContact">Contact</a>
     <div class="mm-actions">
-      <a class="btn btn-blue" href="../index.html#services" data-i18n="allServices">All Services</a>
-      <a class="btn btn-green" href="../consultation.html" data-i18n="bookBtn">Book a Consultation</a>
+      <button class="btn btn-outline langBtn" onclick="toggleLang()" style="flex:1" data-i18n="lang">العربية</button>
+      <a class="btn btn-blue" href="../index.html#services" style="flex:1;text-align:center" onclick="toggleMobileMenu()" data-i18n="allServices">All Services</a>
+      <a class="btn btn-green" href="../consultation.html" style="flex:1;text-align:center" onclick="toggleMobileMenu()" data-i18n="bookBtn">Book a Consultation</a>
     </div>
   </div>
 </nav>
