@@ -1276,7 +1276,7 @@ function renderChatThread(id){
     wrap.querySelectorAll(".chat-quick-chip").forEach(chip=>{
       chip.addEventListener("click", ()=>{
         const ta = document.getElementById("chatReplyInput");
-        if(ta){ ta.value = chip.textContent; ta.focus(); }
+        if(ta){ ta.value = chip.textContent; ta.dataset.quickReply = "1"; ta.focus(); }
       });
     });
     const input = document.getElementById("chatReplyInput");
@@ -1284,6 +1284,7 @@ function renderChatThread(id){
       input.addEventListener("keydown", e=>{
         if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendChatReply(id); }
       });
+      input.addEventListener("input", ()=>{ delete input.dataset.quickReply; });
     }
     const attachBtn = document.getElementById("chatAttachBtn");
     const fileInput = document.getElementById("chatFileInput");
@@ -1306,8 +1307,9 @@ async function sendChatReply(id){
   const btn = document.getElementById("chatSendBtn");
   if(btn) btn.disabled = true;
   try{
-    const agentName = getAgentName();
-    const payload = {type:"chat_admin", conversationId: id, message: displayText, name: agentName, secret: ADMIN_PASSPHRASE};
+    const isQuickReply = !!(input && input.dataset.quickReply === "1");
+    const sendName = isQuickReply ? "خدمة العملاء" : getAgentName();
+    const payload = {type:"chat_admin", conversationId: id, message: displayText, name: sendName, secret: ADMIN_PASSPHRASE};
     if(attachedFile){
       payload.fileData = attachedFile.data;
       payload.fileName = attachedFile.name;
@@ -1320,7 +1322,7 @@ async function sendChatReply(id){
       body: JSON.stringify(payload)
     });
     if(!chatConversations[id]) chatConversations[id] = {id:id, name:"", email:"", service:"", messages:[], closed:false};
-    const localMsg = {type:"chat_admin", message:displayText, date: new Date().toISOString(), conversationId:id, name: agentName};
+    const localMsg = {type:"chat_admin", message:displayText, date: new Date().toISOString(), conversationId:id, name: sendName};
     if(attachedFile){
       localMsg.fileMeta = JSON.stringify({name: attachedFile.name, mime: attachedFile.mime});
       try{ localMsg.fileUrl = URL.createObjectURL(attachedFile.raw); }catch(e){}
