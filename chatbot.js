@@ -216,7 +216,7 @@
   + ".igchat-attachment{margin-top:6px;display:block}"
   + ".igchat-attachment img{max-width:180px;max-height:180px;border-radius:10px;display:block}"
   + ".igchat-attachment a{color:inherit;text-decoration:underline;font-size:13px}"
-  + "@media(max-width:480px){.igchat-panel{width:94vw;inset-inline-end:3vw;bottom:86px}}";
+  + "@media(max-width:480px){.igchat-panel{width:100vw;max-width:100vw;inset-inline-end:0;inset-inline-start:0;bottom:0;height:min(85vh,620px);border-radius:18px 18px 0 0}.igchat-head{padding:14px 16px}.igchat-launcher{width:54px;height:54px;bottom:16px;inset-inline-end:16px}.igchat-launcher.igchat-hide{display:none}}";
 
   var styleEl = document.createElement("style");
   styleEl.textContent = css;
@@ -697,6 +697,9 @@
     refreshLabels();
     panel.classList.add("igchat-open");
     launcherIcon.innerHTML = ICON_CLOSE_LAUNCH;
+    if(window.matchMedia && window.matchMedia("(max-width:480px)").matches){
+      launcher.classList.add("igchat-hide");
+    }
     opened = true;
     showUnreadBadge(false);
     var teaser = document.getElementById("igchatTeaser");
@@ -718,6 +721,7 @@
   function closePanel(){
     panel.classList.remove("igchat-open");
     launcherIcon.innerHTML = ICON_CHAT;
+    launcher.classList.remove("igchat-hide");
     opened = false;
     scheduleNextSync();
   }
