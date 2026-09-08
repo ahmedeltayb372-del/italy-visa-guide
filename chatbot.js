@@ -18,6 +18,7 @@
   var sentTexts = [];
   var chatPollTimer = null;
   var hydrated = false;
+  var intakeState = null;
 
   function lang(){
     return localStorage.getItem("siteLang") || "en";
@@ -58,7 +59,15 @@
       faq1: "No — this is an independent informational guide and consultation service, not affiliated with any embassy, consulate or VFS Global. Always verify sensitive details (dates, fees, documents) with the official source.",
       faq2: "Not at all — the guide is free to browse with no sign-up required.",
       faq5: "Yes, browsing the guide and general information is 100% free. Personal consultations are discussed directly with you.",
-      faq6: "Always confirm official requirements, fees and timelines on the VFS Global or Italian Embassy website — this guide is for informational support only."
+      faq6: "Always confirm official requirements, fees and timelines on the VFS Global or Italian Embassy website — this guide is for informational support only.",
+      complaintIntake: "I'm sorry to hear that 🙏 Could you tell me exactly what happened?",
+      requestIntake: "Sure, tell me exactly what you'd like to request and I'll pass it on to our team.",
+      intakeMoreQuestion: "Got it. Anything else you'd like to add before I send this to our team?",
+      intakeDoneLabel: "No, that's everything ✅",
+      intakeAddMoreLabel: "Yes, one more thing",
+      intakeClosing: "Thanks — I've passed all the details to our customer service team, they'll follow up with you here shortly 💬",
+      complaintLabel: "📩 New complaint",
+      requestLabel: "📩 New request"
     },
     ar: {
       brand: "بوابة إيطاليا",
@@ -93,7 +102,15 @@
       faq1: "لأ، ده دليل معلوماتي وخدمة استشارية مستقلة، مش تابع لأي سفارة أو قنصلية أو VFS Global. دايمًا تأكد من التفاصيل الحساسة (مواعيد، رسوم، مستندات) من المصدر الرسمي.",
       faq2: "لأ خالص، الدليل متاح مجانًا من غير أي تسجيل.",
       faq5: "أيوه، تصفح الدليل والمعلومات العامة مجاني 100%. الاستشارات الشخصية بنتناقش فيها معاك مباشرة.",
-      faq6: "دايمًا تأكد من المتطلبات والرسوم والمواعيد الرسمية من موقع VFS Global أو السفارة الإيطالية — الدليل ده لدعم معلوماتي بس."
+      faq6: "دايمًا تأكد من المتطلبات والرسوم والمواعيد الرسمية من موقع VFS Global أو السفارة الإيطالية — الدليل ده لدعم معلوماتي بس.",
+      complaintIntake: "مضايقني إني اسمع كده 🙏 ممكن تقولي بالظبط إيه اللي حصل؟",
+      requestIntake: "تمام، قولّي طلبك بالظبط وأنا هوصله لفريقنا.",
+      intakeMoreQuestion: "تمام، فهمت. في حاجة تانية حابب تضيفها قبل ما أبعت التفاصيل دي لفريقنا؟",
+      intakeDoneLabel: "لأ، كده تمام ✅",
+      intakeAddMoreLabel: "أيوه، في حاجة كمان",
+      intakeClosing: "تمام، بعت كل التفاصيل لفريق خدمة العملاء، وهيتابعوا معاك هنا في أقرب وقت 💬",
+      complaintLabel: "📩 شكوى جديدة",
+      requestLabel: "📩 طلب جديد"
     }
   };
 
@@ -103,6 +120,8 @@
       { id:"thanks", kw:["شكرا","متشكر","تسلم","thanks","thank you","thx"], reply:function(t){ return t.thanks; } },
       { id:"bye", kw:["مع السلامة","باي","تصبح على خير","bye","goodbye","see you"], reply:function(t){ return t.bye; } },
       { id:"agent", kw:["خدمه العملاء","خدمة العملاء","عايز حد","اتكلم مع حد","مسئول","ممثل","human","agent","representative","customer service","real person","حد يرد"], reply:function(t){ return t.humanHandoff; }, handoff:true },
+      { id:"complaint", kw:["شكوى","شكوة","شكوي","complaint","عندي مشكلة","عندى مشكلة","في مشكلة","فى مشكلة","مش راضي","مش راضى","مقتنعش","عايز اشتكي","عايز اشتكى","i have a problem","i want to complain"], reply:function(t){ return t.complaintIntake; }, intake:true },
+      { id:"request", kw:["عندي طلب","عندى طلب","عايز اقدم طلب","عايز افتح طلب","عاوز اقدم طلب","محتاج اطلب حاجة","طلب خاص","special request","file a request","make a request","i have a request","i'd like to request"], reply:function(t){ return t.requestIntake; }, intake:true },
       { id:"prices", kw:["سعر","اسعار","السعر","الاسعار","تكلفه","تكلفة","فلوس","بكام","price","prices","cost","how much","fees"], reply:function(t){ return t.pricesList; } },
       { id:"schengen", kw:["شنجن","شنغن","سياحه","سياحة","tourist","tourism","schengen"], reply:function(t){ return t.schengenInfo; } },
       { id:"study", kw:["دراسه","دراسة","جامعه","جامعة","طالب","study","university","student"], reply:function(t){ return t.studyInfo; } },
@@ -497,6 +516,42 @@
     if(found){ replyWithTopic(found, t, label); }
   }
 
+  function startIntake(topic, firstMsg, file, t){
+    intakeState = { type: topic.id, parts: [firstMsg], pendingFile: file || null, askedMore: false };
+    addMsg(topic.reply(t), "bot");
+    setChips([]);
+  }
+
+  function continueIntake(msg, file, t){
+    var typingEl = addTyping();
+    setTimeout(function(){
+      typingEl.remove();
+      if(!intakeState) return;
+      if(msg) intakeState.parts.push(msg);
+      if(file) intakeState.pendingFile = file;
+      if(!intakeState.askedMore){
+        intakeState.askedMore = true;
+        addMsg(t.intakeMoreQuestion, "bot");
+        setChips([
+          { label: t.intakeDoneLabel, onClick: function(){ addMsg(t.intakeDoneLabel, "user"); setChips([]); finishIntake(t); } },
+          { label: t.intakeAddMoreLabel, onClick: function(){ addMsg(t.intakeAddMoreLabel, "user"); setChips([]); if(intakeState) intakeState.askedMore = false; } }
+        ]);
+      } else {
+        finishIntake(t);
+      }
+    }, 420 + Math.random()*260);
+  }
+
+  function finishIntake(t){
+    var state = intakeState;
+    intakeState = null;
+    if(!state) return;
+    var label = state.type === "complaint" ? t.complaintLabel : t.requestLabel;
+    var summary = label + ":\n" + state.parts.join("\n");
+    addMsg(t.intakeClosing, "bot");
+    beginLiveChat(summary, state.pendingFile);
+  }
+
   function handleFreeText(msg, file){
     var t = T[lang()];
     var localFile = (file && file.raw) ? { url: URL.createObjectURL(file.raw), name: file.name, mime: file.mime } : null;
@@ -506,11 +561,17 @@
       sendVisitorChatMessage(msg, false, file);
       return;
     }
+    if(intakeState){
+      continueIntake(msg, file, t);
+      return;
+    }
     var found = matchTopic(msg);
     var typingEl = addTyping();
     setTimeout(function(){
       typingEl.remove();
-      if(found){
+      if(found && found.intake){
+        startIntake(found, msg, file, t);
+      } else if(found){
         addMsg(found.reply(t), "bot");
         if(found.handoff){ beginLiveChat(msg, file); } else { setChips(baseChips(t)); }
       } else if(file){
