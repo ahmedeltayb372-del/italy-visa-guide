@@ -216,7 +216,7 @@
   + ".igchat-attachment{margin-top:6px;display:block}"
   + ".igchat-attachment img{max-width:180px;max-height:180px;border-radius:10px;display:block}"
   + ".igchat-attachment a{color:inherit;text-decoration:underline;font-size:13px}"
-  + "@media(max-width:480px){.igchat-panel{width:100vw;max-width:100vw;inset-inline-end:0;inset-inline-start:0;bottom:0;height:min(85vh,620px);border-radius:18px 18px 0 0}.igchat-head{padding:14px 16px}.igchat-launcher{width:54px;height:54px;bottom:16px;inset-inline-end:16px}.igchat-launcher.igchat-hide{display:none}}";
+  + "@media(max-width:480px){.igchat-panel{width:100vw;max-width:100vw;inset-inline-end:0;inset-inline-start:0;top:0;bottom:0;height:100vh;height:100dvh;border-radius:0}.igchat-head{padding:18px 18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}.igchat-head-text b{font-size:16.5px}.igchat-body{padding:14px 14px 18px}.igchat-input-row{padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom))}.igchat-launcher{width:54px;height:54px;bottom:16px;inset-inline-end:16px}.igchat-launcher.igchat-hide{display:none}}";
 
   var styleEl = document.createElement("style");
   styleEl.textContent = css;
@@ -699,6 +699,8 @@
     launcherIcon.innerHTML = ICON_CLOSE_LAUNCH;
     if(window.matchMedia && window.matchMedia("(max-width:480px)").matches){
       launcher.classList.add("igchat-hide");
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
     }
     opened = true;
     showUnreadBadge(false);
@@ -722,6 +724,8 @@
     panel.classList.remove("igchat-open");
     launcherIcon.innerHTML = ICON_CHAT;
     launcher.classList.remove("igchat-hide");
+    document.documentElement.style.overflow = "";
+    document.body.style.overflow = "";
     opened = false;
     scheduleNextSync();
   }
