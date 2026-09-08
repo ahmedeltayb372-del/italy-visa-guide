@@ -19,6 +19,7 @@
   var chatPollTimer = null;
   var hydrated = false;
   var intakeState = null;
+  var aiChatState = null;
 
   function lang(){
     return localStorage.getItem("siteLang") || "en";
@@ -564,13 +565,102 @@
     beginLiveChat(summary, state.pendingFile);
   }
 
+  /* ---------- AI-assisted conversation (Gemini, via the Apps Script backend) ----------
+     Used for complaints/requests and for anything the keyword bot can't match, so the
+     visitor gets a real short back-and-forth instead of a canned "not sure" message,
+     and by the time it reaches the admin the conversation already has real context.
+     If no API key is configured server-side (or the call fails), this silently falls
+     back to the old scripted behaviour below — nothing breaks either way. */
+  function buildAiSummary(state){
+    var isAr = lang() === "ar";
+    var label = state.kind === "complaint"
+      ? (isAr ? "📩 شكوى جديدة (عبر المساعد الذكي)" : "📩 New complaint (via AI assistant)")
+      : state.kind === "request"
+        ? (isAr ? "📩 طلب جديد (عبر المساعد الذكي)" : "📩 New request (via AI assistant)")
+        : (isAr ? "📩 محادثة محتاجة متابعة (عبر المساعد الذكي)" : "📩 Conversation needing follow-up (via AI assistant)");
+    var lines = state.history.map(function(h){ return (h.role === "user" ? "👤" : "🤖") + " " + h.text; });
+    return label + ":\n" + lines.join("\n");
+  }
+
+  function aiReplyRequest(history, uiLang){
+    var url = GAS_URL + "?action=aiReply&lang=" + encodeURIComponent(uiLang) + "&history=" + encodeURIComponent(JSON.stringify(history));
+    return jsonpFetch(url).then(function(data){
+      if(!data || data.status !== "success") return null;
+      return data.ai || null;
+    }).catch(function(){ return null; });
+  }
+
+  function startAiChat(kind, firstMsg, file, t, msgLang){
+    aiChatState = { kind: kind, history: [{role:"user", text: firstMsg}], turns: 1, pendingFile: file || null };
+    var typingEl = addTyping();
+    aiReplyRequest(aiChatState.history, msgLang).then(function(ai){
+      typingEl.remove();
+      if(!ai){
+        aiChatState = null;
+        if(kind === "fallback"){
+          addMsg(t.fallback, "bot");
+          setChips(baseChips(t));
+        } else {
+          var topic = null;
+          topics().some(function(tp){ if(tp.id === kind){ topic = tp; return true; } return false; });
+          if(topic){ startIntake(topic, firstMsg, file, t); } else { addMsg(t.fallback, "bot"); setChips(baseChips(t)); }
+        }
+        return;
+      }
+      aiChatState.history.push({role:"bot", text: ai.reply});
+      addMsg(ai.reply, "bot");
+      if(ai.handoff){
+        var summary = buildAiSummary(aiChatState);
+        var pendingFile = aiChatState.pendingFile;
+        aiChatState = null;
+        beginLiveChat(summary, pendingFile);
+      } else {
+        setChips([]);
+      }
+    });
+  }
+
+  function continueAiChat(msg, file, t, msgLang){
+    if(!aiChatState) return;
+    aiChatState.history.push({role:"user", text: msg});
+    aiChatState.turns++;
+    if(file) aiChatState.pendingFile = file;
+    var forceCap = aiChatState.turns >= 5;
+    var typingEl = addTyping();
+    aiReplyRequest(aiChatState.history, msgLang).then(function(ai){
+      typingEl.remove();
+      if(!aiChatState) return;
+      if(!ai){
+        var summary = buildAiSummary(aiChatState);
+        var pendingFile = aiChatState.pendingFile;
+        aiChatState = null;
+        addMsg(t.intakeClosing, "bot");
+        beginLiveChat(summary, pendingFile);
+        return;
+      }
+      aiChatState.history.push({role:"bot", text: ai.reply});
+      addMsg(ai.reply, "bot");
+      if(ai.handoff || forceCap){
+        var summary2 = buildAiSummary(aiChatState);
+        var pendingFile2 = aiChatState.pendingFile;
+        aiChatState = null;
+        beginLiveChat(summary2, pendingFile2);
+      }
+    });
+  }
+
   function handleFreeText(msg, file){
-    var t = T[detectMsgLang(msg) || lang()];
+    var msgLang = detectMsgLang(msg) || lang();
+    var t = T[msgLang];
     var localFile = (file && file.raw) ? { url: URL.createObjectURL(file.raw), name: file.name, mime: file.mime } : null;
     addMsg(msg, "user", localFile);
     if(liveChatActive){
       sentTexts.push(msg);
       sendVisitorChatMessage(msg, false, file);
+      return;
+    }
+    if(aiChatState){
+      continueAiChat(msg, file, t, msgLang);
       return;
     }
     if(intakeState){
@@ -582,7 +672,7 @@
     setTimeout(function(){
       typingEl.remove();
       if(found && found.intake){
-        startIntake(found, msg, file, t);
+        startAiChat(found.id, msg, file, t, msgLang);
       } else if(found){
         addMsg(found.reply(t), "bot");
         if(found.handoff){ beginLiveChat(msg, file); } else { setChips(baseChips(t)); }
@@ -590,8 +680,7 @@
         addMsg(t.fileHandoffReply, "bot");
         beginLiveChat(msg, file);
       } else {
-        addMsg(t.fallback, "bot");
-        setChips(baseChips(t));
+        startAiChat("fallback", msg, file, t, msgLang);
       }
     }, 420 + Math.random()*260);
   }
