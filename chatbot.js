@@ -174,14 +174,14 @@
 
   /* ---------- Styles ---------- */
   var css = ""
-  + ".igchat-launcher{position:fixed;bottom:22px;inset-inline-end:22px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#2952e3,#6d5bf7);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(41,82,227,.35);cursor:pointer;z-index:999;border:0;transition:transform .18s;padding:0}"
+  + ".igchat-launcher{position:fixed;bottom:22px;inset-inline-start:22px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#2952e3,#6d5bf7);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(41,82,227,.35);cursor:pointer;z-index:999;border:0;transition:transform .18s;padding:0}"
   + ".igchat-launcher:hover{transform:scale(1.07)}"
   + ".igchat-launcher svg{width:28px;height:28px}"
   + ".igchat-badge{position:absolute;top:2px;inset-inline-end:2px;width:13px;height:13px;border-radius:50%;background:#ef4444;border:2px solid #fff}"
-  + ".igchat-teaser{position:fixed;bottom:92px;inset-inline-end:20px;max-width:250px;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 16px 40px rgba(15,27,51,.18);font-size:13.5px;line-height:1.5;color:#0f1b33;z-index:998;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;cursor:pointer;animation:igchat-pop .25s ease}"
+  + ".igchat-teaser{position:fixed;bottom:92px;inset-inline-start:20px;max-width:250px;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 16px 40px rgba(15,27,51,.18);font-size:13.5px;line-height:1.5;color:#0f1b33;z-index:998;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;cursor:pointer;animation:igchat-pop .25s ease}"
   + ".igchat-teaser button{position:absolute;top:6px;inset-inline-end:8px;border:0;background:none;color:#9aa3c2;font-size:14px;cursor:pointer;line-height:1;padding:2px}"
   + "@keyframes igchat-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}"
-  + ".igchat-panel{position:fixed;bottom:92px;inset-inline-end:22px;width:360px;max-width:92vw;height:min(560px,76vh);background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(15,27,51,.28);display:none;flex-direction:column;overflow:hidden;z-index:1000;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif}"
+  + ".igchat-panel{position:fixed;bottom:92px;inset-inline-start:22px;width:360px;max-width:92vw;height:min(560px,76vh);background:#fff;border-radius:20px;box-shadow:0 24px 60px rgba(15,27,51,.28);display:none;flex-direction:column;overflow:hidden;z-index:1000;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif}"
   + ".igchat-panel.igchat-open{display:flex}"
   + ".igchat-head{background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;padding:16px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0}"
   + ".igchat-head .igchat-dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.35);flex-shrink:0}"
@@ -216,7 +216,7 @@
   + ".igchat-attachment{margin-top:6px;display:block}"
   + ".igchat-attachment img{max-width:180px;max-height:180px;border-radius:10px;display:block}"
   + ".igchat-attachment a{color:inherit;text-decoration:underline;font-size:13px}"
-  + "@media(max-width:480px){.igchat-panel{width:100vw;max-width:100vw;inset-inline-end:0;inset-inline-start:0;top:0;bottom:0;height:100vh;height:100dvh;border-radius:0}.igchat-head{padding:18px 18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}.igchat-head-text b{font-size:16.5px}.igchat-body{padding:14px 14px 18px}.igchat-input-row{padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom))}.igchat-launcher{width:54px;height:54px;bottom:16px;inset-inline-end:16px}.igchat-launcher.igchat-hide{display:none}}";
+  + "@media(max-width:480px){.igchat-panel{width:100vw;max-width:100vw;inset-inline-end:0;inset-inline-start:0;top:0;bottom:0;height:100vh;height:100dvh;border-radius:0}.igchat-head{padding:18px 18px;box-shadow:0 2px 10px rgba(0,0,0,.08)}.igchat-head-text b{font-size:16.5px}.igchat-body{padding:14px 14px 18px}.igchat-input-row{padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom))}.igchat-launcher{width:54px;height:54px;bottom:16px;inset-inline-start:16px}.igchat-launcher.igchat-hide{display:none}}";
 
   var styleEl = document.createElement("style");
   styleEl.textContent = css;
