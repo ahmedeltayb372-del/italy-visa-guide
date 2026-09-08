@@ -191,6 +191,12 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   </div>
 
   <div class="card">
+    <div class="card-head"><h2>الردود الجاهزة في الشات المباشر</h2></div>
+    <p class="small-note">اكتب كل رد جاهز في سطر لوحده. الردود دي بتظهر كأزرار سريعة تحت صندوق الرد في تبويب "الشات المباشر"، ودوسة واحدة على أي زرار بتحط نصه في خانة الكتابة عشان تعدله أو تبعته زي ما هو.</p>
+    <div class="field"><textarea id="s_quick_replies" rows="6" style="font-family:inherit;direction:rtl;text-align:right" placeholder="اكتب رد جاهز في كل سطر..."></textarea></div>
+  </div>
+
+  <div class="card">
     <div class="card-head"><h2>أمان لوحة الإدارة</h2></div>
     <p class="small-note">غيّر كلمة مرور الدخول للوحة الإدارة من هنا مباشرة — من غير ما تلمس أي كود. لما تحفظ، أي شخص هيحاول يدخل بعد كده هيحتاج الباسورد الجديد.</p>
     <div class="field" style="max-width:340px"><label>كلمة مرور لوحة الإدارة</label><input type="text" id="s_admin_pass" placeholder="اكتب كلمة مرور جديدة"></div>
@@ -515,6 +521,16 @@ async function loadSettingsTab(){
   document.getElementById("s_admin_pass").value = settingsData.admin_passphrase || ADMIN_PASSPHRASE || "";
   document.getElementById("s_ga_id").value = settingsData.ga_measurement_id || "";
   document.getElementById("s_webhook").value = settingsData.requests_webhook_url || "";
+  document.getElementById("s_quick_replies").value =
+    (Array.isArray(settingsData.chat_quick_replies) && settingsData.chat_quick_replies.length
+      ? settingsData.chat_quick_replies
+      : CHAT_QUICK_REPLIES).join("\n");
+}
+
+function getQuickReplies(){
+  return (settingsData && Array.isArray(settingsData.chat_quick_replies) && settingsData.chat_quick_replies.length)
+    ? settingsData.chat_quick_replies
+    : CHAT_QUICK_REPLIES;
 }
 
 async function saveSettings(){
@@ -532,6 +548,8 @@ async function saveSettings(){
       stripe_inperson_url: bothLangs(document.getElementById("s_stripe_inperson").value.trim()),
       ga_measurement_id: document.getElementById("s_ga_id").value.trim(),
       requests_webhook_url: document.getElementById("s_webhook").value.trim(),
+      chat_quick_replies: document.getElementById("s_quick_replies").value
+        .split("\n").map(s=>s.trim()).filter(Boolean),
       stripe_video_url: bothLangs(document.getElementById("s_stripe_video").value.trim()),
       stripe_voice_url: bothLangs(document.getElementById("s_stripe_voice").value.trim()),
       admin_passphrase: document.getElementById("s_admin_pass").value.trim() || settingsData.admin_passphrase || ADMIN_PASSPHRASE
@@ -1206,7 +1224,7 @@ function renderChatThread(id){
       '<div class="ctime">' + escapeHtml(String(m.date || "")) + '</div></div>';
   }).join("");
   const quickRepliesHtml = '<div class="chat-quick-replies">' +
-    CHAT_QUICK_REPLIES.map(q => '<button type="button" class="chat-quick-chip">' + escapeHtml(q) + '</button>').join("") +
+    getQuickReplies().map(q => '<button type="button" class="chat-quick-chip">' + escapeHtml(q) + '</button>').join("") +
   '</div>';
   wrap.innerHTML = head +
     '<div class="chat-msgs" id="chatMsgsBox">' + msgsHtml + '</div>' +
