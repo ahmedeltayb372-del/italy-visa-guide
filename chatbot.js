@@ -426,7 +426,8 @@
   function sendVisitorChatMessage(text, isHandoffRequest, file){
     if(!GAS_URL || (!text && !file)) return;
     var payload = { type:"chat_visitor", conversationId: ensureConversationId(), message: text || "" };
-    if(isHandoffRequest) payload.handoff = true;
+    if(isHandoffRequest === true) payload.handoff = true;
+    else if(isHandoffRequest === "followup") payload.followup = true;
     if(file){
       payload.fileData = file.data;
       payload.fileName = file.name;
@@ -530,7 +531,7 @@
   function handleUserPick(label, topicId){
     addMsg(label, "user");
     var t = T[lang()];
-    if(liveChatActive){ sentTexts.push(label); sendVisitorChatMessage(label); return; }
+    if(liveChatActive){ sentTexts.push(label); sendVisitorChatMessage(label, "followup"); return; }
     var found = null;
     topics().some(function(tp){ if(tp.id === topicId){ found = tp; return true; } return false; });
     if(found){ replyWithTopic(found, t, label); }
@@ -663,7 +664,7 @@
     addMsg(msg, "user", localFile);
     if(liveChatActive){
       sentTexts.push(msg);
-      sendVisitorChatMessage(msg, false, file);
+      sendVisitorChatMessage(msg, "followup", file);
       return;
     }
     if(aiChatState){
