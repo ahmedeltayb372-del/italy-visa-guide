@@ -146,6 +146,18 @@
     return s;
   }
 
+  /* Detect the language of what the visitor actually typed, so the bot can
+     reply in Arabic to Arabic messages and in English to English ones,
+     regardless of the site's overall language toggle. */
+  function detectMsgLang(msg){
+    if(!msg) return null;
+    var arabicChars = (String(msg).match(/[؀-ۿ]/g) || []).length;
+    var latinChars = (String(msg).match(/[A-Za-z]/g) || []).length;
+    if(arabicChars > 0 && arabicChars >= latinChars) return "ar";
+    if(latinChars > 0) return "en";
+    return null;
+  }
+
   function matchTopic(msg){
     var n = normalize(msg);
     var list = topics();
@@ -553,7 +565,7 @@
   }
 
   function handleFreeText(msg, file){
-    var t = T[lang()];
+    var t = T[detectMsgLang(msg) || lang()];
     var localFile = (file && file.raw) ? { url: URL.createObjectURL(file.raw), name: file.name, mime: file.mime } : null;
     addMsg(msg, "user", localFile);
     if(liveChatActive){
