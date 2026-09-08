@@ -196,8 +196,8 @@ const i18n = {
     rights:"© 2026 Italy Gateway. All rights reserved.", lang:"العربية",
     aboutFallback:"This guide is built and maintained independently to help Egyptians understand the Italian visa process and get organized, reliable support along the way.",
     testimonialsEyebrow:"Testimonials", testimonialsTitle:"What Our Clients Say", testimonialsP:"Real feedback from people we helped along their Italy visa journey",
-    reviewFormEyebrow:"Share Your Experience", reviewFormTitle:"Add Your Review", reviewFormP:"Tell other visitors about your experience with us. Your review will be checked before it appears publicly.",
-    rfName:"Your Name *", rfRating:"Your Rating", rfText:"Your Review *", rfSend:"Submit Review", rfNote:"* Reviews are checked before publishing \u2014 it won\u2019t appear immediately.", rfSending:"Sending...", rfSent:"Thanks! Your review has been sent and will appear after it\u2019s reviewed.", rfFailed:"Something went wrong \u2014 please try again later."
+    reviewFormEyebrow:"Share Your Experience", reviewFormTitle:"Add Your Review", reviewFormP:"Tell other visitors about your experience with us.",
+    rfName:"Your Name *", rfRating:"Your Rating", rfText:"Your Review *", rfSend:"Submit Review", rfNote:"* Required fields.", rfSending:"Sending...", rfSent:"Thanks! Your review has been submitted successfully.", rfFailed:"Something went wrong \u2014 please try again later."
   },
   ar: {
     brand:"بوابة إيطاليا",
@@ -242,8 +242,8 @@ const i18n = {
     rights:"© 2026 بوابة إيطاليا. جميع الحقوق محفوظة.", lang:"English",
     aboutFallback:"الدليل ده متبني ومتدار بشكل مستقل عشان يساعد المصريين يفهموا إجراءات التأشيرة الإيطالية، ويحصلوا على دعم منظم وموثوق طول الطريق.",
     testimonialsEyebrow:"آراء العملاء", testimonialsTitle:"إيه رأي عملائنا", testimonialsP:"آراء حقيقية من ناس ساعدناهم في رحلة تأشيرتهم لإيطاليا",
-    reviewFormEyebrow:"شاركنا تجربتك", reviewFormTitle:"اضف تقييمك", reviewFormP:"احكيلنا عن تجربتك معانا. تقييمك هيتم مراجعته الأول قبل ما يظهر للزوار.",
-    rfName:"اسمك *", rfRating:"تقييمك", rfText:"رأيك *", rfSend:"إرسال التقييم", rfNote:"* التقييمات بتتم مراجعتها قبل النشر \u2014 مش هتظهر فورًا.", rfSending:"جاري الإرسال...", rfSent:"شكرًا! تقييمك اتبعت وهيظهر بعد المراجعة.", rfFailed:"حصلت مشكلة \u2014 حاول تاني بعدين."
+    reviewFormEyebrow:"شاركنا تجربتك", reviewFormTitle:"اضف تقييمك", reviewFormP:"احكيلنا عن تجربتك معانا.",
+    rfName:"اسمك *", rfRating:"تقييمك", rfText:"رأيك *", rfSend:"إرسال التقييم", rfNote:"* الحقول دي مطلوبة.", rfSending:"جاري الإرسال...", rfSent:"شكرًا! تقييمك اتبعت بنجاح.", rfFailed:"حصلت مشكلة \u2014 حاول تاني بعدين."
   }
 };
 function applyLang(){
@@ -402,7 +402,7 @@ document.addEventListener("DOMContentLoaded", applyLang);
     <div class="section-head center reveal">
       <span class="eyebrow" data-i18n="reviewFormEyebrow">Share Your Experience</span>
       <h2 data-i18n="reviewFormTitle">Add Your Review</h2>
-      <p data-i18n="reviewFormP">Tell other visitors about your experience with us. Your review will be checked before it appears publicly.</p>
+      <p data-i18n="reviewFormP">Tell other visitors about your experience with us.</p>
     </div>
     <div class="form-card reveal" style="max-width:560px;margin:0 auto">
       <form id="reviewForm">
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", applyLang);
         </div>
         <div class="form-field" style="margin-bottom:14px"><label data-i18n="rfText">Your Review *</label><textarea id="rfText" required></textarea></div>
         <button type="submit" class="btn btn-blue btn-lg" style="width:100%" data-i18n="rfSend">Submit Review</button>
-        <div class="form-note" data-i18n="rfNote">* Reviews are checked before publishing.</div>
+        <div class="form-note" data-i18n="rfNote">* Required fields.</div>
         <div class="form-status" id="rfStatus" style="display:none;margin-top:10px;font-size:13.5px;font-weight:700"></div>
       </form>
     </div>
