@@ -80,6 +80,20 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 .chat-reply-row{display:flex;gap:8px;margin-top:12px;align-items:flex-end}
 .chat-reply-row textarea{min-height:46px;max-height:120px;font-family:inherit}
 .chat-empty{color:#667085;font-size:14px;padding:20px;text-align:center}
+.chat-quick-replies{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chat-quick-chip{background:#eef1f7;color:#344054;border:1px solid #e3e7ee;padding:6px 12px;border-radius:999px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.chat-quick-chip:hover{background:#e3e7ee}
+.chat-bubble.system{align-self:center;background:#f2f4f7;color:#667085;font-size:12.5px;text-align:center;max-width:90%;border-radius:999px;padding:6px 16px}
+.chat-conv.closed{opacity:.65}
+.closed-badge{display:inline-block;background:#98a2b3;color:#fff;font-size:11px;border-radius:20px;padding:1px 8px;margin-inline-start:6px}
+.chat-closed-note{color:#667085;font-size:13px;margin-top:12px;text-align:center;background:#f9fafc;border:1px solid #eef1f7;border-radius:10px;padding:12px}
+.chat-attachment{margin-top:6px}
+.chat-attachment img{max-width:220px;max-height:220px;border-radius:8px;display:block}
+.chat-attachment a{color:inherit;text-decoration:underline;font-size:13px}
+.chat-attach-btn{font-size:16px;padding:0 12px;height:46px;border-radius:10px;flex-shrink:0}
+.chat-reply-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chat-file-preview{display:flex;align-items:center;gap:6px;background:#eef1f7;border:1px solid #e3e7ee;border-radius:8px;padding:4px 10px;font-size:12px;color:#344054}
+.chat-file-preview button{background:none;border:0;color:#b42318;cursor:pointer;font-size:12.5px;padding:0}
 @media(max-width:700px){
   .chat-wrap{grid-template-columns:1fr}
   .chat-list{max-height:220px}
@@ -304,7 +318,10 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   <div class="card">
     <div class="card-head">
       <h2>الشات المباشر مع زوار الموقع</h2>
-      <button class="btn-outline" onclick="loadChatTab()">🔄 تحديث</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn-outline" id="chatNotifyBtn" onclick="enableChatNotifications()">🔔 تفعيل تنبيهات المتصفح</button>
+        <button class="btn-outline" onclick="loadChatTab()">🔄 تحديث</button>
+      </div>
     </div>
     <p class="small-note">هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.</p>
     <div class="chat-wrap">
@@ -899,9 +916,186 @@ async function publishPendingReview(row){
    ====================================================================== */
 let chatConversations = {};
 let selectedConvId = null;
+let pendingAdminFile = null;
+const CHAT_MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+function readFileAsBase64(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result || "";
+      const idx = String(result).indexOf(",");
+      resolve(idx !== -1 ? String(result).slice(idx+1) : String(result));
+    };
+    reader.onerror = () => reject(reader.error || new Error("read error"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderChatAttachment(url, name, mime){
+  const safeUrl = escapeHtml(url);
+  const safeName = escapeHtml(name || "ملف مرفق");
+  if(mime && mime.indexOf("image/") === 0){
+    return '<div class="chat-attachment"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer"><img src="' + safeUrl + '" alt="' + safeName + '"></a></div>';
+  }
+  return '<div class="chat-attachment"><a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">📎 ' + safeName + '</a></div>';
+}
+
+async function handleAdminFilePick(inputEl){
+  const pickedFile = inputEl.files && inputEl.files[0];
+  if(!pickedFile) return;
+  if(pickedFile.size > CHAT_MAX_FILE_BYTES){
+    showMsg("chatMsg", "الملف كبير أوي (الحد الأقصى 5 ميجا).", "error");
+    inputEl.value = "";
+    return;
+  }
+  try{
+    const base64 = await readFileAsBase64(pickedFile);
+    pendingAdminFile = { name: pickedFile.name, mime: pickedFile.type || "application/octet-stream", data: base64, raw: pickedFile };
+    renderAdminFilePreview();
+  }catch(e){
+    showMsg("chatMsg", "تعذر قراءة الملف: " + e.message, "error");
+  }
+}
+
+function renderAdminFilePreview(){
+  const box = document.getElementById("chatFilePreview");
+  if(!box) return;
+  if(!pendingAdminFile){ box.style.display = "none"; box.innerHTML = ""; return; }
+  box.style.display = "flex";
+  box.innerHTML = "📎 " + escapeHtml(pendingAdminFile.name) + ' <button type="button" id="chatFileClearBtn">إزالة ✕</button>';
+  const clearBtn = document.getElementById("chatFileClearBtn");
+  if(clearBtn) clearBtn.addEventListener("click", clearAdminAttachment);
+}
+
+function clearAdminAttachment(){
+  pendingAdminFile = null;
+  const fi = document.getElementById("chatFileInput");
+  if(fi) fi.value = "";
+  renderAdminFilePreview();
+}
+
+const CHAT_QUICK_REPLIES = [
+  "أهلاً بيك، إزاي أقدر أساعدك؟",
+  "ثانية واحدة وهرد عليك بكل التفاصيل 🙏",
+  "تقدر تحجز استشارة شخصية من صفحة \"احجز استشارة\" في الموقع",
+  "تقدر تتواصل معانا كمان على واتساب لو حابب",
+  "لو محتاج أي حاجة تانية أنا موجود",
+  "شكرًا لتواصلك مع بوابة إيطاليا 🌸"
+];
 
 function chatWebhookUrl(){
   return (settingsData && settingsData.requests_webhook_url) || "";
+}
+
+/* ---- browser desktop notifications for new visitor messages ---- */
+let chatNotifyEnabled = false;
+let chatNotifiedRows = new Set();
+let chatFirstPollDone = false;
+let chatBackgroundTimer = null;
+
+function chatBeep(){
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  }catch(e){}
+}
+
+function enableChatNotifications(){
+  if(!("Notification" in window)){
+    showMsg("chatMsg", "المتصفح ده مش بيدعم تنبيهات سطح المكتب.", "error");
+    return;
+  }
+  Notification.requestPermission().then(function(perm){
+    if(perm === "granted"){
+      chatNotifyEnabled = true;
+      try{ localStorage.setItem("chat_notify_enabled", "1"); }catch(e){}
+      updateChatNotifyBtn();
+      startChatBackgroundPoll();
+      showMsg("chatMsg", "تم تفعيل تنبيهات المتصفح ✅", "ok");
+    } else {
+      showMsg("chatMsg", "تم رفض إذن التنبيهات من المتصفح. تقدر تفعّلها من إعدادات الموقع في المتصفح.", "error");
+    }
+  });
+}
+
+function updateChatNotifyBtn(){
+  const btn = document.getElementById("chatNotifyBtn");
+  if(!btn) return;
+  if(chatNotifyEnabled){
+    btn.textContent = "🔔 التنبيهات مفعّلة";
+    btn.disabled = true;
+  }
+}
+
+function startChatBackgroundPoll(){
+  if(chatBackgroundTimer) return;
+  checkChatNotifications();
+  chatBackgroundTimer = setInterval(checkChatNotifications, 7000);
+}
+
+async function checkChatNotifications(){
+  if(!chatNotifyEnabled) return;
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl){
+    if(!settingsData){ try{ await loadSettingsTab(); }catch(e){ return; } }
+    return;
+  }
+  let data;
+  try{
+    data = await jsonpFetch(webhookUrl);
+    if(data.status !== "success") return;
+  }catch(e){ return; }
+  const items = (data.items || []).filter(it => it.type === "chat_visitor");
+  if(!chatFirstPollDone){
+    items.forEach(it=> chatNotifiedRows.add(it.row));
+    chatFirstPollDone = true;
+    return;
+  }
+  items.forEach(it=>{
+    if(chatNotifiedRows.has(it.row)) return;
+    chatNotifiedRows.add(it.row);
+    notifyNewMessage(it);
+  });
+}
+
+function notifyNewMessage(it){
+  if(!chatNotifyEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+  try{
+    const n = new Notification("رسالة جديدة من " + (it.name || "زائر الموقع"), {
+      body: it.message || "",
+      tag: "chat-" + (it.conversationId || it.row)
+    });
+    n.onclick = function(){
+      window.focus();
+      const chatTabBtn = document.querySelector('.tab-btn[data-tab="tab-chat"]');
+      if(chatTabBtn && !chatTabBtn.classList.contains("active")) chatTabBtn.click();
+      if(it.conversationId) selectConversation(it.conversationId);
+      n.close();
+    };
+    chatBeep();
+  }catch(e){}
+}
+
+function initChatNotifications(){
+  try{
+    if(localStorage.getItem("chat_notify_enabled") === "1" && "Notification" in window && Notification.permission === "granted"){
+      chatNotifyEnabled = true;
+      updateChatNotifyBtn();
+      startChatBackgroundPoll();
+    }
+  }catch(e){}
 }
 
 async function loadChatTab(){
@@ -923,16 +1117,19 @@ async function loadChatTab(){
     }
     return;
   }
-  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin");
+  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close");
   const convs = {};
   items.forEach(it=>{
     const id = it.conversationId || "";
     if(!id) return;
-    if(!convs[id]) convs[id] = {id: id, name: "", email: "", service: "", messages: []};
+    if(!convs[id]) convs[id] = {id: id, name: "", email: "", service: "", messages: [], closed: false};
     if(it.type === "chat_visitor"){
       convs[id].name = it.name || convs[id].name;
       convs[id].email = it.email || convs[id].email;
       convs[id].service = it.service || convs[id].service;
+    }
+    if(it.type === "chat_close"){
+      convs[id].closed = true;
     }
     convs[id].messages.push(it);
   });
@@ -947,7 +1144,7 @@ async function loadChatTab(){
 }
 
 function isConvPending(conv){
-  if(!conv.messages.length) return false;
+  if(!conv.messages.length || conv.closed) return false;
   return conv.messages[conv.messages.length - 1].type === "chat_visitor";
 }
 
@@ -965,9 +1162,9 @@ function renderChatList(){
   wrap.innerHTML = list.map(conv=>{
     const last = conv.messages[conv.messages.length - 1];
     const pending = isConvPending(conv);
-    return '<div class="chat-conv' + (conv.id === selectedConvId ? " active" : "") + (pending ? " pending" : "") + '" data-conv="' + escapeHtml(conv.id) + '">' +
-      '<div class="cname">' + escapeHtml(conv.name || "زائر الموقع") + (pending ? '<span class="pending-badge">يحتاج رد</span>' : '') + '</div>' +
-      '<div class="cpreview">' + escapeHtml((last && last.message) || "") + '</div>' +
+    return '<div class="chat-conv' + (conv.id === selectedConvId ? " active" : "") + (pending ? " pending" : "") + (conv.closed ? " closed" : "") + '" data-conv="' + escapeHtml(conv.id) + '">' +
+      '<div class="cname">' + escapeHtml(conv.name || "زائر الموقع") + (pending ? '<span class="pending-badge">يحتاج رد</span>' : '') + (conv.closed ? '<span class="closed-badge">منتهية</span>' : '') + '</div>' +
+      '<div class="cpreview">' + escapeHtml((last && last.message) || (conv.closed ? "تم إنهاء المحادثة" : "")) + '</div>' +
       '<div class="ctime">' + escapeHtml((last && String(last.date)) || "") + '</div>' +
     '</div>';
   }).join("");
@@ -978,6 +1175,7 @@ function renderChatList(){
 
 function selectConversation(id){
   selectedConvId = id;
+  clearAdminAttachment();
   renderChatList();
   renderChatThread(id);
 }
@@ -986,27 +1184,66 @@ function renderChatThread(id){
   const conv = chatConversations[id];
   const wrap = document.getElementById("chatThread");
   if(!conv){ wrap.innerHTML = '<div class="chat-empty">اختار محادثة من القايمة عشان تشوف الرسايل وترد.</div>'; return; }
-  const head = '<div class="chat-thread-head">' + escapeHtml(conv.name || "زائر الموقع") +
-    (conv.email ? ' — ' + escapeHtml(conv.email) : '') +
-    (conv.service ? ' — ' + escapeHtml(conv.service) : '') + '</div>';
+  const idEsc = id.replace(/'/g,"\\'");
+  const head = '<div class="chat-thread-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">' +
+    '<span>' + escapeHtml(conv.name || "زائر الموقع") +
+      (conv.email ? ' — ' + escapeHtml(conv.email) : '') +
+      (conv.service ? ' — ' + escapeHtml(conv.service) : '') +
+      (conv.closed ? ' <span class="closed-badge">منتهية</span>' : '') +
+    '</span>' +
+    (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">إنهاء المحادثة</button>' : '') +
+    '</div>';
   const msgsHtml = conv.messages.map(m=>{
+    if(m.type === "chat_close"){
+      return '<div class="chat-bubble system">' + escapeHtml(m.message || "تم إنهاء المحادثة") + '</div>';
+    }
     const cls = m.type === "chat_admin" ? "admin" : "visitor";
-    return '<div class="chat-bubble ' + cls + '">' + escapeHtml(m.message || "") +
+    let meta = {};
+    if(m.fileMeta){ try{ meta = JSON.parse(m.fileMeta); }catch(e){} }
+    const attachHtml = m.fileUrl ? renderChatAttachment(m.fileUrl, meta.name, meta.mime) : "";
+    return '<div class="chat-bubble ' + cls + '">' + (m.message ? escapeHtml(m.message) : "") +
+      attachHtml +
       '<div class="ctime">' + escapeHtml(String(m.date || "")) + '</div></div>';
   }).join("");
+  const quickRepliesHtml = '<div class="chat-quick-replies">' +
+    CHAT_QUICK_REPLIES.map(q => '<button type="button" class="chat-quick-chip">' + escapeHtml(q) + '</button>').join("") +
+  '</div>';
   wrap.innerHTML = head +
     '<div class="chat-msgs" id="chatMsgsBox">' + msgsHtml + '</div>' +
-    '<div class="chat-reply-row">' +
-      '<textarea id="chatReplyInput" placeholder="اكتب ردك هنا..."></textarea>' +
-      '<button class="btn-primary" id="chatSendBtn" onclick="sendChatReply(\'' + id.replace(/'/g,"\\'") + '\')">إرسال</button>' +
-    '</div>';
+    (conv.closed
+      ? '<div class="chat-closed-note">تم إنهاء المحادثة دي. لو الزائر بعت تاني هتظهر محادثة جديدة في القايمة.</div>'
+      : quickRepliesHtml +
+        '<div class="chat-reply-row">' +
+          '<div class="chat-reply-col">' +
+            '<textarea id="chatReplyInput" placeholder="اكتب ردك هنا..."></textarea>' +
+            '<div class="chat-file-preview" id="chatFilePreview" style="display:none"></div>' +
+          '</div>' +
+          '<input type="file" id="chatFileInput" style="display:none">' +
+          '<button type="button" class="btn-outline chat-attach-btn" id="chatAttachBtn" title="إرفاق ملف">📎</button>' +
+          '<button class="btn-primary" id="chatSendBtn" onclick="sendChatReply(\'' + idEsc + '\')">إرسال</button>' +
+        '</div>');
   const box = document.getElementById("chatMsgsBox");
   if(box) box.scrollTop = box.scrollHeight;
-  const input = document.getElementById("chatReplyInput");
-  if(input){
-    input.addEventListener("keydown", e=>{
-      if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendChatReply(id); }
+  if(!conv.closed){
+    wrap.querySelectorAll(".chat-quick-chip").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        const ta = document.getElementById("chatReplyInput");
+        if(ta){ ta.value = chip.textContent; ta.focus(); }
+      });
     });
+    const input = document.getElementById("chatReplyInput");
+    if(input){
+      input.addEventListener("keydown", e=>{
+        if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendChatReply(id); }
+      });
+    }
+    const attachBtn = document.getElementById("chatAttachBtn");
+    const fileInput = document.getElementById("chatFileInput");
+    if(attachBtn && fileInput){
+      attachBtn.addEventListener("click", ()=> fileInput.click());
+      fileInput.addEventListener("change", ()=> handleAdminFilePick(fileInput));
+    }
+    renderAdminFilePreview();
   }
 }
 
@@ -1015,19 +1252,33 @@ async function sendChatReply(id){
   if(!webhookUrl) return;
   const input = document.getElementById("chatReplyInput");
   const text = (input && input.value || "").trim();
-  if(!text) return;
+  const attachedFile = pendingAdminFile;
+  if(!text && !attachedFile) return;
+  const displayText = text || ("📎 " + (attachedFile ? attachedFile.name : "ملف"));
   const btn = document.getElementById("chatSendBtn");
   if(btn) btn.disabled = true;
   try{
+    const payload = {type:"chat_admin", conversationId: id, message: displayText, name: "ماركو", secret: ADMIN_PASSPHRASE};
+    if(attachedFile){
+      payload.fileData = attachedFile.data;
+      payload.fileName = attachedFile.name;
+      payload.fileMime = attachedFile.mime;
+    }
     await fetch(webhookUrl, {
       method: "POST",
       mode: "no-cors",
       headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({type:"chat_admin", conversationId: id, message: text, name: "ماركو", secret: ADMIN_PASSPHRASE})
+      body: JSON.stringify(payload)
     });
-    if(!chatConversations[id]) chatConversations[id] = {id:id, name:"", email:"", service:"", messages:[]};
-    chatConversations[id].messages.push({type:"chat_admin", message:text, date: new Date().toISOString(), conversationId:id});
+    if(!chatConversations[id]) chatConversations[id] = {id:id, name:"", email:"", service:"", messages:[], closed:false};
+    const localMsg = {type:"chat_admin", message:displayText, date: new Date().toISOString(), conversationId:id};
+    if(attachedFile){
+      localMsg.fileMeta = JSON.stringify({name: attachedFile.name, mime: attachedFile.mime});
+      try{ localMsg.fileUrl = URL.createObjectURL(attachedFile.raw); }catch(e){}
+    }
+    chatConversations[id].messages.push(localMsg);
     if(input) input.value = "";
+    clearAdminAttachment();
     renderChatThread(id);
     renderChatList();
     showMsg("chatMsg", "تم إرسال الرد ✅", "ok");
@@ -1037,6 +1288,28 @@ async function sendChatReply(id){
     if(btn) btn.disabled = false;
   }
 }
+
+async function closeChatConversation(id){
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) return;
+  try{
+    await fetch(webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"chat_close", conversationId: id, secret: ADMIN_PASSPHRASE})
+    });
+    if(!chatConversations[id]) chatConversations[id] = {id:id, name:"", email:"", service:"", messages:[], closed:false};
+    chatConversations[id].closed = true;
+    chatConversations[id].messages.push({type:"chat_close", message:"تم إنهاء المحادثة", date: new Date().toISOString(), conversationId:id});
+    renderChatThread(id);
+    renderChatList();
+    showMsg("chatMsg", "تم إنهاء المحادثة ✅", "ok");
+  }catch(e){
+    showMsg("chatMsg", "تعذر إنهاء المحادثة: " + e.message, "error");
+  }
+}
+
 
 /* ======================================================================
    MEDIA TAB (image upload to media/ folder via GitHub Contents API)
@@ -1123,6 +1396,7 @@ async function deleteMedia(name, sha){
 
 /* init */
 loadSettingsTab();
+initChatNotifications();
 </script>
 
 </body>
