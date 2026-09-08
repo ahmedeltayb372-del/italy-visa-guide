@@ -43,6 +43,9 @@
       bye: "Take care! Feel free to come back anytime you have a question. 🇮🇹",
       humanHandoff: "Sure — I'm transferring you to our customer service team now. They'll reply right here in this chat as soon as possible 💬",
       liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
+      chatClosedNote: "This conversation has ended. Feel free to start a new chat anytime! 👋",
+      fileHandoffReply: "Got it — I'm connecting you with our customer service team so they can review your file and reply.",
+      fileTooBig: "This file is too large (max 5MB). Please choose a smaller file.",
       servicesList: "Here's what we help with:\n🎓 Study Visa — university admission, enrollment documents, financial proof and accommodation.\n✈️ Tourism Visa — Schengen tourism visa requirements and documents.\n💼 Work Visa — the work visa (Nulla Osta) pathway to Italy.\n👨‍👩‍👧 Family Reunification — requirements and process.\n📋 Document Preparation & Review — professional review of your paperwork.\n📅 Personal Consultation — a one-on-one session about your specific case.",
       pricesList: "Consultation prices:\n🏢 In-person (60 min) — $150\n🎥 Video call (60 min) — $75\n🎧 Voice call (60 min) — $50\n\nThese are for one-on-one consultations. Browsing the guide itself is always free.",
       schengenInfo: "For a Schengen tourism visa we help you understand the required documents and process — passport, financial proof, accommodation booking, travel insurance, and the application steps with VFS Global. Want a personal consultation to review your specific case?",
@@ -75,6 +78,9 @@
       bye: "ربنا معاك! ارجعلنا في أي وقت لو عندك سؤال. 🇮🇹",
       humanHandoff: "تمام، هحولك دلوقتي لفريق خدمة العملاء، وهيردوا عليك هنا في نفس الشات في أقرب وقت 💬",
       liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
+      chatClosedNote: "المحادثة دي خلصت. تقدر تبدأ شات جديد في أي وقت! 👋",
+      fileHandoffReply: "تمام، هحولك لفريق خدمة العملاء عشان يستلموا الملف ويردوا عليك بأسرع وقت.",
+      fileTooBig: "الملف ده كبير أوي (الحد الأقصى 5 ميجا). جرب ملف أصغر.",
       servicesList: "دي الخدمات اللي بنساعد فيها:\n🎓 تأشيرة الدراسة — القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن.\n✈️ تأشيرة السياحة — متطلبات ومستندات تأشيرة شنغن.\n💼 تأشيرة العمل — مسار تأشيرة العمل (Nulla Osta) لإيطاليا.\n👨‍👩‍👧 لمّ الشمل — المتطلبات والإجراءات.\n📋 تجهيز ومراجعة المستندات — مراجعة احترافية لأوراقك.\n📅 استشارة شخصية — جلسة فردية لمناقشة حالتك.",
       pricesList: "أسعار الاستشارات:\n🏢 حضورية (60 دقيقة) — 150$\n🎥 فيديو (60 دقيقة) — 75$\n🎧 صوتية (60 دقيقة) — 50$\n\nدي أسعار الاستشارات الفردية. تصفح الدليل نفسه مجاني دايمًا.",
       schengenInfo: "بالنسبة لتأشيرة شنغن السياحية بنساعدك تفهم المستندات المطلوبة والإجراءات — الباسبور، الإثبات المالي، حجز السكن، تأمين السفر، وخطوات التقديم عبر VFS Global. تحب تحجز استشارة شخصية لمراجعة حالتك بالتفصيل؟",
@@ -169,6 +175,15 @@
   + ".igchat-input-row input:focus{outline:2px solid #2952e3;outline-offset:1px}"
   + ".igchat-send{border:0;background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}"
   + ".igchat-send svg{width:17px;height:17px}"
+  + ".igchat-input-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}"
+  + ".igchat-input-row input{width:100%}"
+  + ".igchat-attach{border:1px solid #e8eaf3;background:#fbfcff;color:#2952e3;width:40px;height:40px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}"
+  + ".igchat-attach:hover{background:#eef1ff}"
+  + ".igchat-file-preview{display:flex;align-items:center;gap:6px;background:#eef1ff;border:1px solid #e0e6fb;border-radius:8px;padding:4px 10px;font-size:12px;color:#2952e3}"
+  + ".igchat-file-preview button{background:none;border:0;color:#c0362c;cursor:pointer;font-size:12.5px;padding:0}"
+  + ".igchat-attachment{margin-top:6px;display:block}"
+  + ".igchat-attachment img{max-width:180px;max-height:180px;border-radius:10px;display:block}"
+  + ".igchat-attachment a{color:inherit;text-decoration:underline;font-size:13px}"
   + "@media(max-width:480px){.igchat-panel{width:94vw;inset-inline-end:3vw;bottom:86px}}";
 
   var styleEl = document.createElement("style");
@@ -198,7 +213,12 @@
     '<div class="igchat-body" id="igchatBody"></div>' +
     '<div class="igchat-chips" id="igchatChips"></div>' +
     '<div class="igchat-input-row">' +
-      '<input type="text" id="igchatInput" autocomplete="off">' +
+      '<div class="igchat-input-col">' +
+        '<input type="text" id="igchatInput" autocomplete="off">' +
+        '<div class="igchat-file-preview" id="igchatFilePreview" style="display:none"></div>' +
+      '</div>' +
+      '<input type="file" id="igchatFileInput" style="display:none">' +
+      '<button type="button" class="igchat-attach" id="igchatAttach" aria-label="Attach file">📎</button>' +
       '<button class="igchat-send" id="igchatSend" aria-label="Send">' + ICON_SEND + '</button>' +
     '</div>';
   document.body.appendChild(panel);
@@ -207,6 +227,11 @@
   var chipsRow = panel.querySelector("#igchatChips");
   var input = panel.querySelector("#igchatInput");
   var sendBtn = panel.querySelector("#igchatSend");
+  var attachBtn = panel.querySelector("#igchatAttach");
+  var fileInput = panel.querySelector("#igchatFileInput");
+  var filePreview = panel.querySelector("#igchatFilePreview");
+  var pendingVisitorFile = null;
+  var CHAT_MAX_FILE_BYTES = 5 * 1024 * 1024;
   var closeBtn = panel.querySelector(".igchat-close");
   var brandEl = panel.querySelector(".igchat-brand");
   var subtitleEl = panel.querySelector(".igchat-subtitle");
@@ -218,13 +243,83 @@
     return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text);
   }
 
-  function addMsg(text, who){
+  function addMsg(text, who, file){
     var el = document.createElement("div");
     el.className = "igchat-msg " + who;
-    el.textContent = text;
+    if(text) el.appendChild(document.createTextNode(text));
+    if(file && file.url) el.appendChild(buildAttachmentEl(file.url, file.name, file.mime));
     body.appendChild(el);
     body.scrollTop = body.scrollHeight;
     return el;
+  }
+
+  function buildAttachmentEl(url, name, mime){
+    var a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.className = "igchat-attachment";
+    if(mime && mime.indexOf("image/") === 0){
+      var img = document.createElement("img");
+      img.src = url;
+      img.alt = name || "";
+      a.appendChild(img);
+    } else {
+      a.textContent = "📎 " + (name || (lang()==="ar" ? "ملف مرفق" : "attached file"));
+    }
+    return a;
+  }
+
+  function readFileAsBase64(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){
+        var result = reader.result || "";
+        var idx = String(result).indexOf(",");
+        resolve(idx !== -1 ? String(result).slice(idx+1) : String(result));
+      };
+      reader.onerror = function(){ reject(reader.error || new Error("read error")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderVisitorFilePreview(){
+    if(!filePreview) return;
+    if(!pendingVisitorFile){ filePreview.style.display = "none"; filePreview.innerHTML = ""; return; }
+    filePreview.style.display = "flex";
+    filePreview.innerHTML = "";
+    filePreview.appendChild(document.createTextNode("📎 " + pendingVisitorFile.name + " "));
+    var clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.textContent = "✕";
+    clearBtn.onclick = clearVisitorAttachment;
+    filePreview.appendChild(clearBtn);
+  }
+
+  function clearVisitorAttachment(){
+    pendingVisitorFile = null;
+    if(fileInput) fileInput.value = "";
+    renderVisitorFilePreview();
+  }
+
+  function handleVisitorFilePick(){
+    var picked = fileInput.files && fileInput.files[0];
+    if(!picked) return;
+    var t = T[lang()];
+    if(picked.size > CHAT_MAX_FILE_BYTES){
+      addMsg(t.fileTooBig, "bot");
+      fileInput.value = "";
+      return;
+    }
+    readFileAsBase64(picked).then(function(base64){
+      pendingVisitorFile = { name: picked.name, mime: picked.type || "application/octet-stream", data: base64, raw: picked };
+      renderVisitorFilePreview();
+    }).catch(function(){});
+  }
+
+  if(attachBtn && fileInput){
+    attachBtn.addEventListener("click", function(){ fileInput.click(); });
+    fileInput.addEventListener("change", handleVisitorFilePick);
   }
 
   function addTyping(){
@@ -289,13 +384,20 @@
     if(badge) badge.style.display = show ? "block" : "none";
   }
 
-  function sendVisitorChatMessage(text){
-    if(!GAS_URL || !text) return;
+  function sendVisitorChatMessage(text, isHandoffRequest, file){
+    if(!GAS_URL || (!text && !file)) return;
+    var payload = { type:"chat_visitor", conversationId: ensureConversationId(), message: text || "" };
+    if(isHandoffRequest) payload.handoff = true;
+    if(file){
+      payload.fileData = file.data;
+      payload.fileName = file.name;
+      payload.fileMime = file.mime;
+    }
     fetch(GAS_URL, {
       method: "POST",
       mode: "no-cors",
       headers: {"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ type:"chat_visitor", conversationId: ensureConversationId(), message: text })
+      body: JSON.stringify(payload)
     }).catch(function(){});
   }
 
@@ -307,7 +409,13 @@
         if(renderedChatRows[item.row]) return;
         renderedChatRows[item.row] = true;
         if(item.type === "chat_admin"){
-          addMsg(item.message || "", "bot");
+          var adminFile = null;
+          if(item.fileUrl){
+            var adminMeta = {};
+            try{ adminMeta = item.fileMeta ? JSON.parse(item.fileMeta) : {}; }catch(e){}
+            adminFile = { url: item.fileUrl, name: adminMeta.name, mime: adminMeta.mime };
+          }
+          addMsg(item.message || "", "bot", adminFile);
           if(!opened) showUnreadBadge(true);
         } else if(item.type === "chat_visitor"){
           if(sentTexts.length && sentTexts[0] === item.message){
@@ -315,9 +423,26 @@
           } else {
             addMsg(item.message || "", "user");
           }
+        } else if(item.type === "chat_close"){
+          var t = T[lang()];
+          addMsg(t.chatClosedNote, "bot");
+          if(!opened) showUnreadBadge(true);
+          endLiveChat();
         }
       });
     }).catch(function(){});
+  }
+
+  function endLiveChat(){
+    liveChatActive = false;
+    try{ localStorage.removeItem(LIVECHAT_KEY); }catch(e){}
+    try{ localStorage.removeItem(CONV_KEY); }catch(e){}
+    conversationId = null;
+    hydrated = false;
+    renderedChatRows = {};
+    sentTexts = [];
+    if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
+    setChips(baseChips(T[lang()]));
   }
 
   function scheduleNextSync(){
@@ -330,13 +455,13 @@
     }, delay);
   }
 
-  function beginLiveChat(triggerText){
+  function beginLiveChat(triggerText, file){
     liveChatActive = true;
     localStorage.setItem(LIVECHAT_KEY, "1");
     hydrated = true;
     setChips([]);
     sentTexts.push(triggerText);
-    sendVisitorChatMessage(triggerText);
+    sendVisitorChatMessage(triggerText, true, file);
     scheduleNextSync();
   }
 
@@ -372,12 +497,13 @@
     if(found){ replyWithTopic(found, t, label); }
   }
 
-  function handleFreeText(msg){
+  function handleFreeText(msg, file){
     var t = T[lang()];
-    addMsg(msg, "user");
+    var localFile = (file && file.raw) ? { url: URL.createObjectURL(file.raw), name: file.name, mime: file.mime } : null;
+    addMsg(msg, "user", localFile);
     if(liveChatActive){
       sentTexts.push(msg);
-      sendVisitorChatMessage(msg);
+      sendVisitorChatMessage(msg, false, file);
       return;
     }
     var found = matchTopic(msg);
@@ -386,7 +512,10 @@
       typingEl.remove();
       if(found){
         addMsg(found.reply(t), "bot");
-        if(found.handoff){ beginLiveChat(msg); } else { setChips(baseChips(t)); }
+        if(found.handoff){ beginLiveChat(msg, file); } else { setChips(baseChips(t)); }
+      } else if(file){
+        addMsg(t.fileHandoffReply, "bot");
+        beginLiveChat(msg, file);
       } else {
         addMsg(t.fallback, "bot");
         setChips(baseChips(t));
@@ -440,9 +569,13 @@
 
   function submitInput(){
     var v = input.value.trim();
-    if(!v) return;
+    var file = pendingVisitorFile;
+    if(!v && !file) return;
+    var t = T[lang()];
+    var displayText = v || ("📎 " + (file ? file.name : ""));
     input.value = "";
-    handleFreeText(v);
+    clearVisitorAttachment();
+    handleFreeText(displayText, file);
   }
   sendBtn.addEventListener("click", submitInput);
   input.addEventListener("keydown", function(e){
