@@ -1091,7 +1091,7 @@ async function checkChatNotifications(){
 function notifyNewMessage(it){
   if(!chatNotifyEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
   try{
-    const n = new Notification("رسالة جديدة من " + (it.name || "زائر الموقع"), {
+    const n = new Notification("رسالة جديدة من " + (it.name || convShortCode(it.conversationId)), {
       body: it.message || "",
       tag: "chat-" + (it.conversationId || it.row)
     });
@@ -1161,9 +1161,37 @@ async function loadChatTab(){
   }
 }
 
+const AGENT_NAME_KEY = "italyGatewayAgentName";
+function getAgentName(){
+  try{
+    let n = localStorage.getItem(AGENT_NAME_KEY);
+    if(!n){
+      n = (prompt("اكتب اسمك عشان يظهر تحت ردودك في الشات:", "") || "").trim();
+      if(n) localStorage.setItem(AGENT_NAME_KEY, n);
+    }
+    return n || "خدمة العملاء";
+  }catch(e){ return "خدمة العملاء"; }
+}
+function changeAgentName(){
+  try{
+    const current = localStorage.getItem(AGENT_NAME_KEY) || "";
+    const n = (prompt("اكتب اسمك عشان يظهر تحت ردودك في الشات:", current) || "").trim();
+    if(n){
+      localStorage.setItem(AGENT_NAME_KEY, n);
+      if(selectedConvId) renderChatThread(selectedConvId);
+    }
+  }catch(e){}
+}
+
 function isConvPending(conv){
   if(!conv.messages.length || conv.closed) return false;
   return conv.messages[conv.messages.length - 1].type === "chat_visitor";
+}
+
+function convShortCode(id){
+  if(!id) return "";
+  const clean = String(id).replace(/-/g,"");
+  return "زائر #" + clean.slice(0,6).toUpperCase();
 }
 
 function renderChatList(){
@@ -1181,7 +1209,7 @@ function renderChatList(){
     const last = conv.messages[conv.messages.length - 1];
     const pending = isConvPending(conv);
     return '<div class="chat-conv' + (conv.id === selectedConvId ? " active" : "") + (pending ? " pending" : "") + (conv.closed ? " closed" : "") + '" data-conv="' + escapeHtml(conv.id) + '">' +
-      '<div class="cname">' + escapeHtml(conv.name || "زائر الموقع") + (pending ? '<span class="pending-badge">يحتاج رد</span>' : '') + (conv.closed ? '<span class="closed-badge">منتهية</span>' : '') + '</div>' +
+      '<div class="cname">' + escapeHtml(conv.name || convShortCode(conv.id)) + (pending ? '<span class="pending-badge">يحتاج رد</span>' : '') + (conv.closed ? '<span class="closed-badge">منتهية</span>' : '') + '</div>' +
       '<div class="cpreview">' + escapeHtml((last && last.message) || (conv.closed ? "تم إنهاء المحادثة" : "")) + '</div>' +
       '<div class="ctime">' + escapeHtml((last && String(last.date)) || "") + '</div>' +
     '</div>';
@@ -1204,7 +1232,7 @@ function renderChatThread(id){
   if(!conv){ wrap.innerHTML = '<div class="chat-empty">اختار محادثة من القايمة عشان تشوف الرسايل وترد.</div>'; return; }
   const idEsc = id.replace(/'/g,"\\'");
   const head = '<div class="chat-thread-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">' +
-    '<span>' + escapeHtml(conv.name || "زائر الموقع") +
+    '<span>' + escapeHtml(conv.name || convShortCode(conv.id)) +
       (conv.email ? ' — ' + escapeHtml(conv.email) : '') +
       (conv.service ? ' — ' + escapeHtml(conv.service) : '') +
       (conv.closed ? ' <span class="closed-badge">منتهية</span>' : '') +
@@ -1219,9 +1247,10 @@ function renderChatThread(id){
     let meta = {};
     if(m.fileMeta){ try{ meta = JSON.parse(m.fileMeta); }catch(e){} }
     const attachHtml = m.fileUrl ? renderChatAttachment(m.fileUrl, meta.name, meta.mime) : "";
+    const metaLine = (cls === "admin" ? escapeHtml(m.name || "خدمة العملاء") + " — " : "") + escapeHtml(String(m.date || ""));
     return '<div class="chat-bubble ' + cls + '">' + (m.message ? escapeHtml(m.message) : "") +
       attachHtml +
-      '<div class="ctime">' + escapeHtml(String(m.date || "")) + '</div></div>';
+      '<div class="ctime">' + metaLine + '</div></div>';
   }).join("");
   const quickRepliesHtml = '<div class="chat-quick-replies">' +
     getQuickReplies().map(q => '<button type="button" class="chat-quick-chip">' + escapeHtml(q) + '</button>').join("") +
@@ -1233,6 +1262,7 @@ function renderChatThread(id){
       : quickRepliesHtml +
         '<div class="chat-reply-row">' +
           '<div class="chat-reply-col">' +
+            '<div class="small-note" style="margin-bottom:4px">بترد باسم: <strong>' + escapeHtml(localStorage.getItem(AGENT_NAME_KEY) || "خدمة العملاء") + '</strong> <a href="#" onclick="changeAgentName();return false;" style="margin-inline-start:6px">تغيير الاسم ✏️</a></div>' +
             '<textarea id="chatReplyInput" placeholder="اكتب ردك هنا..."></textarea>' +
             '<div class="chat-file-preview" id="chatFilePreview" style="display:none"></div>' +
           '</div>' +
@@ -1276,7 +1306,8 @@ async function sendChatReply(id){
   const btn = document.getElementById("chatSendBtn");
   if(btn) btn.disabled = true;
   try{
-    const payload = {type:"chat_admin", conversationId: id, message: displayText, name: "ماركو", secret: ADMIN_PASSPHRASE};
+    const agentName = getAgentName();
+    const payload = {type:"chat_admin", conversationId: id, message: displayText, name: agentName, secret: ADMIN_PASSPHRASE};
     if(attachedFile){
       payload.fileData = attachedFile.data;
       payload.fileName = attachedFile.name;
@@ -1289,7 +1320,7 @@ async function sendChatReply(id){
       body: JSON.stringify(payload)
     });
     if(!chatConversations[id]) chatConversations[id] = {id:id, name:"", email:"", service:"", messages:[], closed:false};
-    const localMsg = {type:"chat_admin", message:displayText, date: new Date().toISOString(), conversationId:id};
+    const localMsg = {type:"chat_admin", message:displayText, date: new Date().toISOString(), conversationId:id, name: agentName};
     if(attachedFile){
       localMsg.fileMeta = JSON.stringify({name: attachedFile.name, mime: attachedFile.mime});
       try{ localMsg.fileUrl = URL.createObjectURL(attachedFile.raw); }catch(e){}
