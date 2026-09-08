@@ -193,6 +193,7 @@
   + ".igchat-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;white-space:pre-line;word-wrap:break-word}"
   + ".igchat-msg.bot{background:#eef1ff;color:#0f1b33;align-self:flex-start;border-end-start-radius:4px}"
   + ".igchat-msg.user{background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;align-self:flex-end;border-end-end-radius:4px}"
+  + ".igchat-msg-name{display:block;font-size:11.5px;font-weight:700;color:#5b63d6;margin-bottom:2px}"
   + ".igchat-typing{align-self:flex-start;background:#eef1ff;border-radius:14px;padding:11px 15px;display:flex;gap:4px}"
   + ".igchat-typing span{width:6px;height:6px;border-radius:50%;background:#8b93ab;animation:igchat-blink 1.2s infinite}"
   + ".igchat-typing span:nth-child(2){animation-delay:.2s}.igchat-typing span:nth-child(3){animation-delay:.4s}"
@@ -275,9 +276,15 @@
     return "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(text);
   }
 
-  function addMsg(text, who, file){
+  function addMsg(text, who, file, senderName){
     var el = document.createElement("div");
     el.className = "igchat-msg " + who;
+    if(senderName){
+      var nameEl = document.createElement("span");
+      nameEl.className = "igchat-msg-name";
+      nameEl.appendChild(document.createTextNode(senderName));
+      el.appendChild(nameEl);
+    }
     if(text) el.appendChild(document.createTextNode(text));
     if(file && file.url) el.appendChild(buildAttachmentEl(file.url, file.name, file.mime));
     body.appendChild(el);
@@ -447,7 +454,7 @@
             try{ adminMeta = item.fileMeta ? JSON.parse(item.fileMeta) : {}; }catch(e){}
             adminFile = { url: item.fileUrl, name: adminMeta.name, mime: adminMeta.mime };
           }
-          addMsg(item.message || "", "bot", adminFile);
+          addMsg(item.message || "", "bot", adminFile, item.name || (lang()==="ar" ? "خدمة العملاء" : "Customer Service"));
           if(!opened) showUnreadBadge(true);
         } else if(item.type === "chat_visitor"){
           if(sentTexts.length && sentTexts[0] === item.message){
