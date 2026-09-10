@@ -1289,8 +1289,33 @@ function renderChatThread(id){
     const attachBtn = document.getElementById("chatAttachBtn");
     const fileInput = document.getElementById("chatFileInput");
     if(attachBtn && fileInput){
-      attachBtn.addEventListener("click", ()=> fileInput.click());
-      fileInput.addEventListener("change", ()=> handleAdminFilePick(fileInput));
+      attachBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", () => handleAdminFilePick(fileInput));
+    }
+    const replyInput = document.getElementById("chatReplyInput");
+    if(replyInput){
+      replyInput.addEventListener("paste", function(e){
+        var items = (e.clipboardData && e.clipboardData.items) || [];
+        for(var i=0;i<items.length;i++){
+          var it = items[i];
+          if(it.kind === "file" && it.type && it.type.indexOf("image/") === 0){
+            var file = it.getAsFile();
+            if(!file) continue;
+            e.preventDefault();
+            if(file.size > CHAT_MAX_FILE_BYTES){
+              showMsg("chatMsg", "الملف كبير أوي (الحد الأقصى 5 ميجا).", "error");
+              return;
+            }
+            readFileAsBase64(file).then(function(base64){
+              pendingAdminFile = { name: file.name || ("clipboard-image." + (file.type.split("/")[1] || "png")), mime: file.type || "image/png", data: base64, raw: file };
+              renderAdminFilePreview();
+            }).catch(function(err){
+              showMsg("chatMsg", "تعذر قراءة الصورة: " + err.message, "error");
+            });
+            break;
+          }
+        }
+      });
     }
     renderAdminFilePreview();
   }
