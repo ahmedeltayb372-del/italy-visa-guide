@@ -45,7 +45,13 @@
       bye: "Take care! Feel free to come back anytime you have a question. 🇮🇹",
       humanHandoff: "Sure — I'm transferring you to our customer service team now. They'll reply right here in this chat as soon as possible 💬",
       liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
-      chatClosedNote: "This conversation has ended. Feel free to start a new chat anytime! 👋",
+      chatClosedNote: "This conversation has ended. 👋 We're here all day if you need anything else.\nThanks for choosing Italy Gateway ❤️",
+      closeContinue: "Continue conversation",
+      closeRate: "Rate our support",
+      continueTriggerMsg: "I'd like to continue the conversation, please.",
+      rateFive: "⭐️⭐️⭐️⭐️⭐️ Excellent",
+      rateOne: "⭐️ Not satisfied",
+      rateThanks: "Thanks so much for your feedback! 🙏",
       fileHandoffReply: "Got it — I'm connecting you with our customer service team so they can review your file and reply.",
       fileTooBig: "This file is too large (max 5MB). Please choose a smaller file.",
       servicesList: "Here's what we help with:\n🎓 Study Visa — university admission, enrollment documents, financial proof and accommodation.\n✈️ Tourism Visa — Schengen tourism visa requirements and documents.\n💼 Work Visa — the work visa (Nulla Osta) pathway to Italy.\n👨‍👩‍👧 Family Reunification — requirements and process.\n📋 Document Preparation & Review — professional review of your paperwork.\n📅 Personal Consultation — a one-on-one session about your specific case.",
@@ -88,7 +94,13 @@
       bye: "ربنا معاك! ارجعلنا في أي وقت لو عندك سؤال. 🇮🇹",
       humanHandoff: "تمام، هحولك دلوقتي لفريق خدمة العملاء، وهيردوا عليك هنا في نفس الشات في أقرب وقت 💬",
       liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
-      chatClosedNote: "المحادثة دي خلصت. تقدر تبدأ شات جديد في أي وقت! 👋",
+      chatClosedNote: "تم إنهاء المحادثة 👋 إحنا موجودين طول اليوم لو احتجت أي حاجة تانية.\nشكرًا لاختيارك Italy Gateway ❤️",
+      closeContinue: "متابعة المحادثة",
+      closeRate: "تقييم ممثل خدمة العملاء",
+      continueTriggerMsg: "عايز أكمل المحادثة من فضلك",
+      rateFive: "⭐️⭐️⭐️⭐️⭐️ ممتاز",
+      rateOne: "⭐️ مش راضي",
+      rateThanks: "شكرًا جدًا لتقييمك! 🙏",
       fileHandoffReply: "تمام، هحولك لفريق خدمة العملاء عشان يستلموا الملف ويردوا عليك بأسرع وقت.",
       fileTooBig: "الملف ده كبير أوي (الحد الأقصى 5 ميجا). جرب ملف أصغر.",
       servicesList: "دي الخدمات اللي بنساعد فيها:\n🎓 تأشيرة الدراسة — القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن.\n✈️ تأشيرة السياحة — متطلبات ومستندات تأشيرة شنغن.\n💼 تأشيرة العمل — مسار تأشيرة العمل (Nulla Osta) لإيطاليا.\n👨‍👩‍👧 لمّ الشمل — المتطلبات والإجراءات.\n📋 تجهيز ومراجعة المستندات — مراجعة احترافية لأوراقك.\n📅 استشارة شخصية — جلسة فردية لمناقشة حالتك.",
@@ -441,6 +453,18 @@
     }).catch(function(){});
   }
 
+  function sendRating_(convId, stars, t){
+    if(!GAS_URL || !convId) return;
+    fetch(GAS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({ type:"chat_rating", conversationId: convId, stars: stars })
+    }).catch(function(){});
+    addMsg(t.rateThanks, "bot");
+    setChips([]);
+  }
+
   function syncChatMessages(){
     if(!GAS_URL || !conversationId) return;
     jsonpFetch(GAS_URL + "?conversationId=" + encodeURIComponent(conversationId)).then(function(data){
@@ -465,9 +489,19 @@
           }
         } else if(item.type === "chat_close"){
           var t = T[lang()];
+          var closedConvId = conversationId;
           addMsg(t.chatClosedNote, "bot");
           if(!opened) showUnreadBadge(true);
           endLiveChat();
+          setChips([
+            { label: t.closeContinue, onClick: function(){ beginLiveChat(t.continueTriggerMsg); } },
+            { label: t.closeRate, onClick: function(){
+                setChips([
+                  { label: t.rateFive, onClick: function(){ sendRating_(closedConvId, 5, t); } },
+                  { label: t.rateOne, onClick: function(){ sendRating_(closedConvId, 1, t); } }
+                ]);
+              } }
+          ]);
         }
       });
     }).catch(function(){});
