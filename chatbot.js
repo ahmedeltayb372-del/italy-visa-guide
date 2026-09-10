@@ -17,6 +17,8 @@
   var renderedChatRows = {};
   var sentTexts = [];
   var chatPollTimer = null;
+  var inactivityCloseTimer = null;
+  var INACTIVITY_CLOSE_MS = 2 * 60 * 1000;
   var hydrated = false;
   var intakeState = null;
   var aiChatState = null;
@@ -224,6 +226,11 @@
   + ".igchat-input-row input{width:100%}"
   + ".igchat-attach{border:1px solid #e8eaf3;background:#fbfcff;color:#2952e3;width:40px;height:40px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}"
   + ".igchat-attach:hover{background:#eef1ff}"
+  + ".igchat-emoji{border:1px solid #e8eaf3;background:#fbfcff;color:#2952e3;width:40px;height:40px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}"
+  + ".igchat-emoji:hover{background:#eef1ff}"
+  + ".igchat-emoji-panel{position:absolute;bottom:56px;inset-inline-end:12px;background:#fff;border:1px solid #e0e6fb;border-radius:12px;box-shadow:0 6px 20px rgba(20,30,70,.15);padding:8px;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;z-index:20;max-width:260px}"
+  + ".igchat-emoji-panel button{border:0;background:none;font-size:20px;cursor:pointer;padding:4px;border-radius:6px;line-height:1}"
+  + ".igchat-emoji-panel button:hover{background:#eef1ff}"
   + ".igchat-file-preview{display:flex;align-items:center;gap:6px;background:#eef1ff;border:1px solid #e0e6fb;border-radius:8px;padding:4px 10px;font-size:12px;color:#2952e3}"
   + ".igchat-file-preview button{background:none;border:0;color:#c0362c;cursor:pointer;font-size:12.5px;padding:0}"
   + ".igchat-attachment{margin-top:6px;display:block}"
@@ -263,7 +270,9 @@
         '<div class="igchat-file-preview" id="igchatFilePreview" style="display:none"></div>' +
       '</div>' +
       '<input type="file" id="igchatFileInput" style="display:none">' +
+      '<div class="igchat-emoji-panel" id="igchatEmojiPanel" style="display:none"></div>' +
       '<button type="button" class="igchat-attach" id="igchatAttach" aria-label="Attach file">📎</button>' +
+      '<button type="button" class="igchat-emoji" id="igchatEmoji" aria-label="Emoji">😊</button>' +
       '<button class="igchat-send" id="igchatSend" aria-label="Send">' + ICON_SEND + '</button>' +
     '</div>';
   document.body.appendChild(panel);
@@ -276,6 +285,8 @@
   var fileInput = panel.querySelector("#igchatFileInput");
   var filePreview = panel.querySelector("#igchatFilePreview");
   var pendingVisitorFile = null;
+  var emojiBtn = panel.querySelector("#igchatEmoji");
+  var emojiPanel = panel.querySelector("#igchatEmojiPanel");
   var CHAT_MAX_FILE_BYTES = 5 * 1024 * 1024;
   var closeBtn = panel.querySelector(".igchat-close");
   var brandEl = panel.querySelector(".igchat-brand");
@@ -368,9 +379,53 @@
     }).catch(function(){});
   }
 
+  function handleVisitorPaste(e){
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    for(var i=0;i<items.length;i++){
+      var it = items[i];
+      if(it.kind === "file" && it.type && it.type.indexOf("image/") === 0){
+        var picked = it.getAsFile();
+        if(!picked) continue;
+        e.preventDefault();
+        var t = T[lang()];
+        if(picked.size > CHAT_MAX_FILE_BYTES){
+          addMsg(t.fileTooBig, "bot");
+          return;
+        }
+        readFileAsBase64(picked).then(function(base64){
+          pendingVisitorFile = { name: picked.name || ("clipboard-image." + (picked.type.split("/")[1] || "png")), mime: picked.type || "image/png", data: base64, raw: picked };
+          renderVisitorFilePreview();
+        }).catch(function(){});
+        break;
+      }
+    }
+  }
+
   if(attachBtn && fileInput){
     attachBtn.addEventListener("click", function(){ fileInput.click(); });
     fileInput.addEventListener("change", handleVisitorFilePick);
+  }
+
+  input.addEventListener("paste", handleVisitorPaste);
+
+  var EMOJI_LIST = ["😀","😁","😂","🤣","😊","😍","😘","😉","😎","🤔","😅","🙏","👍","👏","🎉","❤️","🔥","✅","😢","😮"];
+  if(emojiBtn && emojiPanel){
+    EMOJI_LIST.forEach(function(em){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = em;
+      b.onclick = function(){ input.value += em; input.focus(); };
+      emojiPanel.appendChild(b);
+    });
+    emojiBtn.addEventListener("click", function(e){
+      e.stopPropagation();
+      emojiPanel.style.display = (emojiPanel.style.display === "none") ? "grid" : "none";
+    });
+    document.addEventListener("click", function(e){
+      if(emojiPanel.style.display !== "none" && !emojiPanel.contains(e.target) && e.target !== emojiBtn){
+        emojiPanel.style.display = "none";
+      }
+    });
   }
 
   function addTyping(){
@@ -437,6 +492,7 @@
 
   function sendVisitorChatMessage(text, isHandoffRequest, file){
     if(!GAS_URL || (!text && !file)) return;
+    clearInactivityTimer();
     var payload = { type:"chat_visitor", conversationId: ensureConversationId(), message: text || "" };
     if(isHandoffRequest === true) payload.handoff = true;
     else if(isHandoffRequest === "followup") payload.followup = true;
@@ -465,6 +521,37 @@
     setChips([]);
   }
 
+  function applyChatClosed(){
+    var t = T[lang()];
+    var closedConvId = conversationId;
+    addMsg(t.chatClosedNote, "bot");
+    if(!opened) showUnreadBadge(true);
+    endLiveChat();
+    setChips([
+      { label: t.closeContinue, onClick: function(){ beginLiveChat(t.continueTriggerMsg); } },
+      { label: t.closeRate, onClick: function(){
+          setChips([
+            { label: t.rateFive, onClick: function(){ sendRating_(closedConvId, 5, t); } },
+            { label: t.rateOne, onClick: function(){ sendRating_(closedConvId, 1, t); } }
+          ]);
+        } }
+    ]);
+  }
+
+  function clearInactivityTimer(){
+    if(inactivityCloseTimer){ clearTimeout(inactivityCloseTimer); inactivityCloseTimer = null; }
+  }
+
+  function resetInactivityTimer(){
+    clearInactivityTimer();
+    if(liveChatActive){
+      inactivityCloseTimer = setTimeout(function(){
+        inactivityCloseTimer = null;
+        if(liveChatActive) applyChatClosed();
+      }, INACTIVITY_CLOSE_MS);
+    }
+  }
+
   function syncChatMessages(){
     if(!GAS_URL || !conversationId) return;
     jsonpFetch(GAS_URL + "?conversationId=" + encodeURIComponent(conversationId)).then(function(data){
@@ -481,6 +568,7 @@
           }
           addMsg(item.message || "", "bot", adminFile, item.name || (lang()==="ar" ? "خدمة العملاء" : "Customer Service"));
           if(!opened) showUnreadBadge(true);
+          resetInactivityTimer();
         } else if(item.type === "chat_visitor"){
           if(sentTexts.length && sentTexts[0] === item.message){
             sentTexts.shift();
@@ -488,20 +576,7 @@
             addMsg(item.message || "", "user");
           }
         } else if(item.type === "chat_close"){
-          var t = T[lang()];
-          var closedConvId = conversationId;
-          addMsg(t.chatClosedNote, "bot");
-          if(!opened) showUnreadBadge(true);
-          endLiveChat();
-          setChips([
-            { label: t.closeContinue, onClick: function(){ beginLiveChat(t.continueTriggerMsg); } },
-            { label: t.closeRate, onClick: function(){
-                setChips([
-                  { label: t.rateFive, onClick: function(){ sendRating_(closedConvId, 5, t); } },
-                  { label: t.rateOne, onClick: function(){ sendRating_(closedConvId, 1, t); } }
-                ]);
-              } }
-          ]);
+          applyChatClosed();
         }
       });
     }).catch(function(){});
@@ -509,6 +584,7 @@
 
   function endLiveChat(){
     liveChatActive = false;
+    clearInactivityTimer();
     try{ localStorage.removeItem(LIVECHAT_KEY); }catch(e){}
     try{ localStorage.removeItem(CONV_KEY); }catch(e){}
     conversationId = null;
