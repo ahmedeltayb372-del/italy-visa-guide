@@ -1135,7 +1135,7 @@ async function loadChatTab(){
     }
     return;
   }
-  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close");
+  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete");
   const convs = {};
   items.forEach(it=>{
     const id = it.conversationId || "";
@@ -1149,10 +1149,14 @@ async function loadChatTab(){
     if(it.type === "chat_close"){
       convs[id].closed = true;
     }
+    if(it.type === "chat_delete"){
+      convs[id].deleted = true;
+    }
     convs[id].messages.push(it);
   });
   Object.keys(convs).forEach(id=>{
     convs[id].messages.sort((a,b)=> (a.row||0) - (b.row||0));
+    if(convs[id].deleted) delete convs[id];
   });
   chatConversations = convs;
   renderChatList();
@@ -1238,6 +1242,7 @@ function renderChatThread(id){
       (conv.closed ? ' <span class="closed-badge">منتهية</span>' : '') +
     '</span>' +
     (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">إنهاء المحادثة</button>' : '') +
+    '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteChatConversation(\'' + idEsc + '\')">🗑 حذف المحادثة</button>' +
     '</div>';
   const msgsHtml = conv.messages.map(m=>{
     if(m.type === "chat_close"){
@@ -1383,6 +1388,27 @@ async function closeChatConversation(id){
     showMsg("chatMsg", "تم إنهاء المحادثة ✅", "ok");
   }catch(e){
     showMsg("chatMsg", "تعذر إنهاء المحادثة: " + e.message, "error");
+  }
+}
+
+async function deleteChatConversation(id){
+  if(!confirm("متأكد عايز تمسح المحادثة دي؟ هتتشال من هنا ومن تيليجرام، لكنها هتفضل محفوظة في الشيت.")) return;
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) return;
+  try{
+    await fetch(webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"chat_delete", conversationId: id, secret: ADMIN_PASSPHRASE})
+    });
+    delete chatConversations[id];
+    if(selectedConvId === id) selectedConvId = null;
+    renderChatList();
+    renderChatThread(selectedConvId);
+    showMsg("chatMsg", "تم حذف المحادثة ✅", "ok");
+  }catch(e){
+    showMsg("chatMsg", "تعذر حذف المحادثة: " + e.message, "error");
   }
 }
 
