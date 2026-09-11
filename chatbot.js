@@ -20,6 +20,9 @@
   var inactivityCloseTimer = null;
   var INACTIVITY_CLOSE_MS = 2 * 60 * 1000;
   var lastVisitorLang = null;
+  var VISITOR_NAME_KEY = "igchatVisitorName";
+  var visitorName = localStorage.getItem(VISITOR_NAME_KEY) || null;
+  var pendingHandoff = null;
   var hydrated = false;
   var intakeState = null;
   var aiChatState = null;
@@ -47,6 +50,7 @@
       thanks: "You're welcome! 🌸 Anything else I can help with?",
       bye: "Take care! Feel free to come back anytime you have a question. 🇮🇹",
       humanHandoff: "Sure — I'm transferring you to our customer service team now. They'll reply right here in this chat as soon as possible 💬",
+      askName: "Before I connect you, could you tell me your name?",
       liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
       chatClosedNote: "This conversation has ended. 👋 We're here all day if you need anything else.\nThanks for choosing Italy Gateway ❤️",
       closeContinue: "Continue conversation",
@@ -96,6 +100,7 @@
       thanks: "العفو! 🌸 محتاج حاجة تانية؟",
       bye: "ربنا معاك! ارجعلنا في أي وقت لو عندك سؤال. 🇮🇹",
       humanHandoff: "تمام، هحولك دلوقتي لفريق خدمة العملاء، وهيردوا عليك هنا في نفس الشات في أقرب وقت 💬",
+      askName: "قبل ما أحولك لفريق خدمة العملاء، ممكن أعرف اسمك؟",
       liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
       chatClosedNote: "يرجى العلم إنه تم إنهاء الشات تلقائيًا لعدم وجود رد خلال دقيقتين، لكن إحنا موجودين طول اليوم لمساعدتك 😊\nلتكملة المحادثة اضغط على \"متابعة المحادثة\".\nولتقييم أسلوبي، اضغط على \"تقييم ممثل خدمة العملاء\" وهيظهرلك في خلال دقيقة واختار:\n\"خمس نجوم\" إذا كنت راضي، أو \"نجمة واحدة\" إذا كنت غير راضي.\nتقييمك بيساعدنا نحسّن الخدمة ونقدملك الأفضل.\nشكرًا لاختيارك Italy Gateway ❤️",
       closeContinue: "متابعة المحادثة",
@@ -509,6 +514,7 @@
     if(!GAS_URL || (!text && !file)) return;
     clearInactivityTimer();
     var payload = { type:"chat_visitor", conversationId: ensureConversationId(), message: text || "" };
+    if(visitorName) payload.name = visitorName;
     if(isHandoffRequest === true) payload.handoff = true;
     else if(isHandoffRequest === "followup") payload.followup = true;
     if(file){
@@ -619,6 +625,12 @@
   }
 
   function beginLiveChat(triggerText, file){
+    if(!visitorName){
+      pendingHandoff = { text: triggerText, file: file };
+      addMsg(T[lastVisitorLang || lang()].askName, "bot");
+      setChips([]);
+      return;
+    }
     liveChatActive = true;
     localStorage.setItem(LIVECHAT_KEY, "1");
     hydrated = true;
@@ -786,6 +798,18 @@
     var t = T[msgLang];
     var localFile = (file && file.raw) ? { url: URL.createObjectURL(file.raw), name: file.name, mime: file.mime } : null;
     addMsg(fileOnly ? "" : msg, "user", localFile);
+    if(pendingHandoff){
+      if(fileOnly){
+        addMsg(t.askName, "bot");
+        return;
+      }
+      visitorName = msg.trim().slice(0, 60);
+      try{ localStorage.setItem(VISITOR_NAME_KEY, visitorName); }catch(e){}
+      var trig = pendingHandoff;
+      pendingHandoff = null;
+      beginLiveChat(trig.text, trig.file);
+      return;
+    }
     if(liveChatActive){
       sentTexts.push(msg);
       sendVisitorChatMessage(msg, "followup", file);
