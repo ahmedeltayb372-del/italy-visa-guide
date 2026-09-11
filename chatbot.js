@@ -15,6 +15,8 @@
   var conversationId = localStorage.getItem(CONV_KEY) || null;
   var liveChatActive = localStorage.getItem(LIVECHAT_KEY) === "1";
   var renderedChatRows = {};
+  var chatBanned = false;
+  var bannedNoteShown = false;
   var isInitialSync = false;
   var sentTexts = [];
   var chatPollTimer = null;
@@ -587,11 +589,17 @@
   }
 
   function applyChatBanned(){
+    chatBanned = true;
+    lockChatForBan();
     var t = T[lastVisitorLang || lang()];
     addMsg(t.chatBannedNote, "bot");
     if(!opened) showUnreadBadge(true);
     endLiveChat();
     setChips([]);
+  }
+
+  function lockChatForBan(){
+    try{ input.disabled = true; sendBtn.disabled = true; }catch(e){}
   }
 
   function clearInactivityTimer(){
@@ -899,7 +907,13 @@
     showUnreadBadge(false);
     var teaser = document.getElementById("igchatTeaser");
     if(teaser) teaser.remove();
-    if(liveChatActive){
+    if(chatBanned){
+      setChips([]);
+      if(!bannedNoteShown){
+        bannedNoteShown = true;
+        addMsg(T[lastVisitorLang || lang()].chatBannedNote, "bot");
+      }
+    } else if(liveChatActive){
       hydrateLiveChatIfNeeded();
       scheduleNextSync();
     } else if(!greeted){
@@ -925,12 +939,25 @@
 
   if(liveChatActive){ scheduleNextSync(); }
 
+  if(GAS_URL && conversationId){
+    jsonpFetch(GAS_URL + "?action=checkBan&conversationId=" + encodeURIComponent(conversationId)).then(function(data){
+      if(data && data.status === "success" && data.banned){
+        chatBanned = true;
+        lockChatForBan();
+        liveChatActive = false;
+        try{ localStorage.removeItem(LIVECHAT_KEY); }catch(e){}
+        if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
+      }
+    }).catch(function(){});
+  }
+
   launcher.addEventListener("click", function(){
     if(opened) closePanel(); else openPanel();
   });
   closeBtn.addEventListener("click", closePanel);
 
   function submitInput(){
+    if(chatBanned) return;
     var v = input.value.trim();
     var file = pendingVisitorFile;
     if(!v && !file) return;
