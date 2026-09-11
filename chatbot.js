@@ -603,6 +603,10 @@
       { label: t.closeContinue, onClick: function(){ beginLiveChat(t.continueTriggerMsg); } },
       { label: t.closeRate, onClick: function(){ renderStarRating_(closedConvId, t); } }
     ]);
+    try{
+      var closedInputRow = panel.querySelector(".igchat-input-row");
+      if(closedInputRow) closedInputRow.style.display = "none";
+    }catch(e){}
   }
 
   function applyChatBanned(){
@@ -659,7 +663,7 @@
           unlockChatAfterUnban();
         }
       }).catch(function(){});
-    }, 12000);
+    }, 6000);
   }
 
   function clearInactivityTimer(){
@@ -722,7 +726,7 @@
   function scheduleNextSync(){
     if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
     if(!liveChatActive || !conversationId) return;
-    var delay = opened ? 6000 : 20000;
+    var delay = opened ? 3000 : 10000;
     chatPollTimer = setTimeout(function(){
       syncChatMessages();
       scheduleNextSync();
@@ -730,6 +734,10 @@
   }
 
   function beginLiveChat(triggerText, file){
+    try{
+      var resumeInputRow = panel.querySelector(".igchat-input-row");
+      if(resumeInputRow) resumeInputRow.style.display = "";
+    }catch(e){}
     if(!visitorName){
       pendingHandoff = { text: triggerText, file: file };
       addMsg(T[lastVisitorLang || lang()].askName, "bot");
