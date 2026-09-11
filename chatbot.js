@@ -17,6 +17,7 @@
   var renderedChatRows = {};
   var chatBanned = false;
   var bannedNoteShown = false;
+  var banWatchTimer = null;
   var isInitialSync = false;
   var sentTexts = [];
   var chatPollTimer = null;
@@ -57,6 +58,8 @@
       liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
       chatClosedNote: "This conversation has ended. 👋 We're here all day if you need anything else.\nThanks for choosing Italy Gateway ❤️",
       chatBannedNote: "You have been permanently blocked from this chat by our support team. If you think this is a mistake, please reach out to us through another channel.",
+      chatBannedTitle: "Chat locked",
+      chatUnbannedNote: "Good news — you've been unblocked! Feel free to reach out again, we're happy to help.",
       closeContinue: "Continue conversation",
       closeRate: "Rate our support",
       continueTriggerMsg: "I'd like to continue the conversation, please.",
@@ -108,6 +111,8 @@
       liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
       chatClosedNote: "يرجى العلم إنه تم إنهاء الشات تلقائيًا لعدم وجود رد خلال دقيقتين، لكن إحنا موجودين طول اليوم لمساعدتك 😊\nلتكملة المحادثة اضغط على \"متابعة المحادثة\".\nولتقييم أسلوبي، اضغط على \"تقييم ممثل خدمة العملاء\" وهيظهرلك في خلال دقيقة واختار:\n\"خمس نجوم\" إذا كنت راضي، أو \"نجمة واحدة\" إذا كنت غير راضي.\nتقييمك بيساعدنا نحسّن الخدمة ونقدملك الأفضل.\nشكرًا لاختيارك Italy Gateway ❤️",
       chatBannedNote: "تم حظرك نهائيًا من هذه المحادثة بواسطة خدمة العملاء. لو حاسس إن ده حصل غلط، تقدر تتواصل معانا من طريقة تانية.",
+      chatBannedTitle: "المحادثة مقفولة",
+      chatUnbannedNote: "تم فك الحظر عنك! تقدر تتواصل معانا تاني، إحنا موجودين لمساعدتك.",
       closeContinue: "متابعة المحادثة",
       closeRate: "تقييم ممثل خدمة العملاء",
       continueTriggerMsg: "عايز أكمل المحادثة من فضلك",
@@ -236,6 +241,10 @@
   + ".igchat-star:hover{transform:scale(1.15)}"
   + ".igchat-star-active{color:#f5a623}"
   + ".igchat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid #e8eaf3;flex-shrink:0;background:#fff}"
+  + ".igchat-banned-banner{gap:10px;align-items:flex-start;padding:12px 14px;border-top:1px solid #f3c9c9;background:#fff5f5;flex-shrink:0}"
+  + ".igchat-banned-banner .igchat-banned-icon{font-size:19px;line-height:1.3;flex-shrink:0}"
+  + ".igchat-banned-banner .igchat-banned-text{font-size:12.5px;color:#9b2c2c;line-height:1.5}"
+  + ".igchat-banned-banner .igchat-banned-text b{display:block;font-size:13.5px;margin-bottom:2px;color:#c53030}"
   + ".igchat-input-row input{flex:1;border:1px solid #e8eaf3;border-radius:12px;padding:10px 13px;font-size:13.5px;font-family:inherit;background:#fbfcff;color:#0f1b33;min-width:0}"
   + ".igchat-input-row input:focus{outline:2px solid #2952e3;outline-offset:1px}"
   + ".igchat-send{border:0;background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}"
@@ -282,6 +291,7 @@
     '</div>' +
     '<div class="igchat-body" id="igchatBody"></div>' +
     '<div class="igchat-chips" id="igchatChips"></div>' +
+    '<div class="igchat-banned-banner" id="igchatBannedBanner" style="display:none"></div>' +
     '<div class="igchat-input-row">' +
       '<div class="igchat-input-col">' +
         '<input type="text" id="igchatInput" autocomplete="off">' +
@@ -596,10 +606,53 @@
     if(!opened) showUnreadBadge(true);
     endLiveChat();
     setChips([]);
+    startBanWatch();
   }
 
   function lockChatForBan(){
-    try{ input.disabled = true; sendBtn.disabled = true; }catch(e){}
+    try{
+      input.disabled = true;
+      sendBtn.disabled = true;
+      var inputRow = panel.querySelector(".igchat-input-row");
+      if(inputRow) inputRow.style.display = "none";
+      var bannedBanner = panel.querySelector("#igchatBannedBanner");
+      if(bannedBanner){
+        var bt = T[lastVisitorLang || lang()];
+        bannedBanner.innerHTML = '<span class="igchat-banned-icon">🚫</span><span class="igchat-banned-text"><b>' + bt.chatBannedTitle + '</b>' + bt.chatBannedNote + '</span>';
+        bannedBanner.style.display = "flex";
+      }
+    }catch(e){}
+  }
+
+  function unlockChatAfterUnban(){
+    chatBanned = false;
+    bannedNoteShown = false;
+    try{
+      input.disabled = false;
+      sendBtn.disabled = false;
+      var inputRow2 = panel.querySelector(".igchat-input-row");
+      if(inputRow2) inputRow2.style.display = "";
+      var bannedBanner2 = panel.querySelector("#igchatBannedBanner");
+      if(bannedBanner2) bannedBanner2.style.display = "none";
+    }catch(e){}
+    var ut = T[lastVisitorLang || lang()];
+    addMsg(ut.chatUnbannedNote, "bot");
+    setChips(baseChips(ut));
+    if(!opened) showUnreadBadge(true);
+  }
+
+  function startBanWatch(){
+    if(banWatchTimer) return;
+    banWatchTimer = setInterval(function(){
+      if(!GAS_URL || !conversationId) return;
+      jsonpFetch(GAS_URL + "?action=checkBan&conversationId=" + encodeURIComponent(conversationId)).then(function(data){
+        if(data && data.status === "success" && !data.banned){
+          clearInterval(banWatchTimer);
+          banWatchTimer = null;
+          unlockChatAfterUnban();
+        }
+      }).catch(function(){});
+    }, 12000);
   }
 
   function clearInactivityTimer(){
@@ -947,6 +1000,7 @@
         liveChatActive = false;
         try{ localStorage.removeItem(LIVECHAT_KEY); }catch(e){}
         if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
+        startBanWatch();
       }
     }).catch(function(){});
   }
