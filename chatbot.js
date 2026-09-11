@@ -54,6 +54,7 @@
       askName: "Great — before we continue, could you tell me your name?",
       liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
       chatClosedNote: "This conversation has ended. 👋 We're here all day if you need anything else.\nThanks for choosing Italy Gateway ❤️",
+      chatBannedNote: "You have been permanently blocked from this chat by our support team. If you think this is a mistake, please reach out to us through another channel.",
       closeContinue: "Continue conversation",
       closeRate: "Rate our support",
       continueTriggerMsg: "I'd like to continue the conversation, please.",
@@ -104,6 +105,7 @@
       askName: "تمام، قبل ما نكمل، ممكن أعرف اسمك؟",
       liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
       chatClosedNote: "يرجى العلم إنه تم إنهاء الشات تلقائيًا لعدم وجود رد خلال دقيقتين، لكن إحنا موجودين طول اليوم لمساعدتك 😊\nلتكملة المحادثة اضغط على \"متابعة المحادثة\".\nولتقييم أسلوبي، اضغط على \"تقييم ممثل خدمة العملاء\" وهيظهرلك في خلال دقيقة واختار:\n\"خمس نجوم\" إذا كنت راضي، أو \"نجمة واحدة\" إذا كنت غير راضي.\nتقييمك بيساعدنا نحسّن الخدمة ونقدملك الأفضل.\nشكرًا لاختيارك Italy Gateway ❤️",
+      chatBannedNote: "تم حظرك نهائيًا من هذه المحادثة بواسطة خدمة العملاء. لو حاسس إن ده حصل غلط، تقدر تتواصل معانا من طريقة تانية.",
       closeContinue: "متابعة المحادثة",
       closeRate: "تقييم ممثل خدمة العملاء",
       continueTriggerMsg: "عايز أكمل المحادثة من فضلك",
@@ -584,6 +586,14 @@
     ]);
   }
 
+  function applyChatBanned(){
+    var t = T[lastVisitorLang || lang()];
+    addMsg(t.chatBannedNote, "bot");
+    if(!opened) showUnreadBadge(true);
+    endLiveChat();
+    setChips([]);
+  }
+
   function clearInactivityTimer(){
     if(inactivityCloseTimer){ clearTimeout(inactivityCloseTimer); inactivityCloseTimer = null; }
   }
@@ -623,6 +633,8 @@
           }
         } else if(item.type === "chat_close"){
           if(!isInitialSync) applyChatClosed();
+        } else if(item.type === "chat_ban"){
+          if(!isInitialSync) applyChatBanned();
         }
       });
       isInitialSync = false;
