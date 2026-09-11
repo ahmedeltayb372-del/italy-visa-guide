@@ -15,6 +15,7 @@
   var conversationId = localStorage.getItem(CONV_KEY) || null;
   var liveChatActive = localStorage.getItem(LIVECHAT_KEY) === "1";
   var renderedChatRows = {};
+  var isInitialSync = false;
   var sentTexts = [];
   var chatPollTimer = null;
   var inactivityCloseTimer = null;
@@ -50,7 +51,7 @@
       thanks: "You're welcome! 🌸 Anything else I can help with?",
       bye: "Take care! Feel free to come back anytime you have a question. 🇮🇹",
       humanHandoff: "Sure — I'm transferring you to our customer service team now. They'll reply right here in this chat as soon as possible 💬",
-      askName: "Before I connect you, could you tell me your name?",
+      askName: "Great — before we continue, could you tell me your name?",
       liveChatWelcomeBack: "Welcome back! You're still connected with our customer service team — your conversation continues below.",
       chatClosedNote: "This conversation has ended. 👋 We're here all day if you need anything else.\nThanks for choosing Italy Gateway ❤️",
       closeContinue: "Continue conversation",
@@ -59,7 +60,7 @@
       rateFive: "⭐️⭐️⭐️⭐️⭐️ Excellent",
       rateOne: "⭐️ Not satisfied",
       rateThanks: "Thanks so much for your feedback! 🙏",
-      fileHandoffReply: "Got it — I'm connecting you with our customer service team so they can review your file and reply.",
+      fileHandoffReply: "Got it — thanks for sending that over, I'll take a look and follow up here shortly.",
       fileTooBig: "This file is too large (max 5MB). Please choose a smaller file.",
       servicesList: "Here's what we help with:\n🎓 Study Visa — university admission, enrollment documents, financial proof and accommodation.\n✈️ Tourism Visa — Schengen tourism visa requirements and documents.\n💼 Work Visa — the work visa (Nulla Osta) pathway to Italy.\n👨‍👩‍👧 Family Reunification — requirements and process.\n📋 Document Preparation & Review — professional review of your paperwork.\n📅 Personal Consultation — a one-on-one session about your specific case.",
       pricesList: "Consultation prices:\n🏢 In-person (60 min) — $150\n🎥 Video call (60 min) — $75\n🎧 Voice call (60 min) — $50\n\nThese are for one-on-one consultations. Browsing the guide itself is always free.",
@@ -79,7 +80,7 @@
       intakeMoreQuestion: "Got it. Anything else you'd like to add before I send this to our team?",
       intakeDoneLabel: "No, that's everything ✅",
       intakeAddMoreLabel: "Yes, one more thing",
-      intakeClosing: "Thanks — I've passed all the details to our customer service team, they'll follow up with you here shortly 💬",
+      intakeClosing: "Thanks — got everything I need, I'll follow up with you here shortly 💬",
       complaintLabel: "📩 New complaint",
       requestLabel: "📩 New request"
     },
@@ -100,7 +101,7 @@
       thanks: "العفو! 🌸 محتاج حاجة تانية؟",
       bye: "ربنا معاك! ارجعلنا في أي وقت لو عندك سؤال. 🇮🇹",
       humanHandoff: "تمام، هحولك دلوقتي لفريق خدمة العملاء، وهيردوا عليك هنا في نفس الشات في أقرب وقت 💬",
-      askName: "قبل ما أحولك لفريق خدمة العملاء، ممكن أعرف اسمك؟",
+      askName: "تمام، قبل ما نكمل، ممكن أعرف اسمك؟",
       liveChatWelcomeBack: "أهلاً بيك تاني! لسه متصل بفريق خدمة العملاء — المحادثة بتاعتك مكملة تحت.",
       chatClosedNote: "يرجى العلم إنه تم إنهاء الشات تلقائيًا لعدم وجود رد خلال دقيقتين، لكن إحنا موجودين طول اليوم لمساعدتك 😊\nلتكملة المحادثة اضغط على \"متابعة المحادثة\".\nولتقييم أسلوبي، اضغط على \"تقييم ممثل خدمة العملاء\" وهيظهرلك في خلال دقيقة واختار:\n\"خمس نجوم\" إذا كنت راضي، أو \"نجمة واحدة\" إذا كنت غير راضي.\nتقييمك بيساعدنا نحسّن الخدمة ونقدملك الأفضل.\nشكرًا لاختيارك Italy Gateway ❤️",
       closeContinue: "متابعة المحادثة",
@@ -109,7 +110,7 @@
       rateFive: "⭐️⭐️⭐️⭐️⭐️ ممتاز",
       rateOne: "⭐️ مش راضي",
       rateThanks: "شكرًا جدًا لتقييمك! 🙏",
-      fileHandoffReply: "تمام، هحولك لفريق خدمة العملاء عشان يستلموا الملف ويردوا عليك بأسرع وقت.",
+      fileHandoffReply: "تمام، وصلني الملف، هراجعه وأرد عليك هنا في أقرب وقت.",
       fileTooBig: "الملف ده كبير أوي (الحد الأقصى 5 ميجا). جرب ملف أصغر.",
       servicesList: "دي الخدمات اللي بنساعد فيها:\n🎓 تأشيرة الدراسة — القبول الجامعي، مستندات التسجيل، الإثبات المالي والسكن.\n✈️ تأشيرة السياحة — متطلبات ومستندات تأشيرة شنغن.\n💼 تأشيرة العمل — مسار تأشيرة العمل (Nulla Osta) لإيطاليا.\n👨‍👩‍👧 لمّ الشمل — المتطلبات والإجراءات.\n📋 تجهيز ومراجعة المستندات — مراجعة احترافية لأوراقك.\n📅 استشارة شخصية — جلسة فردية لمناقشة حالتك.",
       pricesList: "أسعار الاستشارات:\n🏢 حضورية (60 دقيقة) — 150$\n🎥 فيديو (60 دقيقة) — 75$\n🎧 صوتية (60 دقيقة) — 50$\n\nدي أسعار الاستشارات الفردية. تصفح الدليل نفسه مجاني دايمًا.",
@@ -129,7 +130,7 @@
       intakeMoreQuestion: "تمام، فهمت. في حاجة تانية حابب تضيفها قبل ما أبعت التفاصيل دي لفريقنا؟",
       intakeDoneLabel: "لأ، كده تمام ✅",
       intakeAddMoreLabel: "أيوه، في حاجة كمان",
-      intakeClosing: "تمام، بعت كل التفاصيل لفريق خدمة العملاء، وهيتابعوا معاك هنا في أقرب وقت 💬",
+      intakeClosing: "تمام، خدت كل التفاصيل، هتابع معاك هنا في أقرب وقت 💬",
       complaintLabel: "📩 شكوى جديدة",
       requestLabel: "📩 طلب جديد"
     }
@@ -226,6 +227,10 @@
   + ".igchat-chip:hover{background:#eef1ff}"
   + ".igchat-chip.igchat-agent{border-color:#16a34a;color:#16a34a}"
   + ".igchat-chip.igchat-agent:hover{background:#eafff2}"
+  + ".igchat-stars{display:flex;gap:6px;padding:8px 4px}"
+  + ".igchat-star{font-size:26px;line-height:1;color:#d7dae3;cursor:pointer;transition:color .15s,transform .1s;user-select:none}"
+  + ".igchat-star:hover{transform:scale(1.15)}"
+  + ".igchat-star-active{color:#f5a623}"
   + ".igchat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid #e8eaf3;flex-shrink:0;background:#fff}"
   + ".igchat-input-row input{flex:1;border:1px solid #e8eaf3;border-radius:12px;padding:10px 13px;font-size:13.5px;font-family:inherit;background:#fbfcff;color:#0f1b33;min-width:0}"
   + ".igchat-input-row input:focus{outline:2px solid #2952e3;outline-offset:1px}"
@@ -542,6 +547,31 @@
     setChips([]);
   }
 
+  function renderStarRating_(convId, t){
+    chipsRow.innerHTML = "";
+    var wrap = document.createElement("div");
+    wrap.className = "igchat-stars";
+    var starEls = [];
+    function highlightStars(n){
+      starEls.forEach(function(s, idx){
+        s.className = "igchat-star" + (idx < n ? " igchat-star-active" : "");
+      });
+    }
+    for(var i = 1; i <= 5; i++){
+      (function(i){
+        var st = document.createElement("span");
+        st.className = "igchat-star";
+        st.textContent = "★";
+        st.onmouseenter = function(){ highlightStars(i); };
+        st.onclick = function(){ chipsRow.innerHTML = ""; sendRating_(convId, i, t); };
+        starEls.push(st);
+        wrap.appendChild(st);
+      })(i);
+    }
+    wrap.onmouseleave = function(){ highlightStars(0); };
+    chipsRow.appendChild(wrap);
+  }
+
   function applyChatClosed(){
     var t = T[lastVisitorLang || lang()];
     var closedConvId = conversationId;
@@ -550,12 +580,7 @@
     endLiveChat();
     setChips([
       { label: t.closeContinue, onClick: function(){ beginLiveChat(t.continueTriggerMsg); } },
-      { label: t.closeRate, onClick: function(){
-          setChips([
-            { label: t.rateFive, onClick: function(){ sendRating_(closedConvId, 5, t); } },
-            { label: t.rateOne, onClick: function(){ sendRating_(closedConvId, 1, t); } }
-          ]);
-        } }
+      { label: t.closeRate, onClick: function(){ renderStarRating_(closedConvId, t); } }
     ]);
   }
 
@@ -597,9 +622,10 @@
             addMsg(item.message || "", "user");
           }
         } else if(item.type === "chat_close"){
-          applyChatClosed();
+          if(!isInitialSync) applyChatClosed();
         }
       });
+      isInitialSync = false;
     }).catch(function(){});
   }
 
@@ -646,6 +672,7 @@
     var t = T[lang()];
     setChips([]);
     addMsg(t.liveChatWelcomeBack, "bot");
+    isInitialSync = true;
     syncChatMessages();
     scheduleNextSync();
   }
@@ -654,10 +681,10 @@
     var typingEl = addTyping();
     setTimeout(function(){
       typingEl.remove();
-      addMsg(topic.reply(t), "bot");
       if(topic.handoff){
         beginLiveChat(triggerText);
       } else {
+        addMsg(topic.reply(t), "bot");
         setChips(baseChips(t));
       }
     }, 420 + Math.random()*260);
@@ -751,13 +778,13 @@
         return;
       }
       aiChatState.history.push({role:"bot", text: ai.reply});
-      addMsg(ai.reply, "bot");
       if(ai.handoff){
         var summary = buildAiSummary(aiChatState);
         var pendingFile = aiChatState.pendingFile;
         aiChatState = null;
         beginLiveChat(summary, pendingFile);
       } else {
+        addMsg(ai.reply, "bot");
         setChips([]);
       }
     });
@@ -782,12 +809,13 @@
         return;
       }
       aiChatState.history.push({role:"bot", text: ai.reply});
-      addMsg(ai.reply, "bot");
       if(ai.handoff || forceCap){
         var summary2 = buildAiSummary(aiChatState);
         var pendingFile2 = aiChatState.pendingFile;
         aiChatState = null;
         beginLiveChat(summary2, pendingFile2);
+      } else {
+        addMsg(ai.reply, "bot");
       }
     });
   }
@@ -830,8 +858,7 @@
       if(found && found.intake){
         startAiChat(found.id, msg, file, t, msgLang);
       } else if(found){
-        addMsg(found.reply(t), "bot");
-        if(found.handoff){ beginLiveChat(msg, file); } else { setChips(baseChips(t)); }
+        if(found.handoff){ beginLiveChat(msg, file); } else { addMsg(found.reply(t), "bot"); setChips(baseChips(t)); }
       } else if(file){
         addMsg(t.fileHandoffReply, "bot");
         beginLiveChat(msg, file);
