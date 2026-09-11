@@ -20,6 +20,7 @@
   var banWatchTimer = null;
   var isInitialSync = false;
   var sentTexts = [];
+  var visibleLog = [];
   var chatPollTimer = null;
   var inactivityCloseTimer = null;
   var INACTIVITY_CLOSE_MS = 2 * 60 * 1000;
@@ -345,6 +346,8 @@
     }
     if(text) el.appendChild(document.createTextNode(text));
     if(file && file.url) el.appendChild(buildAttachmentEl(file.url, file.name, file.mime));
+    if(text){ visibleLog.push({role: who === "user" ? "user" : "bot", text: text}); }
+    else if(file && file.name){ visibleLog.push({role: who === "user" ? "user" : "bot", text: "📎 " + file.name}); }
     var timeEl = document.createElement("div");
     timeEl.className = "igchat-msg-time";
     timeEl.appendChild(document.createTextNode(formatMsgTime_()));
@@ -534,7 +537,11 @@
     clearInactivityTimer();
     var payload = { type:"chat_visitor", conversationId: ensureConversationId(), message: text || "" };
     if(visitorName) payload.name = visitorName;
-    if(isHandoffRequest === true) payload.handoff = true;
+    if(isHandoffRequest === true) {
+      payload.handoff = true;
+      var __transcript = buildVisibleTranscript();
+      if(__transcript) payload.transcript = __transcript;
+    }
     else if(isHandoffRequest === "followup") payload.followup = true;
     if(file){
       payload.fileData = file.data;
@@ -708,6 +715,7 @@
     try{ localStorage.removeItem(LIVECHAT_KEY); }catch(e){}
     hydrated = false;
     if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
+    visibleLog = [];
     setChips(baseChips(T[lastVisitorLang || lang()]));
   }
 
@@ -812,6 +820,11 @@
      and by the time it reaches the admin the conversation already has real context.
      If no API key is configured server-side (or the call fails), this silently falls
      back to the old scripted behaviour below — nothing breaks either way. */
+  function buildVisibleTranscript(){
+    if(!visibleLog.length) return "";
+    return visibleLog.map(function(h){ return (h.role === "user" ? "👤" : "🤖") + " " + h.text; }).join("\n");
+  }
+
   function buildAiSummary(state){
     var isAr = lang() === "ar";
     var label = state.kind === "complaint"
