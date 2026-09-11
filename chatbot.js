@@ -634,8 +634,6 @@
     clearInactivityTimer();
     try{ localStorage.removeItem(LIVECHAT_KEY); }catch(e){}
     hydrated = false;
-    renderedChatRows = {};
-    sentTexts = [];
     if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
     setChips(baseChips(T[lastVisitorLang || lang()]));
   }
