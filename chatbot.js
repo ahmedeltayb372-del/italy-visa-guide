@@ -565,7 +565,11 @@
       body: JSON.stringify({ type:"chat_rating", conversationId: convId, stars: stars })
     }).catch(function(){});
     addMsg(t.rateThanks, "bot");
-    setChips([]);
+    try{
+      var ratedInputRow = panel.querySelector(".igchat-input-row");
+      if(ratedInputRow) ratedInputRow.style.display = "";
+    }catch(e){}
+    setChips(baseChips(t));
   }
 
   function renderStarRating_(convId, t){
