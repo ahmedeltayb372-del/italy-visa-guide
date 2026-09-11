@@ -780,12 +780,12 @@
     });
   }
 
-  function handleFreeText(msg, file){
+  function handleFreeText(msg, file, fileOnly){
     var msgLang = detectMsgLang(msg) || lang();
     lastVisitorLang = msgLang;
     var t = T[msgLang];
     var localFile = (file && file.raw) ? { url: URL.createObjectURL(file.raw), name: file.name, mime: file.mime } : null;
-    addMsg(msg, "user", localFile);
+    addMsg(fileOnly ? "" : msg, "user", localFile);
     if(liveChatActive){
       sentTexts.push(msg);
       sendVisitorChatMessage(msg, "followup", file);
@@ -874,10 +874,11 @@
     var file = pendingVisitorFile;
     if(!v && !file) return;
     var t = T[lang()];
+    var fileOnly = !v && !!file;
     var displayText = v || ("📎 " + (file ? file.name : ""));
     input.value = "";
     clearVisitorAttachment();
-    handleFreeText(displayText, file);
+    handleFreeText(displayText, file, fileOnly);
   }
   sendBtn.addEventListener("click", submitInput);
   input.addEventListener("keydown", function(e){
