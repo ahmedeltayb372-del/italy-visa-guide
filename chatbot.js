@@ -663,7 +663,7 @@
           unlockChatAfterUnban();
         }
       }).catch(function(){});
-    }, 6000);
+    }, 3000);
   }
 
   function clearInactivityTimer(){
@@ -726,7 +726,7 @@
   function scheduleNextSync(){
     if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
     if(!liveChatActive || !conversationId) return;
-    var delay = opened ? 3000 : 10000;
+    var delay = opened ? 1000 : 5000;
     chatPollTimer = setTimeout(function(){
       syncChatMessages();
       scheduleNextSync();
