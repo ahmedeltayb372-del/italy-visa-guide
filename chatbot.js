@@ -27,6 +27,7 @@
   var lastVisitorLang = null;
   var VISITOR_NAME_KEY = "igchatVisitorName";
   var visitorName = localStorage.getItem(VISITOR_NAME_KEY) || null;
+  var BOT_NAME = "Marco";
   var pendingHandoff = null;
   var hydrated = false;
   var intakeState = null;
@@ -224,6 +225,9 @@
   + ".igchat-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.55;white-space:pre-line;word-wrap:break-word}"
   + ".igchat-msg.bot{background:#eef1ff;color:#0f1b33;align-self:flex-start;border-end-start-radius:4px}"
   + ".igchat-msg.user{background:linear-gradient(135deg,#2952e3,#6d5bf7);color:#fff;align-self:flex-end;border-end-end-radius:4px}"
+  + ".igchat-msg-row{display:flex;gap:8px;align-items:flex-end;align-self:flex-start;max-width:88%}"
+  + ".igchat-msg-row .igchat-msg{max-width:100%}"
+  + ".igchat-avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#fff;background:linear-gradient(135deg,#2952e3,#6d5bf7)}"
   + ".igchat-msg-name{display:block;font-size:11.5px;font-weight:700;color:#5b63d6;margin-bottom:2px}"
   + ".igchat-msg-time{display:block;font-size:10.5px;margin-top:4px;opacity:.6}"
   + ".igchat-msg.user .igchat-msg-time{color:#fff;text-align:end}"
@@ -336,12 +340,22 @@
   }
 
   function addMsg(text, who, file, senderName){
+    var displayName = senderName || (who === "bot" ? BOT_NAME : null);
+    var wrap = null;
+    if(who === "bot"){
+      wrap = document.createElement("div");
+      wrap.className = "igchat-msg-row";
+      var avatarEl = document.createElement("div");
+      avatarEl.className = "igchat-avatar";
+      avatarEl.textContent = (displayName || "M").trim().charAt(0).toUpperCase();
+      wrap.appendChild(avatarEl);
+    }
     var el = document.createElement("div");
     el.className = "igchat-msg " + who;
-    if(senderName){
+    if(displayName){
       var nameEl = document.createElement("span");
       nameEl.className = "igchat-msg-name";
-      nameEl.appendChild(document.createTextNode(senderName));
+      nameEl.appendChild(document.createTextNode(displayName));
       el.appendChild(nameEl);
     }
     if(text) el.appendChild(document.createTextNode(text));
@@ -352,7 +366,7 @@
     timeEl.className = "igchat-msg-time";
     timeEl.appendChild(document.createTextNode(formatMsgTime_()));
     el.appendChild(timeEl);
-    body.appendChild(el);
+    if(wrap){ wrap.appendChild(el); body.appendChild(wrap); } else { body.appendChild(el); }
     body.scrollTop = body.scrollHeight;
     return el;
   }
