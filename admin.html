@@ -1250,7 +1250,7 @@ async function loadChatTab(force){
     }
     return;
   }
-  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban");
+  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban" || it.type === "chat_bot_handoff");
   const convs = {};
   items.forEach(it=>{
     const id = it.conversationId || "";
@@ -1262,7 +1262,7 @@ async function loadChatTab(force){
       convs[id].service = it.service || convs[id].service;
       convs[id].closed = false;
       convs[id].messages.push(it);
-    } else if(it.type === "chat_admin" || it.type === "chat_close"){
+    } else if(it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_bot_handoff"){
       if(it.type === "chat_close") convs[id].closed = true;
       convs[id].messages.push(it);
     } else if(it.type === "chat_delete"){
@@ -1382,13 +1382,14 @@ function renderChatThread(id){
     '</span>' +
     '<span style="display:flex;gap:8px;flex-wrap:wrap">' +
     banBtn +
+    '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="botHandoffFromPanel(\'' + idEsc + '\')">🤖 رجّع للبوت</button>' +
     (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">إنهاء المحادثة</button>' : '') +
     '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteChatConversation(\'' + idEsc + '\')">🗑 حذف المحادثة</button>' +
     '</span>' +
     '</div>';
   const msgsHtml = conv.messages.map(m=>{
-    if(m.type === "chat_close"){
-      return '<div class="chat-bubble system">' + escapeHtml(m.message || "تم إنهاء المحادثة") + '</div>';
+    if(m.type === "chat_close" || m.type === "chat_bot_handoff"){
+      return '<div class="chat-bubble system">' + escapeHtml(m.message || (m.type === "chat_bot_handoff" ? "تم تحويل المحادثة تاني للبوت" : "تم إنهاء المحادثة")) + '</div>';
     }
     const cls = m.type === "chat_admin" ? "admin" : "visitor";
     let meta = {};
@@ -1663,6 +1664,24 @@ async function banFromPanel(id){
     showMsg("chatMsg", "تم حظر الزائر ✅", "ok");
     if(selectedConvId === id) renderChatThread(id);
     renderChatList();
+  }catch(e){
+    showMsg("chatMsg", "حصل خطأ: " + e.message, "error");
+  }
+}
+
+async function botHandoffFromPanel(id){
+  if(!confirm("متأكد عايز ترجّع الزائر ده يتكلم مع ماركو (البوت)؟")) return;
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) return;
+  try{
+    await fetch(webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"chat_bot_handoff", conversationId: id, message:"تم تحويل المحادثة تاني لماركو (البوت)", secret: ADMIN_PASSPHRASE})
+    });
+    showMsg("chatMsg", "تم إرجاع الزائر للبوت ✅", "ok");
+    setTimeout(function(){ loadChatTab(true); }, 1000);
   }catch(e){
     showMsg("chatMsg", "حصل خطأ: " + e.message, "error");
   }
