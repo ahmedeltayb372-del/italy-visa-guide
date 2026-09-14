@@ -1145,6 +1145,7 @@ async function loadChatTab(){
       convs[id].name = it.name || convs[id].name;
       convs[id].email = it.email || convs[id].email;
       convs[id].service = it.service || convs[id].service;
+      convs[id].closed = false;
     }
     if(it.type === "chat_close"){
       convs[id].closed = true;
