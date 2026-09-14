@@ -90,7 +90,8 @@
       intakeAddMoreLabel: "Yes, one more thing",
       intakeClosing: "Thanks — got everything I need, I'll follow up with you here shortly 💬",
       complaintLabel: "📩 New complaint",
-      requestLabel: "📩 New request"
+      requestLabel: "📩 New request",
+      chatBotHandoffNote: "You're back with Marco, our assistant 🤖 — feel free to keep chatting, and I'll bring in the team again anytime you need a human."
     },
     ar: {
       brand: "بوابة إيطاليا",
@@ -143,7 +144,8 @@
       intakeAddMoreLabel: "أيوه، في حاجة كمان",
       intakeClosing: "تمام، خدت كل التفاصيل، هتابع معاك هنا في أقرب وقت 💬",
       complaintLabel: "📩 شكوى جديدة",
-      requestLabel: "📩 طلب جديد"
+      requestLabel: "📩 طلب جديد",
+      chatBotHandoffNote: "رجعت تتكلم مع ماركو، مساعدنا الذكي 🤖 — اسأل في أي حاجة، ولو حبيت تتكلم مع حد من الفريق تاني قولي وأنا هحولك."
     }
   };
 
@@ -627,6 +629,13 @@
     }catch(e){}
   }
 
+  function applyBotHandoff(){
+    var t = T[lastVisitorLang || lang()];
+    addMsg(t.chatBotHandoffNote, "bot");
+    if(!opened) showUnreadBadge(true);
+    endLiveChat();
+  }
+
   function applyChatBanned(){
     chatBanned = true;
     lockChatForBan();
@@ -727,6 +736,8 @@
           if(!isInitialSync) applyChatBanned();
         } else if(item.type === "chat_unban"){
           if(!isInitialSync && chatBanned) unlockChatAfterUnban();
+        } else if(item.type === "chat_bot_handoff"){
+          if(!isInitialSync) applyBotHandoff();
         }
       });
       isInitialSync = false;
