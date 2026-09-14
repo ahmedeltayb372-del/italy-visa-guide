@@ -372,7 +372,7 @@ button:active:not(:disabled){transform:translateY(0)}
   <div class="card">
     <div class="card-head">
       <h2>المراجعات والرسائل الجديدة (من جوجل شيت)</h2>
-      <button class="btn-outline" onclick="loadPendingTab()">🔄 تحديث</button>
+      <button class="btn-outline" onclick="loadPendingTab(true)">🔄 تحديث</button>
     </div>
     <p class="small-note">دي التقييمات ورسائل التواصل اللي بعتها الزوار من الموقع وبتتجمع تلقائي في جوجل شيت. لو التقييم حلو تقدر "تنشره" فيروح فورًا لقسم آراء العملاء بالموقع، أو "تحذفه" من القايمة بعد ما تتعامل معاه (زي الرد عليه بالإيميل أو رفضه).</p>
     <div id="pendingList"></div>
@@ -387,7 +387,7 @@ button:active:not(:disabled){transform:translateY(0)}
       <h2>الشات المباشر مع زوار الموقع</h2>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn-outline" id="chatNotifyBtn" onclick="enableChatNotifications()">🔔 تفعيل تنبيهات المتصفح</button>
-        <button class="btn-outline" onclick="loadChatTab()">🔄 تحديث</button>
+        <button class="btn-outline" onclick="loadChatTab(true)">🔄 تحديث</button>
       </div>
     </div>
     <p class="small-note">هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.</p>
@@ -433,7 +433,7 @@ button:active:not(:disabled){transform:translateY(0)}
   <div class="card">
     <div class="card-head">
       <h2>🚫 الزوار المحظورين من الشات</h2>
-      <button class="btn-outline" onclick="loadBannedTab()">🔄 تحديث</button>
+      <button class="btn-outline" onclick="loadBannedTab(true)">🔄 تحديث</button>
     </div>
     <p class="small-note">هنا قائمة كل الزوار اللي متحظورين دلوقتي من الشات المباشر بتاع الموقع. الزائر المحظور مش هيقدر يبعت رسايل تانية لحد ما تفك الحظر عنه من هنا.</p>
     <div id="bannedList"></div>
@@ -445,7 +445,7 @@ button:active:not(:disabled){transform:translateY(0)}
 <div id="tab-dashboard" class="tabpage">
   <div class="card-head" style="margin-bottom:16px">
     <h2 style="font-size:20px">📊 لوحة الإحصائيات العامة</h2>
-    <button class="btn-outline" onclick="loadDashboardTab()">🔄 تحديث</button>
+    <button class="btn-outline" onclick="loadDashboardTab(true)">🔄 تحديث</button>
   </div>
   <div class="stat-grid" id="dashStatGrid">
     <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val">...</div><div class="stat-label">جاري تحميل الإحصائيات</div></div>
@@ -916,8 +916,28 @@ function jsonpFetch(url){
     script.onerror = ()=>{ if(!done){ reject(new Error("تعذر الاتصال بجوجل شيت")); cleanup(); } };
     script.src = url + (url.indexOf("?")===-1?"?":"&") + "callback=" + cbName + "&t=" + Date.now();
     document.body.appendChild(script);
-    setTimeout(()=>{ if(!done){ reject(new Error("انتهت المهلة أثناء تحميل البيانات من جوجل شيت")); cleanup(); } }, 15000);
+    setTimeout(()=>{ if(!done){ reject(new Error("انتهت المهلة أثناء تحميل البيانات من جوجل شيت")); cleanup(); } }, 25000);
   });
+}
+
+/* ---- shared short-lived cache for the (large, unfiltered) sheet read —
+   the chat / banned / dashboard / pending tabs all need the same data,
+   so caching for a few seconds avoids piling up parallel/duplicate
+   requests on the Apps Script webhook (which slows it down further). ---- */
+let __sheetDataCache = null;
+let __sheetDataCacheAt = 0;
+const SHEET_CACHE_TTL_MS = 4000;
+async function fetchSheetData(force){
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) throw new Error('لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".');
+  if(!force && __sheetDataCache && (Date.now() - __sheetDataCacheAt) < SHEET_CACHE_TTL_MS){
+    return __sheetDataCache;
+  }
+  const data = await jsonpFetch(webhookUrl);
+  if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+  __sheetDataCache = data;
+  __sheetDataCacheAt = Date.now();
+  return data;
 }
 
 function isReviewType(t){
@@ -925,19 +945,17 @@ function isReviewType(t){
   return t.indexOf("تقييم") !== -1 || t.toLowerCase().indexOf("review") !== -1;
 }
 
-async function loadPendingTab(){
+async function loadPendingTab(force){
   const wrap = document.getElementById("pendingList");
   wrap.innerHTML = "<p class='small-note'>جاري التحميل...</p>";
   document.getElementById("pendingMsg").style.display = "none";
   if(!settingsData){ try{ await loadSettingsTab(); }catch(e){} }
-  const webhookUrl = (settingsData && settingsData.requests_webhook_url) || "";
-  if(!webhookUrl){
+  if(!chatWebhookUrl()){
     wrap.innerHTML = '<p class="small-note">لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".</p>';
     return;
   }
   try{
-    const data = await jsonpFetch(webhookUrl);
-    if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+    const data = await fetchSheetData(force);
     pendingItems = (data.items || []).filter(it => it.type !== "chat_visitor" && it.type !== "chat_admin" && it.type !== "chat_close" && it.type !== "chat_delete" && it.type !== "chat_ban" && it.type !== "chat_unban" && it.type !== "chat_rating");
   }catch(e){
     wrap.innerHTML = "";
@@ -1166,15 +1184,13 @@ function startChatBackgroundPoll(){
 
 async function checkChatNotifications(){
   if(!chatNotifyEnabled) return;
-  const webhookUrl = chatWebhookUrl();
-  if(!webhookUrl){
+  if(!chatWebhookUrl()){
     if(!settingsData){ try{ await loadSettingsTab(); }catch(e){ return; } }
     return;
   }
   let data;
   try{
-    data = await jsonpFetch(webhookUrl);
-    if(data.status !== "success") return;
+    data = await fetchSheetData();
   }catch(e){ return; }
   const items = (data.items || []).filter(it => it.type === "chat_visitor");
   if(!chatFirstPollDone){
@@ -1217,18 +1233,16 @@ function initChatNotifications(){
   }catch(e){}
 }
 
-async function loadChatTab(){
-  const webhookUrl = chatWebhookUrl();
+async function loadChatTab(force){
   const listWrap = document.getElementById("chatConvList");
   if(!settingsData){ try{ await loadSettingsTab(); }catch(e){} }
-  if(!webhookUrl){
+  if(!chatWebhookUrl()){
     listWrap.innerHTML = '<p class="small-note">لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".</p>';
     return;
   }
   let data;
   try{
-    data = await jsonpFetch(webhookUrl);
-    if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+    data = await fetchSheetData(force);
   }catch(e){
     if(!Object.keys(chatConversations).length){
       listWrap.innerHTML = "";
@@ -1582,18 +1596,16 @@ function buildBanState(items){
   return {banState, names};
 }
 
-async function loadBannedTab(){
+async function loadBannedTab(force){
   const wrap = document.getElementById("bannedList");
   if(!wrap) return;
   wrap.innerHTML = "<p class='small-note'>جاري التحميل...</p>";
   document.getElementById("bannedMsg").style.display = "none";
   if(!settingsData){ try{ await loadSettingsTab(); }catch(e){} }
-  const webhookUrl = chatWebhookUrl();
-  if(!webhookUrl){ wrap.innerHTML = '<p class="small-note">لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".</p>'; return; }
+  if(!chatWebhookUrl()){ wrap.innerHTML = '<p class="small-note">لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".</p>'; return; }
   let data;
   try{
-    data = await jsonpFetch(webhookUrl);
-    if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+    data = await fetchSheetData(force);
   }catch(e){
     wrap.innerHTML = "";
     showMsg("bannedMsg", "تعذر تحميل البيانات: " + e.message, "error");
@@ -1660,20 +1672,18 @@ async function banFromPanel(id){
    DASHBOARD TAB (general stats — today's conversations, top service,
    average customer-service rating, pending/banned counts, service mix)
    ====================================================================== */
-async function loadDashboardTab(){
+async function loadDashboardTab(force){
   const grid = document.getElementById("dashStatGrid");
   const barsWrap = document.getElementById("dashServiceBars");
   if(!grid) return;
   if(!settingsData){ try{ await loadSettingsTab(); }catch(e){} }
-  const webhookUrl = chatWebhookUrl();
-  if(!webhookUrl){
+  if(!chatWebhookUrl()){
     if(barsWrap) barsWrap.innerHTML = '<p class="small-note">لسه مفيش رابط جوجل شيت متسجل في تبويب "الإعدادات العامة".</p>';
     return;
   }
   let data;
   try{
-    data = await jsonpFetch(webhookUrl);
-    if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+    data = await fetchSheetData(force);
   }catch(e){
     if(barsWrap) barsWrap.innerHTML = '<p class="small-note" style="color:#b42318">تعذر تحميل الإحصائيات: ' + escapeHtml(e.message) + '</p>';
     return;
