@@ -725,6 +725,8 @@
           if(!isInitialSync) applyChatClosed();
         } else if(item.type === "chat_ban"){
           if(!isInitialSync) applyChatBanned();
+        } else if(item.type === "chat_unban"){
+          if(!isInitialSync && chatBanned) unlockChatAfterUnban();
         }
       });
       isInitialSync = false;
@@ -767,6 +769,7 @@
     hydrated = true;
     setChips([]);
     sentTexts.push(triggerText);
+    isInitialSync = true;
     sendVisitorChatMessage(triggerText, true, file);
     scheduleNextSync();
   }
@@ -1029,7 +1032,7 @@
     scheduleNextSync();
   }
 
-  if(liveChatActive){ scheduleNextSync(); }
+  if(liveChatActive){ isInitialSync = true; scheduleNextSync(); }
 
   if(GAS_URL && conversationId){
     jsonpFetch(GAS_URL + "?action=checkBan&conversationId=" + encodeURIComponent(conversationId)).then(function(data){
