@@ -259,7 +259,7 @@ button:active:not(:disabled){transform:translateY(0)}
   <button class="tab-btn" data-tab="tab-visual"><span data-i18n="tab_visual">المحرر المرئي</span></button>
   <button class="tab-btn" data-tab="tab-files"><span data-i18n="tab_files">محرر ملفات الموقع (كود)</span></button>
   <button class="tab-btn" data-tab="tab-testimonials"><span data-i18n="tab_testimonials">آراء العملاء</span></button>
-  <button class="tab-btn" data-tab="tab-pending"><span data-i18n="tab_pending">المراجعات والرسائل الجديدة</span></button>
+  <button class="tab-btn" data-tab="tab-pending"><span data-i18n="tab_pending">المراجعات والرسائل الجديدة</span><span id="pendingTabBadge" class="tab-badge" style="display:none"></span></button>
   <button class="tab-btn" data-tab="tab-chat"><span data-i18n="tab_chat">الشات المباشر</span><span id="chatTabBadge" class="tab-badge" style="display:none"></span></button>
   <button class="tab-btn" data-tab="tab-media"><span data-i18n="tab_media">الوسائط والصور</span></button>
   <button class="tab-btn" data-tab="tab-banned"><span data-i18n="tab_banned">🚫 المحظورين</span></button>
@@ -431,6 +431,14 @@ button:active:not(:disabled){transform:translateY(0)}
       <button class="btn-outline" onclick="loadPendingTab(true)">🔄 تحديث</button>
     </div>
     <p class="small-note">دي التقييمات ورسائل التواصل اللي بعتها الزوار من الموقع وبتتجمع تلقائي في جوجل شيت. لو التقييم حلو تقدر "تنشره" فيروح فورًا لقسم آراء العملاء بالموقع، أو "تحذفه" من القايمة بعد ما تتعامل معاه (زي الرد عليه بالإيميل أو رفضه).</p>
+    <div class="chat-filter-row" style="margin-bottom:12px">
+      <input type="text" id="pendingSearchInput" placeholder="🔍 ابحث بالاسم أو الإيميل أو نص الرسالة..." oninput="renderPendingList()">
+      <select id="pendingFilterSelect" onchange="renderPendingList()">
+        <option value="all">كل العناصر</option>
+        <option value="reviews">التقييمات بس</option>
+        <option value="messages">رسائل التواصل بس</option>
+      </select>
+    </div>
     <div id="pendingList"></div>
     <div class="msg" id="pendingMsg"></div>
   </div>
@@ -1193,6 +1201,32 @@ function isReviewType(t){
   return t.indexOf("تقييم") !== -1 || t.toLowerCase().indexOf("review") !== -1;
 }
 
+function setPendingTabBadge(count){
+  const el = document.getElementById("pendingTabBadge");
+  if(!el) return;
+  if(count > 0){
+    el.textContent = count > 99 ? "99+" : String(count);
+    el.style.display = "inline-block";
+  } else {
+    el.style.display = "none";
+  }
+}
+async function pollPendingBadge(){
+  try{
+    if(!chatWebhookUrl()){
+      if(!settingsData){ await loadSettingsTab(); }
+      if(!chatWebhookUrl()) return;
+    }
+    const data = await fetchSheetData();
+    const items = (data.items || []).filter(it => !/^chat_/.test(String(it.type || "")));
+    setPendingTabBadge(items.length);
+  }catch(e){}
+}
+function startPendingBadgePoll(){
+  pollPendingBadge();
+  setInterval(pollPendingBadge, 20000);
+}
+
 async function loadPendingTab(force){
   const wrap = document.getElementById("pendingList");
   wrap.innerHTML = "<p class='small-note'>جاري التحميل...</p>";
@@ -1204,30 +1238,54 @@ async function loadPendingTab(force){
   }
   try{
     const data = await fetchSheetData(force);
-    pendingItems = (data.items || []).filter(it => it.type !== "chat_visitor" && it.type !== "chat_admin" && it.type !== "chat_close" && it.type !== "chat_delete" && it.type !== "chat_ban" && it.type !== "chat_unban" && it.type !== "chat_rating");
+    pendingItems = (data.items || []).filter(it => !/^chat_/.test(String(it.type || "")));
   }catch(e){
     wrap.innerHTML = "";
     showMsg("pendingMsg", "تعذر تحميل البيانات من جوجل شيت: " + e.message, "error");
     return;
   }
+  setPendingTabBadge(pendingItems.length);
   renderPendingList();
 }
 
+function getFilteredPendingItems(){
+  const searchEl = document.getElementById("pendingSearchInput");
+  const filterEl = document.getElementById("pendingFilterSelect");
+  const q = searchEl ? searchEl.value.trim().toLowerCase() : "";
+  const filterVal = filterEl ? filterEl.value : "all";
+  return pendingItems.filter(item=>{
+    const isReview = isReviewType(item.type);
+    if(filterVal === "reviews" && !isReview) return false;
+    if(filterVal === "messages" && isReview) return false;
+    if(q){
+      const hay = ((item.name||"") + " " + (item.email||"") + " " + (item.service||"") + " " + (item.message||"")).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
 function renderPendingList(){
   const wrap = document.getElementById("pendingList");
   if(!pendingItems.length){
     wrap.innerHTML = '<p class="small-note">مفيش حاجة جديدة دلوقتي. 🎉</p>';
     return;
   }
-  wrap.innerHTML = pendingItems.map(item=>{
+  const filtered = getFilteredPendingItems();
+  if(!filtered.length){
+    wrap.innerHTML = '<p class="small-note">مفيش نتايج مطابقة للبحث أو الفلتر الحالي.</p>';
+    return;
+  }
+  wrap.innerHTML = filtered.map(item=>{
     const isReview = isReviewType(item.type);
     const rating = Math.max(1, Math.min(5, parseInt(item.rating,10) || 5));
     const stars = isReview ? "⭐".repeat(rating) : "";
+    const mailHref = item.email ? ("mailto:" + item.email + "?subject=" + encodeURIComponent("Italy Gateway — " + (item.service || "")) + "&body=" + encodeURIComponent("مرحباً " + (item.name || "") + "،\n\n")) : "";
     return '<div class="card" style="background:#f9fafc;box-shadow:none;border:1px solid #eef1f7">' +
       '<div class="card-head"><h2 style="font-size:14.5px">' + escapeHtml(item.type || "") +
         (item.date ? ' <span style="color:#98a2b3;font-weight:normal;font-size:12.5px">— ' + escapeHtml(String(item.date)) + '</span>' : '') + '</h2>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
           (isReview ? '<button class="btn-primary" onclick="publishPendingReview(' + item.row + ')">✅ نشر كرأي عميل</button>' : '') +
+          (mailHref ? '<a class="btn-outline" href="' + mailHref + '" style="display:inline-block;padding:10px 16px;border-radius:8px;font-size:14px;text-decoration:none;cursor:pointer">✉️ رد بالإيميل</a>' : '') +
           '<button class="btn-danger" onclick="deletePendingItem(' + item.row + ')">🗑 حذف</button>' +
         '</div>' +
       '</div>' +
@@ -1256,6 +1314,7 @@ async function deletePendingItem(row){
   try{
     await callSheetDelete(row);
     pendingItems = pendingItems.filter(it => it.row !== row);
+    setPendingTabBadge(pendingItems.length);
     renderPendingList();
     showMsg("pendingMsg", "تم الحذف ✅", "ok");
   }catch(e){
@@ -1288,6 +1347,7 @@ async function publishPendingReview(row){
 
     await callSheetDelete(row);
     pendingItems = pendingItems.filter(it => it.row !== row);
+    setPendingTabBadge(pendingItems.length);
     renderPendingList();
     showMsg("pendingMsg", "تم النشر بنجاح ✅ — التقييم هيظهر على الموقع خلال دقيقة أو اتنين.", "ok");
   }catch(e){
@@ -2397,6 +2457,7 @@ async function deleteMedia(name, sha){
 loadSettingsTab();
 initChatNotifications();
 startChatBadgePoll();
+startPendingBadgePoll();
 </script>
 
 </body>
