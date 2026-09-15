@@ -10,7 +10,21 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;max-width:100%}
-body{font-family:Arial,sans-serif;background:#f4f6fb;color:#101828}
+:root{
+  --bg:#f4f6fb;--bg-grad-a:#eef1fb;--bg-grad-b:#e6eaf6;
+  --surface:#fff;--surface-alt:#f9fafc;
+  --border:#eef1f7;--border-strong:#dcdfe6;
+  --text:#101828;--text-muted:#667085;
+  --input-border:#ddd;
+}
+[data-theme="dark"]{
+  --bg:#0d1220;--bg-grad-a:#0d1220;--bg-grad-b:#121a2e;
+  --surface:#161d2e;--surface-alt:#1b2338;
+  --border:#2a3350;--border-strong:#3a4568;
+  --text:#e7eaf3;--text-muted:#9aa4bf;
+  --input-border:#3a4568;
+}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);transition:background .2s ease,color .2s ease}
 header{background:#071a45;color:#fff;padding:0;position:relative;overflow:hidden}
 .header-accent{height:4px;width:100%;background:linear-gradient(90deg,#008C45 0%,#008C45 33.3%,#F4F5F0 33.3%,#F4F5F0 66.6%,#CD212A 66.6%,#CD212A 100%)}
 .header-inner{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:38px 24px 36px}
@@ -20,8 +34,10 @@ header .sub{position:relative;opacity:.75;font-size:13.5px;line-height:1.75;max-
 .header-icon{position:relative;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 24px rgba(3,10,40,.35),inset 0 1px 0 rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .header-icon svg{width:26px;height:26px;display:block}
 header::before{content:"";position:absolute;inset:4px 0 0 0;background:radial-gradient(560px 220px at 50% -90px,rgba(255,255,255,.16),transparent 70%);pointer-events:none}
-.lang-toggle{position:absolute;top:14px;left:18px;z-index:2;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;font-family:'Tajawal',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.4px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:background .15s ease}
-.lang-toggle:hover{background:rgba(255,255,255,.22)}
+.header-controls{position:absolute;top:14px;left:18px;z-index:2;display:flex;gap:8px}
+.lang-toggle,.theme-toggle{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;font-family:'Tajawal',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.4px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:background .15s ease}
+.lang-toggle:hover,.theme-toggle:hover{background:rgba(255,255,255,.22)}
+.theme-toggle{padding:6px 11px;font-size:14px;line-height:1}
 .container{width:95%;max-width:1200px;margin:26px auto}
 
 .gate{position:fixed;inset:0;background:#071a45;display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
@@ -33,29 +49,30 @@ header::before{content:"";position:absolute;inset:4px 0 0 0;background:radial-gr
 .gate-box button{width:100%;padding:12px;border:none;border-radius:10px;background:#2457ff;color:#fff;font-weight:bold;font-size:15px;cursor:pointer}
 .gate-err{color:#b42318;font-size:13.5px;margin-top:10px;display:none}
 
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:#fff;padding:8px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
-.tab-btn{border:none;background:transparent;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:bold;font-size:15px;color:#475467}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:var(--surface);padding:8px;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.tab-btn{border:none;background:transparent;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:bold;font-size:15px;color:var(--text-muted)}
 .tab-btn.active{background:#2457ff;color:#fff}
 .tabpage{display:none}
 .tabpage.active{display:block}
 
-.card{background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:20px}
+.card{background:var(--surface);padding:20px;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:20px}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .card h2{font-size:18px}
 
 button{border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit}
 .btn-primary{background:#2457ff;color:#fff}
-.btn-outline{background:#fff;border:1px solid #dcdfe6;color:#101828}
+.btn-outline{background:var(--surface);border:1px solid var(--border-strong);color:var(--text)}
 .btn-danger{background:#e53935;color:#fff}
 .btn-ghost{background:#eef1f7;color:#101828}
 button:disabled{opacity:.6;cursor:not-allowed}
 
-select,input[type=text],input[type=email],input[type=password],input[type=url],textarea{padding:10px 11px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;width:100%}
+select,input[type=text],input[type=email],input[type=password],input[type=url],textarea{padding:10px 11px;border:1px solid var(--input-border);border-radius:8px;font-size:14px;font-family:inherit;width:100%;background:var(--surface);color:var(--text)}
+.gate-box input{background:#fff;color:#101828}
 textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 .field{margin-bottom:16px}
-.field label{display:block;font-weight:bold;margin-bottom:6px;font-size:14px;color:#344054}
+.field label{display:block;font-weight:bold;margin-bottom:6px;font-size:14px;color:var(--text)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.small-note{color:#667085;font-size:13px;margin-top:4px;line-height:1.6}
+.small-note{color:var(--text-muted);font-size:13px;margin-top:4px;line-height:1.6}
 
 .msg{margin-top:12px;padding:10px 12px;border-radius:8px;display:none;font-size:14px}
 .msg.error{background:#fff0f0;color:#b42318}
@@ -73,7 +90,7 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 
 .chat-wrap{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
 .chat-list{display:flex;flex-direction:column;gap:8px;max-height:640px;overflow-y:auto}
-.chat-conv{background:#f9fafc;border:1px solid #eef1f7;border-radius:12px;padding:12px;cursor:pointer;text-align:right}
+.chat-conv{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;text-align:right}
 .chat-conv:hover{border-color:#c7d2fe}
 .chat-conv.active{border-color:#2457ff;background:#eef2ff}
 .chat-conv .cname{font-weight:bold;font-size:14px;color:#101828}
@@ -82,15 +99,15 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 .chat-conv.pending{border-color:#fdb022}
 .chat-conv .pending-badge{display:inline-block;background:#fdb022;color:#fff;font-size:11px;border-radius:20px;padding:1px 8px;margin-inline-start:6px}
 .chat-stats-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.chat-stat-pill{background:#f2f4f9;border:1px solid #e3e7ee;border-radius:10px;padding:8px 14px;font-size:12.5px;color:#344054;display:flex;align-items:center;gap:6px}
-.chat-stat-pill strong{font-size:15px;color:#101828}
+.chat-stat-pill{background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:12.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.chat-stat-pill strong{font-size:15px;color:var(--text)}
 .chat-stat-pill.pending{background:#fff8ec;border-color:#fdb022}
 .chat-stat-pill.priority{background:#fff5e6;border-color:#f79009}
-.chat-thread{background:#f9fafc;border:1px solid #eef1f7;border-radius:12px;padding:16px;display:flex;flex-direction:column;min-height:420px;max-height:640px}
+.chat-thread{background:var(--surface-alt);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;min-height:420px;max-height:640px}
 .chat-thread-head{font-weight:bold;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #eef1f7}
 .chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:6px 2px}
 .chat-bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6;white-space:pre-wrap}
-.chat-bubble.visitor{background:#fff;border:1px solid #eef1f7;align-self:flex-start;border-end-start-radius:4px}
+.chat-bubble.visitor{background:var(--surface);border:1px solid var(--border);align-self:flex-start;border-end-start-radius:4px;color:var(--text)}
 .chat-bubble.admin{background:#2457ff;color:#fff;align-self:flex-end;border-end-end-radius:4px}
 .chat-bubble .ctime{color:inherit;opacity:.65;font-size:10.5px;margin-top:4px}
 .chat-reply-row{display:flex;gap:8px;margin-top:12px;align-items:flex-end}
@@ -99,7 +116,9 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 .chat-quick-replies{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .chat-quick-chip{background:#eef1f7;color:#344054;border:1px solid #e3e7ee;padding:6px 12px;border-radius:999px;font-size:12.5px;cursor:pointer;white-space:nowrap}
 .chat-quick-chip:hover{background:#e3e7ee}
-.chat-notes-box{background:#fff8e6;border:1px solid #f5d68a;border-radius:10px;padding:10px 12px;margin:10px 0}
+.chat-notes-box{background:#fff8e6;border:1px solid #f5d68a;border-radius:10px;padding:10px 12px;margin:10px 0;color:#523c00}
+[data-theme="dark"] .chat-notes-box{background:#332608;border-color:#6b4f0f;color:#f0d896}
+[data-theme="dark"] .chat-notes-box textarea{background:#241b06;color:#f0d896;border-color:#6b4f0f}
 .chat-notes-label{font-size:12px;color:#8a6d1d;margin-bottom:6px;font-weight:bold}
 .chat-notes-box textarea{width:100%;min-height:50px;border:1px solid #eddca6;border-radius:8px;padding:8px;font-family:inherit;font-size:13px;resize:vertical;margin-bottom:6px}
 .chat-bubble.system{align-self:center;background:#f2f4f7;color:#667085;font-size:12.5px;text-align:center;max-width:90%;border-radius:999px;padding:6px 16px}
@@ -125,7 +144,9 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   .header-icon{width:46px;height:46px}
   .header-icon svg{width:22px;height:22px}
   .header-eyebrow{font-size:10px;letter-spacing:2px}
-  .lang-toggle{top:10px;left:10px;padding:4px 10px;font-size:11px}
+  .header-controls{top:10px;left:10px;gap:6px}
+  .lang-toggle{padding:4px 10px;font-size:11px}
+  .theme-toggle{padding:4px 9px;font-size:12px}
   .tab-btn{padding:10px 14px;font-size:14px}
 }
 
@@ -134,12 +155,12 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
    accents (buttons/tabs/header), avatars, stat dashboard, banned list,
    chat search/filter row.
    ====================================================================== */
-body{background:linear-gradient(180deg,#eef1fb 0%,#e6eaf6 100%)}
+body{background:linear-gradient(180deg,var(--bg-grad-a) 0%,var(--bg-grad-b) 100%)}
 header{background:linear-gradient(135deg,#0b1957 0%,#1a2f8f 60%,#2457ff 130%);box-shadow:0 6px 22px rgba(11,25,87,.28)}
 .tabs{box-shadow:0 6px 24px rgba(16,24,40,.08)}
 .tab-btn{transition:background .15s ease,color .15s ease}
 .tab-btn.active{background:linear-gradient(135deg,#2457ff,#1741d6);box-shadow:0 4px 14px rgba(36,87,255,.35)}
-.card{box-shadow:0 6px 24px rgba(16,24,40,.07);border:1px solid rgba(16,24,40,.04);transition:box-shadow .2s ease}
+.card{box-shadow:0 6px 24px rgba(16,24,40,.07);border:1px solid var(--border);transition:box-shadow .2s ease,background .2s ease}
 .card:hover{box-shadow:0 10px 30px rgba(16,24,40,.1)}
 button{box-shadow:0 2px 6px rgba(16,24,40,.08);transition:transform .12s ease,box-shadow .12s ease}
 button:hover:not(:disabled){transform:translateY(-1px)}
@@ -174,7 +195,7 @@ button:active:not(:disabled){transform:translateY(0)}
 
 /* dashboard stat cards */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
-.stat-card{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 6px 24px rgba(16,24,40,.07);border:1px solid rgba(16,24,40,.04);display:flex;flex-direction:column;gap:8px;transition:transform .2s ease,box-shadow .2s ease}
+.stat-card{background:var(--surface);border-radius:16px;padding:18px 20px;box-shadow:0 6px 24px rgba(16,24,40,.07);border:1px solid var(--border);display:flex;flex-direction:column;gap:8px;transition:transform .2s ease,box-shadow .2s ease}
 .stat-card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(16,24,40,.13)}
 .stat-icon{font-size:24px;width:44px;height:44px;border-radius:12px;background:#eef2ff;display:flex;align-items:center;justify-content:center}
 .stat-val{font-size:24px;font-weight:bold;color:#101828;font-variant-numeric:tabular-nums;line-height:1.3}
@@ -206,7 +227,10 @@ button:active:not(:disabled){transform:translateY(0)}
 
 <header>
 <div class="header-accent"></div>
+<div class="header-controls">
 <button type="button" class="lang-toggle" id="langToggleBtn" onclick="toggleLang()">EN</button>
+<button type="button" class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Dark mode">🌙</button>
+</div>
 <div class="header-inner">
 <div class="header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11C4 6.58 7.58 3 12 3C16.42 3 20 6.58 20 11V20"/><path d="M3 20H21"/><path d="M8 20V12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12V20"/></svg></div>
 <div class="header-eyebrow" data-i18n="header_eyebrow">ITALY GATEWAY · بوابة إيطاليا</div>
@@ -669,6 +693,21 @@ function toggleLang(){
   if(typeof updateChatNotifyBtn === "function") updateChatNotifyBtn();
 }
 applyStaticLang();
+
+const ADMIN_THEME_KEY = "admin_theme";
+let ADMIN_THEME = "light";
+try{ ADMIN_THEME = localStorage.getItem(ADMIN_THEME_KEY) || "light"; }catch(e){}
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", ADMIN_THEME === "dark" ? "dark" : "light");
+  const btn = document.getElementById("themeToggleBtn");
+  if(btn) btn.textContent = ADMIN_THEME === "dark" ? "☀️" : "🌙";
+}
+function toggleTheme(){
+  ADMIN_THEME = ADMIN_THEME === "dark" ? "light" : "dark";
+  try{ localStorage.setItem(ADMIN_THEME_KEY, ADMIN_THEME); }catch(e){}
+  applyTheme();
+}
+applyTheme();
 
 (function(){
   fetch("https://raw.githubusercontent.com/ahmedeltayb372-del/italy-visa-guide/main/site-settings.json?t=" + Date.now(), {cache:"no-store"})
