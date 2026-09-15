@@ -20,6 +20,8 @@ header .sub{position:relative;opacity:.75;font-size:13.5px;line-height:1.75;max-
 .header-icon{position:relative;width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 24px rgba(3,10,40,.35),inset 0 1px 0 rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .header-icon svg{width:26px;height:26px;display:block}
 header::before{content:"";position:absolute;inset:4px 0 0 0;background:radial-gradient(560px 220px at 50% -90px,rgba(255,255,255,.16),transparent 70%);pointer-events:none}
+.lang-toggle{position:absolute;top:14px;left:18px;z-index:2;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);color:#fff;font-family:'Tajawal',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.4px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:background .15s ease}
+.lang-toggle:hover{background:rgba(255,255,255,.22)}
 .container{width:95%;max-width:1200px;margin:26px auto}
 
 .gate{position:fixed;inset:0;background:#071a45;display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
@@ -123,6 +125,7 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
   .header-icon{width:46px;height:46px}
   .header-icon svg{width:22px;height:22px}
   .header-eyebrow{font-size:10px;letter-spacing:2px}
+  .lang-toggle{top:10px;left:10px;padding:4px 10px;font-size:11px}
   .tab-btn{padding:10px 14px;font-size:14px}
 }
 
@@ -193,21 +196,22 @@ button:active:not(:disabled){transform:translateY(0)}
 
 <div class="gate" id="gate">
   <div class="gate-box">
-    <h2>🔒 دخول لوحة الإدارة</h2>
-    <p>أدخل كلمة المرور الخاصة بالإدارة للمتابعة</p>
-    <input type="password" id="gatePass" placeholder="كلمة المرور">
-    <button onclick="tryUnlock()">دخول</button>
-    <div class="gate-err" id="gateErr">كلمة المرور غلط، حاول تاني</div>
+    <h2 data-i18n="gate_title">🔒 دخول لوحة الإدارة</h2>
+    <p data-i18n="gate_sub">أدخل كلمة المرور الخاصة بالإدارة للمتابعة</p>
+    <input type="password" id="gatePass" data-i18n-ph="gate_pass_ph" placeholder="كلمة المرور">
+    <button onclick="tryUnlock()" data-i18n="gate_btn">دخول</button>
+    <div class="gate-err" id="gateErr" data-i18n="gate_err">كلمة المرور غلط، حاول تاني</div>
   </div>
 </div>
 
 <header>
 <div class="header-accent"></div>
+<button type="button" class="lang-toggle" id="langToggleBtn" onclick="toggleLang()">EN</button>
 <div class="header-inner">
 <div class="header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11C4 6.58 7.58 3 12 3C16.42 3 20 6.58 20 11V20"/><path d="M3 20H21"/><path d="M8 20V12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12V20"/></svg></div>
-<div class="header-eyebrow">ITALY GATEWAY · بوابة إيطاليا</div>
-<h1>لوحة التحكم</h1>
-<div class="sub">إدارة محتوى الموقع، المحادثات المباشرة، وطلبات العملاء من مكان واحد</div>
+<div class="header-eyebrow" data-i18n="header_eyebrow">ITALY GATEWAY · بوابة إيطاليا</div>
+<h1 data-i18n="header_title">لوحة التحكم</h1>
+<div class="sub" data-i18n="header_sub">إدارة محتوى الموقع، المحادثات المباشرة، وطلبات العملاء من مكان واحد</div>
 </div>
 </header>
 
@@ -227,15 +231,15 @@ button:active:not(:disabled){transform:translateY(0)}
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" data-tab="tab-settings">الإعدادات العامة</button>
-  <button class="tab-btn" data-tab="tab-visual">المحرر المرئي</button>
-  <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع (كود)</button>
-  <button class="tab-btn" data-tab="tab-testimonials">آراء العملاء</button>
-  <button class="tab-btn" data-tab="tab-pending">المراجعات والرسائل الجديدة</button>
-  <button class="tab-btn" data-tab="tab-chat">الشات المباشر<span id="chatTabBadge" class="tab-badge" style="display:none"></span></button>
-  <button class="tab-btn" data-tab="tab-media">الوسائط والصور</button>
-  <button class="tab-btn" data-tab="tab-banned">🚫 المحظورين</button>
-  <button class="tab-btn" data-tab="tab-dashboard">📊 الإحصائيات</button>
+  <button class="tab-btn active" data-tab="tab-settings"><span data-i18n="tab_settings">الإعدادات العامة</span></button>
+  <button class="tab-btn" data-tab="tab-visual"><span data-i18n="tab_visual">المحرر المرئي</span></button>
+  <button class="tab-btn" data-tab="tab-files"><span data-i18n="tab_files">محرر ملفات الموقع (كود)</span></button>
+  <button class="tab-btn" data-tab="tab-testimonials"><span data-i18n="tab_testimonials">آراء العملاء</span></button>
+  <button class="tab-btn" data-tab="tab-pending"><span data-i18n="tab_pending">المراجعات والرسائل الجديدة</span></button>
+  <button class="tab-btn" data-tab="tab-chat"><span data-i18n="tab_chat">الشات المباشر</span><span id="chatTabBadge" class="tab-badge" style="display:none"></span></button>
+  <button class="tab-btn" data-tab="tab-media"><span data-i18n="tab_media">الوسائط والصور</span></button>
+  <button class="tab-btn" data-tab="tab-banned"><span data-i18n="tab_banned">🚫 المحظورين</span></button>
+  <button class="tab-btn" data-tab="tab-dashboard"><span data-i18n="tab_dashboard">📊 الإحصائيات</span></button>
 </div>
 
 <!-- ======================= SETTINGS TAB ======================= -->
@@ -412,30 +416,31 @@ button:active:not(:disabled){transform:translateY(0)}
 <div id="tab-chat" class="tabpage">
   <div class="card">
     <div class="card-head">
-      <h2>الشات المباشر مع زوار الموقع</h2>
+      <h2 data-i18n="chat_card_heading">الشات المباشر مع زوار الموقع</h2>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn-outline" id="chatNotifyBtn" onclick="enableChatNotifications()">🔔 تفعيل تنبيهات المتصفح</button>
-        <button class="btn-outline" onclick="loadChatTab(true)">🔄 تحديث</button>
+        <button class="btn-outline" id="chatNotifyBtn" onclick="enableChatNotifications()" data-i18n="notify_enable">🔔 تفعيل تنبيهات المتصفح</button>
+        <button class="btn-outline" onclick="loadChatTab(true)" data-i18n="chat_refresh">🔄 تحديث</button>
+        <button class="btn-outline" onclick="exportAllChatsReport()" data-i18n="chat_export_all">⬇️ تصدير تقرير الكل</button>
       </div>
     </div>
-    <p class="small-note">هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.</p>
+    <p class="small-note" data-i18n="chat_card_desc">هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.</p>
     <div id="chatStatsBar" class="chat-stats-bar"></div>
     <div class="chat-filter-row">
-      <input type="text" id="chatSearchInput" placeholder="🔍 ابحث بالاسم أو نص الرسالة..." oninput="renderChatList()">
+      <input type="text" id="chatSearchInput" data-i18n-ph="chat_search_ph" placeholder="🔍 ابحث بالاسم أو نص الرسالة..." oninput="renderChatList()">
       <select id="chatFilterSelect" onchange="renderChatList()">
-        <option value="all">كل المحادثات</option>
-        <option value="pending">يحتاج رد</option>
-        <option value="open">مفتوحة</option>
-        <option value="today">اليوم</option>
-        <option value="week">آخر 7 أيام</option>
-        <option value="closed">منتهية</option>
-        <option value="banned">محظورة</option>
+        <option value="all" data-i18n="filter_all">كل المحادثات</option>
+        <option value="pending" data-i18n="filter_pending">يحتاج رد</option>
+        <option value="open" data-i18n="filter_open">مفتوحة</option>
+        <option value="today" data-i18n="filter_today">اليوم</option>
+        <option value="week" data-i18n="filter_week">آخر 7 أيام</option>
+        <option value="closed" data-i18n="filter_closed">منتهية</option>
+        <option value="banned" data-i18n="filter_banned">محظورة</option>
       </select>
     </div>
     <div class="chat-wrap">
       <div class="chat-list" id="chatConvList"></div>
       <div class="chat-thread" id="chatThread">
-        <div class="chat-empty">اختار محادثة من القايمة عشان تشوف الرسايل وترد.</div>
+        <div class="chat-empty" data-i18n="chat_empty">اختار محادثة من القايمة عشان تشوف الرسايل وترد.</div>
       </div>
     </div>
     <div class="msg" id="chatMsg"></div>
@@ -497,6 +502,171 @@ button:active:not(:disabled){transform:translateY(0)}
    edits needed. This fallback is only used before that file loads.)
    ====================================================================== */
 let ADMIN_PASSPHRASE = "Ahmed123@";
+
+/* ======================================================================
+   ADMIN UI LANGUAGE (Arabic / English) — translates the panel's own
+   interface labels (not visitor-facing site content). Layout stays RTL;
+   only text swaps, so untranslated sections keep rendering correctly.
+   ====================================================================== */
+const ADMIN_LANG_KEY = "admin_lang";
+const I18N = {
+  ar: {
+    gate_title: "🔒 دخول لوحة الإدارة",
+    gate_sub: "أدخل كلمة المرور الخاصة بالإدارة للمتابعة",
+    gate_pass_ph: "كلمة المرور",
+    gate_btn: "دخول",
+    gate_err: "كلمة المرور غلط، حاول تاني",
+    header_eyebrow: "ITALY GATEWAY · بوابة إيطاليا",
+    header_title: "لوحة التحكم",
+    header_sub: "إدارة محتوى الموقع، المحادثات المباشرة، وطلبات العملاء من مكان واحد",
+    tab_settings: "الإعدادات العامة",
+    tab_visual: "المحرر المرئي",
+    tab_files: "محرر ملفات الموقع (كود)",
+    tab_testimonials: "آراء العملاء",
+    tab_pending: "المراجعات والرسائل الجديدة",
+    tab_chat: "الشات المباشر",
+    tab_media: "الوسائط والصور",
+    tab_banned: "🚫 المحظورين",
+    tab_dashboard: "📊 الإحصائيات",
+    chat_card_heading: "الشات المباشر مع زوار الموقع",
+    chat_card_desc: "هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.",
+    notify_enable: "🔔 تفعيل تنبيهات المتصفح",
+    notify_enabled: "🔔 التنبيهات مفعّلة",
+    chat_refresh: "🔄 تحديث",
+    chat_export_all: "⬇️ تصدير تقرير الكل",
+    chat_search_ph: "🔍 ابحث بالاسم أو نص الرسالة...",
+    filter_all: "كل المحادثات",
+    filter_pending: "يحتاج رد",
+    filter_open: "مفتوحة",
+    filter_today: "اليوم",
+    filter_week: "آخر 7 أيام",
+    filter_closed: "منتهية",
+    filter_banned: "محظورة",
+    stat_total: "إجمالي المحادثات",
+    stat_open: "مفتوحة",
+    stat_pending: "محتاجة رد",
+    stat_priority: "أولوية ⭐",
+    chat_list_empty: "مفيش محادثات مطابقة. 🎉",
+    sys_conv_closed_msg: "تم إنهاء المحادثة",
+    sys_bot_handoff_msg: "تم تحويل المحادثة تاني للبوت",
+    badge_banned: "محظور",
+    badge_priority: "⭐ أولوية",
+    btn_unban: "✅ فك الحظر",
+    btn_ban: "🚫 حظر الزائر",
+    btn_unpriority: "⭐ شيل الأولوية",
+    btn_priority: "⭐ علّم كأولوية",
+    btn_export_conv: "📥 تصدير المحادثة",
+    btn_bot_handoff: "🤖 رجّع للبوت",
+    btn_close_conv: "إنهاء المحادثة",
+    btn_delete_conv: "🗑 حذف المحادثة",
+    default_agent_name: "خدمة العملاء",
+    notes_label: "📝 ملاحظة داخلية (للفريق بس، الزائر مش بيشوفها)",
+    notes_ph: "اكتب أي ملاحظة أو سياق عن الزائر ده...",
+    btn_save_note: "💾 حفظ الملاحظة",
+    closed_note: "تم إنهاء المحادثة دي. لو الزائر بعت تاني هتظهر محادثة جديدة في القايمة.",
+    reply_as_prefix: "بترد باسم: ",
+    change_name_link: "تغيير الاسم ✏️",
+    reply_ph: "اكتب ردك هنا...",
+    attach_title: "إرفاق ملف",
+    send_btn: "إرسال",
+    chat_empty: "اختار محادثة من القايمة عشان تشوف الرسايل وترد.",
+    csv_col_name: "الاسم",
+    csv_col_status: "الحالة",
+    csv_col_count: "عدد الرسائل",
+    csv_col_last_msg: "آخر رسالة",
+    csv_col_last_date: "تاريخ آخر رسالة",
+    csv_col_note: "ملاحظة"
+  },
+  en: {
+    gate_title: "🔒 Admin Login",
+    gate_sub: "Enter the admin password to continue",
+    gate_pass_ph: "Password",
+    gate_btn: "Login",
+    gate_err: "Wrong password, try again",
+    header_eyebrow: "ITALY GATEWAY · Admin Panel",
+    header_title: "Control Panel",
+    header_sub: "Manage site content, live chats, and client requests — all in one place",
+    tab_settings: "General Settings",
+    tab_visual: "Visual Editor",
+    tab_files: "Site Files Editor (Code)",
+    tab_testimonials: "Testimonials",
+    tab_pending: "Reviews & New Messages",
+    tab_chat: "Live Chat",
+    tab_media: "Media & Images",
+    tab_banned: "🚫 Banned",
+    tab_dashboard: "📊 Stats",
+    chat_card_heading: "Live Chat with Site Visitors",
+    chat_card_desc: "Here you'll find every conversation visitors started from the site's chat widget. Pick a conversation from the list and reply — it reaches the visitor in their chat within seconds.",
+    notify_enable: "🔔 Enable Browser Notifications",
+    notify_enabled: "🔔 Notifications On",
+    chat_refresh: "🔄 Refresh",
+    chat_export_all: "⬇️ Export Full Report",
+    chat_search_ph: "🔍 Search by name or message...",
+    filter_all: "All Conversations",
+    filter_pending: "Needs Reply",
+    filter_open: "Open",
+    filter_today: "Today",
+    filter_week: "Last 7 Days",
+    filter_closed: "Closed",
+    filter_banned: "Banned",
+    stat_total: "Total Conversations",
+    stat_open: "Open",
+    stat_pending: "Needs Reply",
+    stat_priority: "Priority ⭐",
+    chat_list_empty: "No matching conversations. 🎉",
+    sys_conv_closed_msg: "Conversation ended",
+    sys_bot_handoff_msg: "Conversation handed back to the bot",
+    badge_banned: "Banned",
+    badge_priority: "⭐ Priority",
+    btn_unban: "✅ Unban",
+    btn_ban: "🚫 Ban Visitor",
+    btn_unpriority: "⭐ Remove Priority",
+    btn_priority: "⭐ Mark as Priority",
+    btn_export_conv: "📥 Export Conversation",
+    btn_bot_handoff: "🤖 Hand Back to Bot",
+    btn_close_conv: "End Conversation",
+    btn_delete_conv: "🗑 Delete Conversation",
+    default_agent_name: "Customer Service",
+    notes_label: "📝 Internal Note (team only, visitor can't see it)",
+    notes_ph: "Write any note or context about this visitor...",
+    btn_save_note: "💾 Save Note",
+    closed_note: "This conversation has ended. If the visitor messages again, a new conversation will appear in the list.",
+    reply_as_prefix: "Replying as: ",
+    change_name_link: "Change Name ✏️",
+    reply_ph: "Type your reply here...",
+    attach_title: "Attach File",
+    send_btn: "Send",
+    chat_empty: "Select a conversation from the list to view messages and reply.",
+    csv_col_name: "Name",
+    csv_col_status: "Status",
+    csv_col_count: "Message Count",
+    csv_col_last_msg: "Last Message",
+    csv_col_last_date: "Last Message Date",
+    csv_col_note: "Note"
+  }
+};
+let ADMIN_LANG = "ar";
+try{ ADMIN_LANG = localStorage.getItem(ADMIN_LANG_KEY) || "ar"; }catch(e){}
+function tr(key){
+  return (I18N[ADMIN_LANG] && I18N[ADMIN_LANG][key]) || I18N.ar[key] || key;
+}
+function applyStaticLang(){
+  document.documentElement.setAttribute("lang", ADMIN_LANG === "en" ? "en" : "ar");
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = tr(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){ el.setAttribute("placeholder", tr(el.getAttribute("data-i18n-ph"))); });
+  const langBtn = document.getElementById("langToggleBtn");
+  if(langBtn) langBtn.textContent = ADMIN_LANG === "en" ? "AR · عربي" : "EN";
+}
+function toggleLang(){
+  ADMIN_LANG = ADMIN_LANG === "en" ? "ar" : "en";
+  try{ localStorage.setItem(ADMIN_LANG_KEY, ADMIN_LANG); }catch(e){}
+  applyStaticLang();
+  if(document.getElementById("chatStatsBar")) updateChatStatsBar();
+  if(document.getElementById("chatConvList")) renderChatList();
+  if(selectedConvId && document.getElementById("chatThread")) renderChatThread(selectedConvId);
+  if(typeof updateChatNotifyBtn === "function") updateChatNotifyBtn();
+}
+applyStaticLang();
 
 (function(){
   fetch("https://raw.githubusercontent.com/ahmedeltayb372-del/italy-visa-guide/main/site-settings.json?t=" + Date.now(), {cache:"no-store"})
@@ -1202,7 +1372,7 @@ function updateChatNotifyBtn(){
   const btn = document.getElementById("chatNotifyBtn");
   if(!btn) return;
   if(chatNotifyEnabled){
-    btn.textContent = "🔔 التنبيهات مفعّلة";
+    btn.textContent = tr("notify_enabled");
     btn.disabled = true;
   }
 }
@@ -1356,6 +1526,14 @@ function timeAgoAr(dateStr){
   const t = dateStr ? new Date(dateStr).getTime() : NaN;
   if(!t || isNaN(t)) return "";
   const diffMin = Math.max(0, Math.floor((Date.now() - t) / 60000));
+  if(ADMIN_LANG === "en"){
+    if(diffMin < 1) return "now";
+    if(diffMin < 60) return diffMin + "m ago";
+    const diffHrE = Math.floor(diffMin / 60);
+    if(diffHrE < 24) return diffHrE + "h ago";
+    const diffDayE = Math.floor(diffHrE / 24);
+    return diffDayE + "d ago";
+  }
   if(diffMin < 1) return "دلوقتي";
   if(diffMin < 60) return "من " + diffMin + " د";
   const diffHr = Math.floor(diffMin / 60);
@@ -1372,7 +1550,7 @@ function isConvPending(conv){
 function convShortCode(id){
   if(!id) return "";
   const clean = String(id).replace(/-/g,"");
-  return "زائر #" + clean.slice(0,6).toUpperCase();
+  return (ADMIN_LANG === "en" ? "Visitor #" : "زائر #") + clean.slice(0,6).toUpperCase();
 }
 
 function setChatTabBadge(count){
@@ -1399,10 +1577,10 @@ function updateChatStatsBar(){
   const pending = list.filter(isConvPending).length;
   const priority = list.filter(c => c.priority).length;
   bar.innerHTML =
-    '<div class="chat-stat-pill"><strong>' + total + '</strong> إجمالي المحادثات</div>' +
-    '<div class="chat-stat-pill"><strong>' + open + '</strong> مفتوحة</div>' +
-    '<div class="chat-stat-pill pending"><strong>' + pending + '</strong> محتاجة رد</div>' +
-    '<div class="chat-stat-pill priority"><strong>' + priority + '</strong> أولوية ⭐</div>';
+    '<div class="chat-stat-pill"><strong>' + total + '</strong> ' + tr("stat_total") + '</div>' +
+    '<div class="chat-stat-pill"><strong>' + open + '</strong> ' + tr("stat_open") + '</div>' +
+    '<div class="chat-stat-pill pending"><strong>' + pending + '</strong> ' + tr("stat_pending") + '</div>' +
+    '<div class="chat-stat-pill priority"><strong>' + priority + '</strong> ' + tr("stat_priority") + '</div>';
 }
 async function pollChatBadge(){
   try{
@@ -1480,15 +1658,15 @@ function renderChatList(){
     list = list.filter(conv => conv.banned);
   }
   if(!list.length){
-    wrap.innerHTML = '<p class="small-note">مفيش محادثات مطابقة. 🎉</p>';
+    wrap.innerHTML = '<p class="small-note">' + tr("chat_list_empty") + '</p>';
     return;
   }
   wrap.innerHTML = list.map(conv=>{
     const last = conv.messages[conv.messages.length - 1];
     const pending = isConvPending(conv);
     return '<div class="chat-conv' + (conv.id === selectedConvId ? " active" : "") + (pending ? " pending" : "") + (conv.closed ? " closed" : "") + (conv.banned ? " banned" : "") + (conv.priority ? " priority" : "") + '" data-conv="' + escapeHtml(conv.id) + '">' +
-      '<div class="cname">' + (conv.priority ? "⭐ " : "") + avatarSpan(conv.name || convShortCode(conv.id), "visitor", 24) + escapeHtml(conv.name || convShortCode(conv.id)) + (pending ? '<span class="pending-badge">يحتاج رد · ' + timeAgoAr(last && last.date) + '</span>' : '') + (conv.closed ? '<span class="closed-badge">منتهية</span>' : '') + (conv.banned ? '<span class="banned-badge">محظور</span>' : '') + '</div>' +
-      '<div class="cpreview">' + escapeHtml((last && last.message) || (conv.closed ? "تم إنهاء المحادثة" : "")) + '</div>' +
+      '<div class="cname">' + (conv.priority ? "⭐ " : "") + avatarSpan(conv.name || convShortCode(conv.id), "visitor", 24) + escapeHtml(conv.name || convShortCode(conv.id)) + (pending ? '<span class="pending-badge">' + tr("filter_pending") + ' · ' + timeAgoAr(last && last.date) + '</span>' : '') + (conv.closed ? '<span class="closed-badge">' + tr("filter_closed") + '</span>' : '') + (conv.banned ? '<span class="banned-badge">' + tr("badge_banned") + '</span>' : '') + '</div>' +
+      '<div class="cpreview">' + escapeHtml((last && last.message) || (conv.closed ? tr("sys_conv_closed_msg") : "")) + '</div>' +
       '<div class="ctime">' + escapeHtml((last && String(last.date)) || "") + '</div>' +
     '</div>';
   }).join("");
@@ -1507,41 +1685,41 @@ function selectConversation(id){
 function renderChatThread(id){
   const conv = chatConversations[id];
   const wrap = document.getElementById("chatThread");
-  if(!conv){ wrap.innerHTML = '<div class="chat-empty">اختار محادثة من القايمة عشان تشوف الرسايل وترد.</div>'; return; }
+  if(!conv){ wrap.innerHTML = '<div class="chat-empty">' + tr("chat_empty") + '</div>'; return; }
   const idEsc = id.replace(/'/g,"\\'");
   const banBtn = conv.banned
-    ? '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="unbanFromPanel(\'' + idEsc + '\')">✅ فك الحظر</button>'
-    : '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="banFromPanel(\'' + idEsc + '\')">🚫 حظر الزائر</button>';
+    ? '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="unbanFromPanel(\'' + idEsc + '\')">' + tr("btn_unban") + '</button>'
+    : '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="banFromPanel(\'' + idEsc + '\')">' + tr("btn_ban") + '</button>';
   const prioBtn = conv.priority
-    ? '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="unpriorityFromPanel(\'' + idEsc + '\')">⭐ شيل الأولوية</button>'
-    : '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="priorityFromPanel(\'' + idEsc + '\')">⭐ علّم كأولوية</button>';
+    ? '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="unpriorityFromPanel(\'' + idEsc + '\')">' + tr("btn_unpriority") + '</button>'
+    : '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="priorityFromPanel(\'' + idEsc + '\')">' + tr("btn_priority") + '</button>';
   const head = '<div class="chat-thread-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">' +
     '<span style="display:flex;align-items:center;flex-wrap:wrap">' + avatarSpan(conv.name || convShortCode(conv.id), "visitor", 30) + escapeHtml(conv.name || convShortCode(conv.id)) +
       (conv.email ? ' — ' + escapeHtml(conv.email) : '') +
       (conv.service ? ' — ' + escapeHtml(conv.service) : '') +
-      (conv.closed ? ' <span class="closed-badge">منتهية</span>' : '') +
-      (conv.banned ? ' <span class="banned-badge">محظور</span>' : '') +
-      (conv.priority ? ' <span class="priority-badge">⭐ أولوية</span>' : '') +
+      (conv.closed ? ' <span class="closed-badge">' + tr("filter_closed") + '</span>' : '') +
+      (conv.banned ? ' <span class="banned-badge">' + tr("badge_banned") + '</span>' : '') +
+      (conv.priority ? ' <span class="priority-badge">' + tr("badge_priority") + '</span>' : '') +
     '</span>' +
     '<span style="display:flex;gap:8px;flex-wrap:wrap">' +
     prioBtn +
     banBtn +
-    '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="exportChatTranscript(\'' + idEsc + '\')">📥 تصدير المحادثة</button>' +
-    '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="botHandoffFromPanel(\'' + idEsc + '\')">🤖 رجّع للبوت</button>' +
-    (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">إنهاء المحادثة</button>' : '') +
-    '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteChatConversation(\'' + idEsc + '\')">🗑 حذف المحادثة</button>' +
+    '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="exportChatTranscript(\'' + idEsc + '\')">' + tr("btn_export_conv") + '</button>' +
+    '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="botHandoffFromPanel(\'' + idEsc + '\')">' + tr("btn_bot_handoff") + '</button>' +
+    (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">' + tr("btn_close_conv") + '</button>' : '') +
+    '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteChatConversation(\'' + idEsc + '\')">' + tr("btn_delete_conv") + '</button>' +
     '</span>' +
     '</div>';
   const msgsHtml = conv.messages.map(m=>{
     if(m.type === "chat_close" || m.type === "chat_bot_handoff"){
-      return '<div class="chat-bubble system">' + escapeHtml(m.message || (m.type === "chat_bot_handoff" ? "تم تحويل المحادثة تاني للبوت" : "تم إنهاء المحادثة")) + '</div>';
+      return '<div class="chat-bubble system">' + escapeHtml(m.message || (m.type === "chat_bot_handoff" ? tr("sys_bot_handoff_msg") : tr("sys_conv_closed_msg"))) + '</div>';
     }
     const cls = m.type === "chat_admin" ? "admin" : "visitor";
     let meta = {};
     if(m.fileMeta){ try{ meta = JSON.parse(m.fileMeta); }catch(e){} }
     const attachHtml = m.fileUrl ? renderChatAttachment(m.fileUrl, meta.name, meta.mime) : "";
-    const metaLine = (cls === "admin" ? escapeHtml(m.name || "خدمة العملاء") + " — " : "") + escapeHtml(String(m.date || ""));
-    const avatarName = cls === "admin" ? (m.name || "خدمة العملاء") : (conv.name || convShortCode(conv.id));
+    const metaLine = (cls === "admin" ? escapeHtml(m.name || tr("default_agent_name")) + " — " : "") + escapeHtml(String(m.date || ""));
+    const avatarName = cls === "admin" ? (m.name || tr("default_agent_name")) : (conv.name || convShortCode(conv.id));
     return '<div class="chat-msg-row ' + cls + '">' +
       avatarSpan(avatarName, cls === "admin" ? "admin" : "visitor", 28) +
       '<div class="chat-bubble ' + cls + '">' + (m.message ? escapeHtml(m.message) : "") +
@@ -1550,9 +1728,9 @@ function renderChatThread(id){
       '</div>';
   }).join("");
   const notesHtml = '<div class="chat-notes-box">' +
-    '<div class="chat-notes-label">📝 ملاحظة داخلية (للفريق بس، الزائر مش بيشوفها)</div>' +
-    '<textarea id="chatNoteInput" placeholder="اكتب أي ملاحظة أو سياق عن الزائر ده...">' + escapeHtml(conv.note || "") + '</textarea>' +
-    '<button class="btn-outline" style="padding:5px 12px;font-size:12px" onclick="saveConvNote(\'' + idEsc + '\')">💾 حفظ الملاحظة</button>' +
+    '<div class="chat-notes-label">' + tr("notes_label") + '</div>' +
+    '<textarea id="chatNoteInput" placeholder="' + tr("notes_ph") + '">' + escapeHtml(conv.note || "") + '</textarea>' +
+    '<button class="btn-outline" style="padding:5px 12px;font-size:12px" onclick="saveConvNote(\'' + idEsc + '\')">' + tr("btn_save_note") + '</button>' +
   '</div>';
   const quickRepliesHtml = '<div class="chat-quick-replies">' +
     getQuickReplies().map(q => '<button type="button" class="chat-quick-chip">' + escapeHtml(q) + '</button>').join("") +
@@ -1560,17 +1738,17 @@ function renderChatThread(id){
   wrap.innerHTML = head + notesHtml +
     '<div class="chat-msgs" id="chatMsgsBox">' + msgsHtml + '</div>' +
     (conv.closed
-      ? '<div class="chat-closed-note">تم إنهاء المحادثة دي. لو الزائر بعت تاني هتظهر محادثة جديدة في القايمة.</div>'
+      ? '<div class="chat-closed-note">' + tr("closed_note") + '</div>'
       : quickRepliesHtml +
         '<div class="chat-reply-row">' +
           '<div class="chat-reply-col">' +
-            '<div class="small-note" style="margin-bottom:4px">بترد باسم: <strong>' + escapeHtml(localStorage.getItem(AGENT_NAME_KEY) || "خدمة العملاء") + '</strong> <a href="#" onclick="changeAgentName();return false;" style="margin-inline-start:6px">تغيير الاسم ✏️</a></div>' +
-            '<textarea id="chatReplyInput" placeholder="اكتب ردك هنا..."></textarea>' +
+            '<div class="small-note" style="margin-bottom:4px">' + tr("reply_as_prefix") + '<strong>' + escapeHtml(localStorage.getItem(AGENT_NAME_KEY) || tr("default_agent_name")) + '</strong> <a href="#" onclick="changeAgentName();return false;" style="margin-inline-start:6px">' + tr("change_name_link") + '</a></div>' +
+            '<textarea id="chatReplyInput" placeholder="' + tr("reply_ph") + '"></textarea>' +
             '<div class="chat-file-preview" id="chatFilePreview" style="display:none"></div>' +
           '</div>' +
           '<input type="file" id="chatFileInput" style="display:none">' +
-          '<button type="button" class="btn-outline chat-attach-btn" id="chatAttachBtn" title="إرفاق ملف">📎</button>' +
-          '<button class="btn-primary" id="chatSendBtn" onclick="sendChatReply(\'' + idEsc + '\')">إرسال</button>' +
+          '<button type="button" class="btn-outline chat-attach-btn" id="chatAttachBtn" title="' + tr("attach_title") + '">📎</button>' +
+          '<button class="btn-primary" id="chatSendBtn" onclick="sendChatReply(\'' + idEsc + '\')">' + tr("send_btn") + '</button>' +
         '</div>');
   const box = document.getElementById("chatMsgsBox");
   if(box) box.scrollTop = box.scrollHeight;
@@ -1898,6 +2076,36 @@ function exportChatTranscript(id){
   const a = document.createElement("a");
   a.href = url;
   a.download = "محادثة-" + (conv.name || convShortCode(conv.id)).replace(/[^\w\u0600-\u06FF]+/g,"_") + ".txt";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+}
+
+function exportAllChatsReport(){
+  const rows = [[tr("csv_col_name"), tr("csv_col_status"), tr("csv_col_count"), tr("csv_col_last_msg"), tr("csv_col_last_date"), tr("csv_col_note")]];
+  Object.values(chatConversations).sort(function(a,b){
+    const da = a.messages.length ? new Date(a.messages[a.messages.length-1].date).getTime() : 0;
+    const db = b.messages.length ? new Date(b.messages[b.messages.length-1].date).getTime() : 0;
+    return db - da;
+  }).forEach(function(conv){
+    const last = conv.messages[conv.messages.length-1];
+    const status = conv.banned ? tr("filter_banned") : (conv.closed ? tr("filter_closed") : (isConvPending(conv) ? tr("filter_pending") : tr("filter_open")));
+    rows.push([
+      conv.name || convShortCode(conv.id),
+      status,
+      String(conv.messages.length),
+      (last && last.message) || "",
+      (last && String(last.date)) || "",
+      conv.note || ""
+    ]);
+  });
+  const csv = rows.map(function(r){ return r.map(function(cell){ return '"' + String(cell).replace(/"/g,'""') + '"'; }).join(","); }).join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], {type: "text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "chat-report-" + new Date().toISOString().slice(0,10) + ".csv";
   document.body.appendChild(a);
   a.click();
   a.remove();
