@@ -546,6 +546,7 @@ const I18N = {
     stat_open: "مفتوحة",
     stat_pending: "محتاجة رد",
     stat_priority: "أولوية ⭐",
+    stat_avg_response: "متوسط وقت الرد",
     chat_list_empty: "مفيش محادثات مطابقة. 🎉",
     sys_conv_closed_msg: "تم إنهاء المحادثة",
     sys_bot_handoff_msg: "تم تحويل المحادثة تاني للبوت",
@@ -613,6 +614,7 @@ const I18N = {
     stat_open: "Open",
     stat_pending: "Needs Reply",
     stat_priority: "Priority ⭐",
+    stat_avg_response: "Avg. Response Time",
     chat_list_empty: "No matching conversations. 🎉",
     sys_conv_closed_msg: "Conversation ended",
     sys_bot_handoff_msg: "Conversation handed back to the bot",
@@ -1066,6 +1068,9 @@ function addTestimonial(){
   renderTestimonialsList();
 }
 function removeTestimonial(i){
+  const t = testimonialsData[i];
+  const hasContent = t && (((t.name||{}).ar || (t.name||{}).en) || ((t.text||{}).ar || (t.text||{}).en));
+  if(hasContent && !confirm("متأكد عايز تشيل الرأي ده من الفورم؟ (لسه محتاج تحفظ التغييرات عشان يتثبت الحذف)")) return;
   testimonialsData.splice(i,1);
   renderTestimonialsList();
 }
@@ -1568,6 +1573,41 @@ function updateChatTabBadge(){
   Object.values(chatConversations).forEach(conv => { if(isConvPending(conv)) count++; });
   setChatTabBadge(count);
 }
+function computeAvgResponseMs(list){
+  let totalMs = 0, count = 0;
+  list.forEach(function(conv){
+    let firstVisitorTime = null;
+    for(let i=0;i<conv.messages.length;i++){
+      const m = conv.messages[i];
+      if(m.type === "chat_visitor" && firstVisitorTime === null){
+        const t = new Date(m.date).getTime();
+        if(!isNaN(t)) firstVisitorTime = t;
+      } else if(m.type === "chat_admin" && firstVisitorTime !== null){
+        const t = new Date(m.date).getTime();
+        if(!isNaN(t) && t >= firstVisitorTime){
+          totalMs += (t - firstVisitorTime);
+          count++;
+        }
+        break;
+      }
+    }
+  });
+  return count ? (totalMs / count) : null;
+}
+function formatResponseDuration(ms){
+  if(ms === null || ms === undefined || isNaN(ms)) return "—";
+  const mins = Math.round(ms / 60000);
+  if(ADMIN_LANG === "en"){
+    if(mins < 1) return "<1m";
+    if(mins < 60) return mins + "m";
+    const hrs = Math.floor(mins / 60);
+    return hrs + "h " + (mins % 60) + "m";
+  }
+  if(mins < 1) return "أقل من دقيقة";
+  if(mins < 60) return mins + " د";
+  const hrs = Math.floor(mins / 60);
+  return hrs + " س " + (mins % 60) + " د";
+}
 function updateChatStatsBar(){
   const bar = document.getElementById("chatStatsBar");
   if(!bar) return;
@@ -1576,11 +1616,13 @@ function updateChatStatsBar(){
   const open = list.filter(c => !c.closed && !c.banned).length;
   const pending = list.filter(isConvPending).length;
   const priority = list.filter(c => c.priority).length;
+  const avgResponse = formatResponseDuration(computeAvgResponseMs(list));
   bar.innerHTML =
     '<div class="chat-stat-pill"><strong>' + total + '</strong> ' + tr("stat_total") + '</div>' +
     '<div class="chat-stat-pill"><strong>' + open + '</strong> ' + tr("stat_open") + '</div>' +
     '<div class="chat-stat-pill pending"><strong>' + pending + '</strong> ' + tr("stat_pending") + '</div>' +
-    '<div class="chat-stat-pill priority"><strong>' + priority + '</strong> ' + tr("stat_priority") + '</div>';
+    '<div class="chat-stat-pill priority"><strong>' + priority + '</strong> ' + tr("stat_priority") + '</div>' +
+    '<div class="chat-stat-pill"><strong>' + avgResponse + '</strong> ' + tr("stat_avg_response") + '</div>';
 }
 async function pollChatBadge(){
   try{
@@ -1846,6 +1888,7 @@ async function sendChatReply(id){
 }
 
 async function closeChatConversation(id){
+  if(!confirm("متأكد عايز تنهي المحادثة دي؟ الزائر هيشوف إنها اتقفلت، ومحادثة جديدة هتتعمل لو بعت تاني.")) return;
   const webhookUrl = chatWebhookUrl();
   if(!webhookUrl) return;
   try{
