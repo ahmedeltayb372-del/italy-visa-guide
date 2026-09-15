@@ -138,6 +138,9 @@ button:active:not(:disabled){transform:translateY(0)}
 /* banned state */
 .chat-conv.banned{border-color:#f04438;background:#fef3f2}
 .banned-badge{display:inline-block;background:#f04438;color:#fff;font-size:11px;border-radius:20px;padding:1px 8px;margin-inline-start:6px}
+.chat-conv.priority{border-color:#f79009;background:#fffaf0}
+.priority-badge{display:inline-block;background:#f79009;color:#fff;font-size:11px;border-radius:20px;padding:1px 8px;margin-inline-start:6px}
+.tab-badge{display:inline-block;background:#f04438;color:#fff;font-size:11px;font-weight:bold;border-radius:20px;padding:1px 7px;margin-inline-start:6px;min-width:8px;text-align:center;vertical-align:middle}
 .banned-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f9fafc;border:1px solid #eef1f7;border-radius:12px;padding:12px 14px;margin-bottom:10px}
 .banned-name{display:flex;align-items:center;font-weight:bold}
 
@@ -204,7 +207,7 @@ button:active:not(:disabled){transform:translateY(0)}
   <button class="tab-btn" data-tab="tab-files">محرر ملفات الموقع (كود)</button>
   <button class="tab-btn" data-tab="tab-testimonials">آراء العملاء</button>
   <button class="tab-btn" data-tab="tab-pending">المراجعات والرسائل الجديدة</button>
-  <button class="tab-btn" data-tab="tab-chat">الشات المباشر</button>
+  <button class="tab-btn" data-tab="tab-chat">الشات المباشر<span id="chatTabBadge" class="tab-badge" style="display:none"></span></button>
   <button class="tab-btn" data-tab="tab-media">الوسائط والصور</button>
   <button class="tab-btn" data-tab="tab-banned">🚫 المحظورين</button>
   <button class="tab-btn" data-tab="tab-dashboard">📊 الإحصائيات</button>
@@ -392,7 +395,7 @@ button:active:not(:disabled){transform:translateY(0)}
     </div>
     <p class="small-note">هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.</p>
     <div class="chat-filter-row">
-      <input type="text" id="chatSearchInput" placeholder="🔍 ابحث بالاسم..." oninput="renderChatList()">
+      <input type="text" id="chatSearchInput" placeholder="🔍 ابحث بالاسم أو نص الرسالة..." oninput="renderChatList()">
       <select id="chatFilterSelect" onchange="renderChatList()">
         <option value="all">كل المحادثات</option>
         <option value="pending">يحتاج رد</option>
@@ -1256,12 +1259,12 @@ async function loadChatTab(force){
     }
     return;
   }
-  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban" || it.type === "chat_bot_handoff");
+  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban" || it.type === "chat_bot_handoff" || it.type === "chat_priority" || it.type === "chat_unpriority");
   const convs = {};
   items.forEach(it=>{
     const id = it.conversationId || "";
     if(!id) return;
-    if(!convs[id]) convs[id] = {id: id, name: "", email: "", service: "", messages: [], closed: false, banned: false};
+    if(!convs[id]) convs[id] = {id: id, name: "", email: "", service: "", messages: [], closed: false, banned: false, priority: false};
     if(it.type === "chat_visitor"){
       convs[id].name = it.name || convs[id].name;
       convs[id].email = it.email || convs[id].email;
@@ -1278,6 +1281,10 @@ async function loadChatTab(force){
       convs[id].banned = true;
     } else if(it.type === "chat_unban"){
       convs[id].banned = false;
+    } else if(it.type === "chat_priority"){
+      convs[id].priority = true;
+    } else if(it.type === "chat_unpriority"){
+      convs[id].priority = false;
     }
   });
   Object.keys(convs).forEach(id=>{
@@ -1286,6 +1293,7 @@ async function loadChatTab(force){
   });
   chatConversations = convs;
   renderChatList();
+  updateChatTabBadge();
   if(selectedConvId && chatConversations[selectedConvId]){
     renderChatThread(selectedConvId);
   }
@@ -1324,6 +1332,54 @@ function convShortCode(id){
   return "زائر #" + clean.slice(0,6).toUpperCase();
 }
 
+function setChatTabBadge(count){
+  const el = document.getElementById("chatTabBadge");
+  if(!el) return;
+  if(count > 0){
+    el.textContent = count > 99 ? "99+" : String(count);
+    el.style.display = "inline-block";
+  } else {
+    el.style.display = "none";
+  }
+}
+function updateChatTabBadge(){
+  let count = 0;
+  Object.values(chatConversations).forEach(conv => { if(isConvPending(conv)) count++; });
+  setChatTabBadge(count);
+}
+async function pollChatBadge(){
+  try{
+    if(!chatWebhookUrl()){
+      if(!settingsData){ await loadSettingsTab(); }
+      if(!chatWebhookUrl()) return;
+    }
+    const data = await fetchSheetData();
+    const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban");
+    const convs = {};
+    items.forEach(it=>{
+      const id = it.conversationId || "";
+      if(!id) return;
+      if(!convs[id]) convs[id] = {lastType: "", closed: false, banned: false, deleted: false};
+      if(it.type === "chat_visitor"){ convs[id].closed = false; convs[id].deleted = false; convs[id].lastType = "chat_visitor"; }
+      else if(it.type === "chat_admin"){ convs[id].lastType = "chat_admin"; }
+      else if(it.type === "chat_close"){ convs[id].closed = true; convs[id].lastType = "chat_close"; }
+      else if(it.type === "chat_delete"){ convs[id].deleted = true; }
+      else if(it.type === "chat_ban"){ convs[id].banned = true; }
+      else if(it.type === "chat_unban"){ convs[id].banned = false; }
+    });
+    let count = 0;
+    Object.keys(convs).forEach(id=>{
+      const c = convs[id];
+      if(!c.deleted && !c.closed && !c.banned && c.lastType === "chat_visitor") count++;
+    });
+    setChatTabBadge(count);
+  }catch(e){}
+}
+function startChatBadgePoll(){
+  pollChatBadge();
+  setInterval(pollChatBadge, 20000);
+}
+
 function renderChatList(){
   const wrap = document.getElementById("chatConvList");
   const searchEl = document.getElementById("chatSearchInput");
@@ -1331,12 +1387,16 @@ function renderChatList(){
   const searchVal = ((searchEl && searchEl.value) || "").trim().toLowerCase();
   const filterVal = (filterEl && filterEl.value) || "all";
   let list = Object.values(chatConversations).sort((a,b)=>{
+    if(!!b.priority !== !!a.priority) return (b.priority?1:0) - (a.priority?1:0);
     const da = a.messages.length ? new Date(a.messages[a.messages.length-1].date).getTime() : 0;
     const db = b.messages.length ? new Date(b.messages[b.messages.length-1].date).getTime() : 0;
     return db - da;
   });
   if(searchVal){
-    list = list.filter(conv => (conv.name || convShortCode(conv.id)).toLowerCase().indexOf(searchVal) !== -1);
+    list = list.filter(conv => {
+      if((conv.name || convShortCode(conv.id)).toLowerCase().indexOf(searchVal) !== -1) return true;
+      return conv.messages.some(m => (m.message || "").toLowerCase().indexOf(searchVal) !== -1);
+    });
   }
   if(filterVal === "pending"){
     list = list.filter(conv => isConvPending(conv));
@@ -1354,8 +1414,8 @@ function renderChatList(){
   wrap.innerHTML = list.map(conv=>{
     const last = conv.messages[conv.messages.length - 1];
     const pending = isConvPending(conv);
-    return '<div class="chat-conv' + (conv.id === selectedConvId ? " active" : "") + (pending ? " pending" : "") + (conv.closed ? " closed" : "") + (conv.banned ? " banned" : "") + '" data-conv="' + escapeHtml(conv.id) + '">' +
-      '<div class="cname">' + avatarSpan(conv.name || convShortCode(conv.id), "visitor", 24) + escapeHtml(conv.name || convShortCode(conv.id)) + (pending ? '<span class="pending-badge">يحتاج رد</span>' : '') + (conv.closed ? '<span class="closed-badge">منتهية</span>' : '') + (conv.banned ? '<span class="banned-badge">محظور</span>' : '') + '</div>' +
+    return '<div class="chat-conv' + (conv.id === selectedConvId ? " active" : "") + (pending ? " pending" : "") + (conv.closed ? " closed" : "") + (conv.banned ? " banned" : "") + (conv.priority ? " priority" : "") + '" data-conv="' + escapeHtml(conv.id) + '">' +
+      '<div class="cname">' + (conv.priority ? "⭐ " : "") + avatarSpan(conv.name || convShortCode(conv.id), "visitor", 24) + escapeHtml(conv.name || convShortCode(conv.id)) + (pending ? '<span class="pending-badge">يحتاج رد</span>' : '') + (conv.closed ? '<span class="closed-badge">منتهية</span>' : '') + (conv.banned ? '<span class="banned-badge">محظور</span>' : '') + '</div>' +
       '<div class="cpreview">' + escapeHtml((last && last.message) || (conv.closed ? "تم إنهاء المحادثة" : "")) + '</div>' +
       '<div class="ctime">' + escapeHtml((last && String(last.date)) || "") + '</div>' +
     '</div>';
@@ -1380,14 +1440,19 @@ function renderChatThread(id){
   const banBtn = conv.banned
     ? '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="unbanFromPanel(\'' + idEsc + '\')">✅ فك الحظر</button>'
     : '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="banFromPanel(\'' + idEsc + '\')">🚫 حظر الزائر</button>';
+  const prioBtn = conv.priority
+    ? '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="unpriorityFromPanel(\'' + idEsc + '\')">⭐ شيل الأولوية</button>'
+    : '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="priorityFromPanel(\'' + idEsc + '\')">⭐ علّم كأولوية</button>';
   const head = '<div class="chat-thread-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">' +
     '<span style="display:flex;align-items:center;flex-wrap:wrap">' + avatarSpan(conv.name || convShortCode(conv.id), "visitor", 30) + escapeHtml(conv.name || convShortCode(conv.id)) +
       (conv.email ? ' — ' + escapeHtml(conv.email) : '') +
       (conv.service ? ' — ' + escapeHtml(conv.service) : '') +
       (conv.closed ? ' <span class="closed-badge">منتهية</span>' : '') +
       (conv.banned ? ' <span class="banned-badge">محظور</span>' : '') +
+      (conv.priority ? ' <span class="priority-badge">⭐ أولوية</span>' : '') +
     '</span>' +
     '<span style="display:flex;gap:8px;flex-wrap:wrap">' +
+    prioBtn +
     banBtn +
     '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="botHandoffFromPanel(\'' + idEsc + '\')">🤖 رجّع للبوت</button>' +
     (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">إنهاء المحادثة</button>' : '') +
@@ -1676,6 +1741,44 @@ async function banFromPanel(id){
   }
 }
 
+async function priorityFromPanel(id){
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) return;
+  try{
+    await fetch(webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"chat_priority", conversationId: id, secret: ADMIN_PASSPHRASE})
+    });
+    if(chatConversations[id]) chatConversations[id].priority = true;
+    showMsg("chatMsg", "اتحطت علامة الأولوية ⭐", "ok");
+    if(selectedConvId === id) renderChatThread(id);
+    renderChatList();
+  }catch(e){
+    showMsg("chatMsg", "حصل خطأ: " + e.message, "error");
+  }
+}
+
+async function unpriorityFromPanel(id){
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) return;
+  try{
+    await fetch(webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"chat_unpriority", conversationId: id, secret: ADMIN_PASSPHRASE})
+    });
+    if(chatConversations[id]) chatConversations[id].priority = false;
+    showMsg("chatMsg", "اتشالت علامة الأولوية", "ok");
+    if(selectedConvId === id) renderChatThread(id);
+    renderChatList();
+  }catch(e){
+    showMsg("chatMsg", "حصل خطأ: " + e.message, "error");
+  }
+}
+
 async function botHandoffFromPanel(id){
   if(!confirm("متأكد عايز ترجّع الزائر ده يتكلم مع ماركو (البوت)؟")) return;
   const webhookUrl = chatWebhookUrl();
@@ -1875,6 +1978,7 @@ async function deleteMedia(name, sha){
 /* init */
 loadSettingsTab();
 initChatNotifications();
+startChatBadgePoll();
 </script>
 
 </body>
