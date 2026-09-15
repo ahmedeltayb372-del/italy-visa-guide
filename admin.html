@@ -445,6 +445,7 @@ button:active:not(:disabled){transform:translateY(0)}
         <button class="btn-outline" id="chatNotifyBtn" onclick="enableChatNotifications()" data-i18n="notify_enable">🔔 تفعيل تنبيهات المتصفح</button>
         <button class="btn-outline" onclick="loadChatTab(true)" data-i18n="chat_refresh">🔄 تحديث</button>
         <button class="btn-outline" onclick="exportAllChatsReport()" data-i18n="chat_export_all">⬇️ تصدير تقرير الكل</button>
+        <a class="btn-outline" href="https://docs.google.com/spreadsheets/d/1onQbOsaeI2qg_t5KxmP2PexmPtS2xfq8_72xrx9Mu4c/export?format=xlsx" target="_blank" rel="noopener" style="display:inline-block;padding:10px 16px;border-radius:8px;font-size:14px;text-decoration:none;cursor:pointer" data-i18n="chat_export_excel" title="ملف Excel كامل بيتحدّث لوحده كل ساعة — نفس اللينك دايماً">📊 ملف Excel (محدّث تلقائياً)</a>
       </div>
     </div>
     <p class="small-note" data-i18n="chat_card_desc">هنا تلاقي كل المحادثات اللي طلب فيها زوار الموقع التحدث مع خدمة العملاء من الشات بتاع الموقع. اختار محادثة من القايمة وردّ عليها، والرد هيظهر للزائر في نفس الشات بتاعه على الموقع خلال ثواني.</p>
@@ -558,6 +559,7 @@ const I18N = {
     notify_enabled: "🔔 التنبيهات مفعّلة",
     chat_refresh: "🔄 تحديث",
     chat_export_all: "⬇️ تصدير تقرير الكل",
+    chat_export_excel: "📊 ملف Excel (محدّث تلقائياً)",
     chat_search_ph: "🔍 ابحث بالاسم أو نص الرسالة...",
     filter_all: "كل المحادثات",
     filter_pending: "يحتاج رد",
@@ -626,6 +628,7 @@ const I18N = {
     notify_enabled: "🔔 Notifications On",
     chat_refresh: "🔄 Refresh",
     chat_export_all: "⬇️ Export Full Report",
+    chat_export_excel: "📊 Live Excel Report",
     chat_search_ph: "🔍 Search by name or message...",
     filter_all: "All Conversations",
     filter_pending: "Needs Reply",
