@@ -757,7 +757,10 @@
   function scheduleNextSync(){
     if(chatPollTimer){ clearTimeout(chatPollTimer); chatPollTimer = null; }
     if(!liveChatActive || !conversationId) return;
-    var delay = opened ? 1000 : 5000;
+    /* Slower when the tab is in the background, since a visitor can leave
+       the chat open indefinitely — this keeps idle tabs from piling load
+       on the Apps Script backend (shared with every other open chat). */
+    var delay = document.hidden ? 15000 : (opened ? 2500 : 8000);
     chatPollTimer = setTimeout(function(){
       syncChatMessages();
       scheduleNextSync();
