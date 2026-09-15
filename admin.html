@@ -1395,7 +1395,7 @@ function renderChatList(){
   if(searchVal){
     list = list.filter(conv => {
       if((conv.name || convShortCode(conv.id)).toLowerCase().indexOf(searchVal) !== -1) return true;
-      return conv.messages.some(m => (m.message || "").toLowerCase().indexOf(searchVal) !== -1);
+      return conv.messages.some(m => String(m.message || "").toLowerCase().indexOf(searchVal) !== -1);
     });
   }
   if(filterVal === "pending"){
