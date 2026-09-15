@@ -1172,16 +1172,24 @@ function jsonpFetch(url){
     script.onerror = ()=>{ if(!done){ reject(new Error("تعذر الاتصال بجوجل شيت")); cleanup(); } };
     script.src = url + (url.indexOf("?")===-1?"?":"&") + "callback=" + cbName + "&t=" + Date.now();
     document.body.appendChild(script);
-    setTimeout(()=>{ if(!done){ reject(new Error("انتهت المهلة أثناء تحميل البيانات من جوجل شيت")); cleanup(); } }, 25000);
+    setTimeout(()=>{ if(!done){ reject(new Error("انتهت المهلة أثناء تحميل البيانات من جوجل شيت")); cleanup(); } }, 40000);
   });
 }
 
 /* ---- shared short-lived cache for the (large, unfiltered) sheet read —
    the chat / banned / dashboard / pending tabs all need the same data,
    so caching for a few seconds avoids piling up parallel/duplicate
-   requests on the Apps Script webhook (which slows it down further). ---- */
+   requests on the Apps Script webhook (which slows it down further).
+   __sheetDataInflight additionally makes every caller that lands while a
+   request is already running (force or not) JOIN that same request instead
+   of starting a new one — without this, several timers (chat auto-refresh,
+   the notification poll, the two tab badges) firing close together while
+   the backend is slow would each fire their own JSONP call, piling up
+   concurrent requests on Apps Script until it starts returning 503s /
+   client-side timeouts, which is what made the chat tab stop refreshing. ---- */
 let __sheetDataCache = null;
 let __sheetDataCacheAt = 0;
+let __sheetDataInflight = null;
 const SHEET_CACHE_TTL_MS = 4000;
 async function fetchSheetData(force){
   const webhookUrl = chatWebhookUrl();
@@ -1189,11 +1197,19 @@ async function fetchSheetData(force){
   if(!force && __sheetDataCache && (Date.now() - __sheetDataCacheAt) < SHEET_CACHE_TTL_MS){
     return __sheetDataCache;
   }
-  const data = await jsonpFetch(webhookUrl);
-  if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
-  __sheetDataCache = data;
-  __sheetDataCacheAt = Date.now();
-  return data;
+  if(__sheetDataInflight) return __sheetDataInflight;
+  __sheetDataInflight = (async ()=>{
+    try{
+      const data = await jsonpFetch(webhookUrl);
+      if(data.status !== "success") throw new Error(data.message || "خطأ غير معروف من جوجل شيت");
+      __sheetDataCache = data;
+      __sheetDataCacheAt = Date.now();
+      return data;
+    } finally {
+      __sheetDataInflight = null;
+    }
+  })();
+  return __sheetDataInflight;
 }
 
 function isReviewType(t){
@@ -1486,8 +1502,15 @@ function updateChatNotifyBtn(){
 
 function startChatBackgroundPoll(){
   if(chatBackgroundTimer) return;
-  checkChatNotifications();
-  chatBackgroundTimer = setInterval(checkChatNotifications, 7000);
+  const tick = ()=>{
+    checkChatNotifications();
+    /* Slower while the admin's tab is in the background — this poll runs
+       forever once notifications are enabled, so keeping it fast only when
+       the tab is actually visible cuts a lot of needless load off the
+       shared Apps Script backend. */
+    chatBackgroundTimer = setTimeout(tick, document.hidden ? 30000 : 7000);
+  };
+  tick();
 }
 
 async function checkChatNotifications(){
