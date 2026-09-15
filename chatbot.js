@@ -522,7 +522,7 @@
       var script = document.createElement("script");
       var done = false;
       window[cbName] = function(data){ done = true; resolve(data); cleanup(); };
-      function cleanup(){ delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+      function cleanup(){ window[cbName] = function(){}; if(script.parentNode) script.parentNode.removeChild(script); setTimeout(function(){ delete window[cbName]; }, 30000); }
       script.onerror = function(){ if(!done){ reject(new Error("network error")); cleanup(); } };
       script.src = url + (url.indexOf("?")===-1?"?":"&") + "callback=" + cbName + "&t=" + Date.now();
       document.body.appendChild(script);
