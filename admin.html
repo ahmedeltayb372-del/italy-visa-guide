@@ -8,9 +8,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;max-width:100%}
 body{font-family:Arial,sans-serif;background:#f4f6fb;color:#101828}
-header{background:#071a45;color:#fff;padding:22px 25px}
-header h1{margin-bottom:2px;font-size:20px}
-header .sub{opacity:.8;font-size:13.5px}
+header{background:#071a45;color:#fff;padding:30px 32px;display:flex;align-items:center;gap:14px}
+header h1{margin-bottom:4px;font-size:22px}
+header .sub{opacity:.85;font-size:13.5px;line-height:1.6}
+.header-icon{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .container{width:95%;max-width:1200px;margin:26px auto}
 
 .gate{position:fixed;inset:0;background:#071a45;display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
@@ -83,6 +84,9 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 .chat-quick-replies{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .chat-quick-chip{background:#eef1f7;color:#344054;border:1px solid #e3e7ee;padding:6px 12px;border-radius:999px;font-size:12.5px;cursor:pointer;white-space:nowrap}
 .chat-quick-chip:hover{background:#e3e7ee}
+.chat-notes-box{background:#fff8e6;border:1px solid #f5d68a;border-radius:10px;padding:10px 12px;margin:10px 0}
+.chat-notes-label{font-size:12px;color:#8a6d1d;margin-bottom:6px;font-weight:bold}
+.chat-notes-box textarea{width:100%;min-height:50px;border:1px solid #eddca6;border-radius:8px;padding:8px;font-family:inherit;font-size:13px;resize:vertical;margin-bottom:6px}
 .chat-bubble.system{align-self:center;background:#f2f4f7;color:#667085;font-size:12.5px;text-align:center;max-width:90%;border-radius:999px;padding:6px 16px}
 .chat-conv.closed{opacity:.65}
 .closed-badge{display:inline-block;background:#98a2b3;color:#fff;font-size:11px;border-radius:20px;padding:1px 8px;margin-inline-start:6px}
@@ -102,7 +106,8 @@ textarea{font-family:'Courier New',monospace;direction:ltr;text-align:left}
 @media(max-width:700px){
   .row2{grid-template-columns:1fr}
   .container{width:calc(100% - 20px);margin:16px auto}
-  header{padding:18px}
+  header{padding:20px 18px;gap:10px}
+  .header-icon{width:38px;height:38px;font-size:18px}
   .tab-btn{padding:10px 14px;font-size:14px}
 }
 
@@ -182,8 +187,11 @@ button:active:not(:disabled){transform:translateY(0)}
 </div>
 
 <header>
+<div class="header-icon">🇮🇹</div>
+<div>
 <h1>لوحة الإدارة</h1>
 <div class="sub">بوابة إيطاليا من مصر — تحكم كامل في محتوى الموقع</div>
+</div>
 </header>
 
 <div class="container">
@@ -1259,12 +1267,12 @@ async function loadChatTab(force){
     }
     return;
   }
-  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban" || it.type === "chat_bot_handoff" || it.type === "chat_priority" || it.type === "chat_unpriority");
+  const items = (data.items || []).filter(it => it.type === "chat_visitor" || it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_delete" || it.type === "chat_ban" || it.type === "chat_unban" || it.type === "chat_bot_handoff" || it.type === "chat_priority" || it.type === "chat_unpriority" || it.type === "chat_note");
   const convs = {};
   items.forEach(it=>{
     const id = it.conversationId || "";
     if(!id) return;
-    if(!convs[id]) convs[id] = {id: id, name: "", email: "", service: "", messages: [], closed: false, banned: false, priority: false};
+    if(!convs[id]) convs[id] = {id: id, name: "", email: "", service: "", messages: [], closed: false, banned: false, priority: false, note: ""};
     if(it.type === "chat_visitor"){
       convs[id].name = it.name || convs[id].name;
       convs[id].email = it.email || convs[id].email;
@@ -1285,6 +1293,8 @@ async function loadChatTab(force){
       convs[id].priority = true;
     } else if(it.type === "chat_unpriority"){
       convs[id].priority = false;
+    } else if(it.type === "chat_note"){
+      convs[id].note = it.message || "";
     }
   });
   Object.keys(convs).forEach(id=>{
@@ -1454,6 +1464,7 @@ function renderChatThread(id){
     '<span style="display:flex;gap:8px;flex-wrap:wrap">' +
     prioBtn +
     banBtn +
+    '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="exportChatTranscript(\'' + idEsc + '\')">📥 تصدير المحادثة</button>' +
     '<button class="btn-outline" style="padding:6px 12px;font-size:12px" onclick="botHandoffFromPanel(\'' + idEsc + '\')">🤖 رجّع للبوت</button>' +
     (!conv.closed ? '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="closeChatConversation(\'' + idEsc + '\')">إنهاء المحادثة</button>' : '') +
     '<button class="btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteChatConversation(\'' + idEsc + '\')">🗑 حذف المحادثة</button>' +
@@ -1476,10 +1487,15 @@ function renderChatThread(id){
         '<div class="ctime">' + metaLine + '</div></div>' +
       '</div>';
   }).join("");
+  const notesHtml = '<div class="chat-notes-box">' +
+    '<div class="chat-notes-label">📝 ملاحظة داخلية (للفريق بس، الزائر مش بيشوفها)</div>' +
+    '<textarea id="chatNoteInput" placeholder="اكتب أي ملاحظة أو سياق عن الزائر ده...">' + escapeHtml(conv.note || "") + '</textarea>' +
+    '<button class="btn-outline" style="padding:5px 12px;font-size:12px" onclick="saveConvNote(\'' + idEsc + '\')">💾 حفظ الملاحظة</button>' +
+  '</div>';
   const quickRepliesHtml = '<div class="chat-quick-replies">' +
     getQuickReplies().map(q => '<button type="button" class="chat-quick-chip">' + escapeHtml(q) + '</button>').join("") +
   '</div>';
-  wrap.innerHTML = head +
+  wrap.innerHTML = head + notesHtml +
     '<div class="chat-msgs" id="chatMsgsBox">' + msgsHtml + '</div>' +
     (conv.closed
       ? '<div class="chat-closed-note">تم إنهاء المحادثة دي. لو الزائر بعت تاني هتظهر محادثة جديدة في القايمة.</div>'
@@ -1777,6 +1793,53 @@ async function unpriorityFromPanel(id){
   }catch(e){
     showMsg("chatMsg", "حصل خطأ: " + e.message, "error");
   }
+}
+
+async function saveConvNote(id){
+  const webhookUrl = chatWebhookUrl();
+  if(!webhookUrl) return;
+  const ta = document.getElementById("chatNoteInput");
+  const text = (ta && ta.value || "").trim();
+  try{
+    await fetch(webhookUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({type:"chat_note", conversationId: id, message: text, secret: ADMIN_PASSPHRASE})
+    });
+    if(chatConversations[id]) chatConversations[id].note = text;
+    showMsg("chatMsg", "اتحفظت الملاحظة ✅", "ok");
+  }catch(e){
+    showMsg("chatMsg", "تعذر حفظ الملاحظة: " + e.message, "error");
+  }
+}
+
+function exportChatTranscript(id){
+  const conv = chatConversations[id];
+  if(!conv) return;
+  const lines = [];
+  lines.push("محادثة: " + (conv.name || convShortCode(conv.id)));
+  if(conv.email) lines.push("الإيميل: " + conv.email);
+  if(conv.service) lines.push("الخدمة: " + conv.service);
+  lines.push("تاريخ التصدير: " + new Date().toLocaleString("ar-EG"));
+  lines.push("----------------------------------------");
+  conv.messages.forEach(function(m){
+    if(m.type === "chat_close" || m.type === "chat_bot_handoff"){
+      lines.push("[نظام] " + (m.message || (m.type === "chat_bot_handoff" ? "تم تحويل المحادثة تاني للبوت" : "تم إنهاء المحادثة")));
+      return;
+    }
+    const who = m.type === "chat_admin" ? (m.name || "خدمة العملاء") : (conv.name || convShortCode(conv.id));
+    lines.push("[" + (m.date || "") + "] " + who + ": " + (m.message || (m.fileUrl ? "(ملف مرفق)" : "")));
+  });
+  const blob = new Blob([lines.join("\n")], {type: "text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "محادثة-" + (conv.name || convShortCode(conv.id)).replace(/[^\w\u0600-\u06FF]+/g,"_") + ".txt";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
 }
 
 async function botHandoffFromPanel(id){
