@@ -1267,6 +1267,7 @@ async function loadChatTab(force){
       convs[id].email = it.email || convs[id].email;
       convs[id].service = it.service || convs[id].service;
       convs[id].closed = false;
+      convs[id].deleted = false;
       convs[id].messages.push(it);
     } else if(it.type === "chat_admin" || it.type === "chat_close" || it.type === "chat_bot_handoff"){
       if(it.type === "chat_close") convs[id].closed = true;
