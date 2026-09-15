@@ -1198,11 +1198,17 @@ async function checkChatNotifications(){
     chatFirstPollDone = true;
     return;
   }
+  let hasNewChatItem = false;
   items.forEach(it=>{
     if(chatNotifiedRows.has(it.row)) return;
     chatNotifiedRows.add(it.row);
     notifyNewMessage(it);
+    hasNewChatItem = true;
   });
+  if(hasNewChatItem){
+    const chatTabPage = document.getElementById("tab-chat");
+    if(chatTabPage && chatTabPage.classList.contains("active")) loadChatTab(true);
+  }
 }
 
 function notifyNewMessage(it){
